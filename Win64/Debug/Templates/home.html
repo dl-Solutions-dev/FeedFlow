@@ -1,0 +1,30 @@
+@LayoutPage layouts/mainLayout
+
+<script>
+function confirmDelete(aForm){
+	if (confirm("Etes-vous certains de vouloir supprimer ce fil d'informations ?")){
+		aForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+	}
+}
+</script>
+
+<div class="container">
+<h1 class="text-center">Fils d'informations</h1>
+<br/>
+	<div id="ListNavigation">
+		@import ListNavigation
+	</div>
+	<br/>
+	<div id="TargetTable">
+		@import FeelsTable
+	</div>
+	<a href="@env.resource/AddFeelList" id="btnAddApplication" class="btn btn-primary">Ajouter un fil d'informations</a>
+	<script>
+		document.body.addEventListener('htmx:afterRequest', function(evt) {
+			if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
+				// Une fois la première requête terminée, déclencher la deuxième requête
+				htmx.ajax("GET", "@env.resource/@pages.ActionList?Session=@App.SessionNo&Page=1@if (pages.UrlParameters <> '') {&@pages.UrlParameters}", "#TargetTable");
+			}
+		});
+	</script>
+</div>

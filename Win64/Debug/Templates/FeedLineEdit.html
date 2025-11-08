@@ -1,0 +1,38 @@
+		<tr tr hx-trigger='cancel' class='editing' hx-get="/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED">
+			  <td>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/ApplyFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
+						hx-include="closest tr"
+					>
+						<span class="material-icons">
+						save
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
+					>
+						<span class="material-icons">
+						cancel
+						</span>
+					</a>
+			  </td>
+			  <td>
+				<input autofocus id="edtID_FEED" name="ID_FEED" value="@Feed.ID_FEED">
+			  </td>
+			  <td>
+				<input id="edtName" name="name" value="@Feed.NOM">
+			  </td>
+			  <td>
+			    <select id="Visibility" name="visibleFiche">	
+					<option value="O" @if (Feed.STATUT = 'O'){selected}>Oui</option>
+					<option value="N" @if (Feed.STATUT <> 'O'){selected}>Non</option>
+				</select>
+			  </td>
+			  <td>
+				<input id="edtVersion" name="version" value="@Feed.APP_VERSION">
+			  </td>
+			</tr>

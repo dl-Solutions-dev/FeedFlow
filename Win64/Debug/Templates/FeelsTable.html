@@ -1,0 +1,18 @@
+		<Table  class="table">
+			<thead class="table-light">
+				<tr>
+				  <th scope="col"></th>
+				  <th scope="col"></th>
+				  <th scope="col"></th>
+				  <th scope="col">ID</th>
+				  <th scope="col">Nom</th>
+				  <th scope="col">Visible fiche</th>
+				  <th scope="col">Version</th>
+				</tr>
+			</thead>
+			<tbody id="TableApplications" hx-target="closest tr" hx-swap="outerHTML">
+				@foreach applicationsList {
+					@import ApplicationLine {@Application = @loop}
+				}
+			</tbody>
+		</table>

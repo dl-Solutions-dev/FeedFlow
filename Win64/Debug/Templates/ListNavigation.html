@@ -1,0 +1,66 @@
+	
+<nav aria-label="Navigation" id="Navigation">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Pagination -->
+    <ul class="pagination mb-0">
+		@foreach ( var page in pages.PagesList) {
+			<li class="page-item">
+			@if page.IsClickable {
+				<a class="page-link" href="#"
+					hx-trigger="click"
+					hx-post="@env.resource/@pages.ActionPagination?Page=@page.NoPage@if (pages.UrlParameters <> '') {&@pages.UrlParameters} "
+					hx-include=[name="LinesPerPage"]
+					hx-target="closest #Navigation"
+					hx-swap="outerHTML"
+				>
+					@if page.IsActualPage { [@page.text] } @else { @page.text }
+				</a>
+			} @else {
+				<span class="page-link">
+				@page.text
+				</span>
+			}
+			</li>
+		}
+    </ul>
+
+    <!-- Sélecteur de lignes par page -->
+    <div class="input-group" style="max-width: 200px;">
+		<select 
+			class="form-select" 
+			aria-label="Nombre de lignes par page" 
+			id="LinesPerPage"
+			name="LinesPerPage"
+			hx-trigger="change"
+			hx-post="@env.resource/@pages.ActionPagination?Session=@App.SessionNo@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
+			hx-include="[name='LinesPerPage'], [name='search']"
+			hx-target="closest #Navigation"
+			hx-swap="outerHTML"
+		>
+			<option value="10" @if (pages.LinesPerPage = 10) { selected }>10</option>
+			<option value="20" @if (pages.LinesPerPage = 20) { selected }>20</option>
+			<option value="50" @if (pages.LinesPerPage = 50) { selected }>50</option>
+			<option value="100" @if (pages.LinesPerPage = 100) { selected }>100</option>
+		</select>
+      <span class="input-group-text">Lignes/pages</span>
+    </div>
+
+    <!-- Champ de recherche -->
+    <div class="input-group" style="max-width: 250px;">
+		<span class="input-group-text">
+			🔍
+		</span>
+		<input type="text" 
+			class="form-control" 
+			placeholder="Rechercher..." 
+			name="search" 
+			value="@pages.Search"
+			hx-trigger="input changed delay:1s"
+			hx-post="@env.resource/@pages.ActionPagination?Session=@App.SessionNo&LinesPerPage=@pages.LinesPerPage&SearchChanged=Y@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
+			hx-include="[name='search']"
+			hx-target="closest #Navigation"
+			hx-swap="outerHTML"
+		>
+    </div>
+  </div>
+</nav>

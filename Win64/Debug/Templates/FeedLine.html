@@ -1,0 +1,54 @@
+		<tr id="Row@Feed.ID_FEED">
+			  <td>
+			  
+					<a href="#" hx-delete="@env.resource/DeleteFeed?id=@Feed.ID_FEED" hx-confirm="Etes-vous certains de vouloir supprimer cette liste ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+						<span class="material-icons">
+						delete
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="@env.resource/UpdateApplication?FeedId=@Feed.ID_FEED">
+						<span class="material-icons">
+						visibility
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/FeedEditLineMode?id=@Feed.ID_FEED&col=1"
+						hx-trigger="edit"
+						onClick="let editing = document.querySelector('.editing')
+								 if(editing) {
+								   Swal.fire({title: 'Already Editing',
+											  showCancelButton: true,
+											  confirmButtonText: 'Yep, Edit This Row!',
+											  text:'Une ligne est déjà en cours d&#x2019;édition, voulez-vous continuer ?'})
+								   .then((result) => {
+										if(result.isConfirmed) {
+										   htmx.trigger(editing, 'Cancel')
+										   htmx.trigger(this, 'edit')
+										}
+									})
+								 } else {
+									htmx.trigger(this, 'edit')
+								 }"
+						>
+						<span class="material-icons">
+						edit
+						</span>
+					</a>
+			  </td>
+			  <td id="col1@Feed.ID_FEED">
+				@Feed.ID_FEED
+			  </td>
+			  <td  id="col2@Feed.ID_FEED">
+				@Feed.NOM
+			  </td>
+			  <td  id="col3@Feed.ID_FEED">
+			    @Feed.VISIBLE_FICHE
+			  </td>
+			  <td  id="col4@Feed.ID_FEED">
+				@Feed.APP_VERSION
+			  </td>
+			</tr>
