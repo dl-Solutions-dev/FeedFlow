@@ -1,0 +1,48 @@
+	<tr class="AddLine">
+      <td>
+			<a 
+				href="#" 
+				hx-post="@env.resource/ApplyInsertNews?Session=@App.SessionNo" 
+				hx-include="closest tr"
+				hx-target="closest tr"
+			>
+			<span class="material-icons">
+			  save
+			</span>
+		  </a>	  
+	  </td>
+      <td>
+		  <a href="#" hx-post="@env.resource/CancelAddNews" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+			<span class="material-icons">
+			  cancel
+			</span>
+		  </a>
+      </td>
+      <td>
+		&nbsp;
+	  </td>
+	  <td>
+		&nbsp;
+	  </td>
+	  <td>
+		<input autofocus id="edtTitre" name="titre" value="@News.TITRE_NEWS">
+	  </td>
+	  <td>
+		<select id="Status" name="status">	
+			<option value="O" selected>Affichée</option>
+			<option value="N">Non affichée</option>
+		</select>
+	  </td>
+	  <td>
+		<input type="date" id="datePublication" name="datepublication">
+	  </td>
+	  <td>
+		<input type="date" id="datePeremption" name="dateperemption">
+	  </td>
+	  <td>
+		&nbsp;
+	  </td>
+	  <td>
+		&nbsp;
+	  </td>
+    </tr>

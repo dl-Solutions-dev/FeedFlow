@@ -13,7 +13,7 @@ uses
 type
   TIndexController = class( TBaseController )
   private
-    FMsg: string;
+
   public
     procedure Main( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
@@ -23,6 +23,9 @@ type
     procedure FeedEditLineMode( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure CancelFeedEditLine( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ApplyFeedEditLine( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure AddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure CancelAddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure ApplyInsertFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
@@ -46,13 +49,34 @@ const
   NAVIGATION_NAME: string = 'FeedList';
   SEARCH_VARIABLE: string = 'FeedsList.Search';
   LINEPERPAGE_VARIABLE: string = 'LinesPerPageFeed';
+  TMP_ADD: string = 'FeedAdd.html';
   TMP_LISTE: string = 'FeedsList.html';
-  TMP_TABLE: string = 'FeelsTable.html';
+  TMP_TABLE: string = 'FeedsTable.html';
   TMP_LINE: string = 'FeedLine.html';
   TMP_LINE_EDIT: string = 'FeedLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
 
   { TIndexController }
+
+procedure TIndexController.AddFeed( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+begin
+  LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
+    FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+
+    Response.Content := RenderTemplate( TMP_ADD, Request );
+  end
+  else
+  begin
+    Response.Content := 'Invalid session';
+  end;
+end;
 
 procedure TIndexController.ApplyFeedEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
@@ -69,19 +93,19 @@ begin
     begin
       LDM.cnxFeedFlow.StartTransaction;
 
-      LDM.QryListeFeeds.close;
-      LDM.QryListeFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryListeFeeds.Open;
+      LDM.QryFeeds.close;
+      LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.QryFeeds.Open;
 
-      if not ( LDM.QryListeFeeds.Eof ) then
+      if not ( LDM.QryFeeds.Eof ) then
       begin
-        LDM.QryListeFeeds.Edit;
+        LDM.QryFeeds.Edit;
 
-        LDM.QryListeFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
-        LDM.QryListeFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-        LDM.QryListeFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+        //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
+        LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+        LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
         try
-          LDM.QryListeFeeds.Post;
+          LDM.QryFeeds.Post;
           LDM.cnxFeedFlow.Commit;
         except
           on e: Exception do
@@ -91,11 +115,11 @@ begin
           end;
         end;
 
-        LDM.QryListeFeeds.close;
-        LDM.QryListeFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryListeFeeds.Open;
+        LDM.QryFeeds.close;
+        LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.QryFeeds.Open;
 
-        FWebStencilsProcessor.AddVar( 'Feed', LDM.QryListeFeeds, False );
+        FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         if LMsg = '' then
@@ -117,6 +141,44 @@ begin
   end;
 end;
 
+procedure TIndexController.ApplyInsertFeed( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  LLAstId: Integer;
+begin
+  LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    LDM.qryFeeds.Open;
+    LDM.qryFeeds.Append;
+    LDM.qryFeedsID_FEED.Value := -1;
+    LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+    LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
+
+    LDM.qryFeeds.Post;
+
+    LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
+
+    LDM.qryFeeds.Close;
+    LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
+    LDM.qryFeeds.Open;
+
+    FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+
+    Response.Content := RenderTemplate( TMP_LINE, Request );
+
+    Handled := True;
+  end;
+end;
+
+procedure TIndexController.CancelAddFeed( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+begin
+  SendEmptyContent( Response );
+end;
+
 procedure TIndexController.CancelFeedEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
@@ -127,13 +189,13 @@ begin
   begin
     LDM.Critical.Acquire;
     try
-      LDM.qryFeedsCancel.close;
-      LDM.qryFeedsCancel.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.qryFeedsCancel.Open;
+      LDM.qryFeeds.close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.qryFeeds.Open;
 
-      if not ( LDM.qryFeedsCancel.Eof ) then
+      if not ( LDM.qryFeeds.Eof ) then
       begin
-        FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeedsCancel, False );
+        FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         Response.Content := RenderTemplate( TMP_LINE, Request );
@@ -234,6 +296,8 @@ begin
       // Est-ce qu'on rafraichit également la barre de pagination
       if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
       begin
+        FTitre := 'Fils d''informations';
+
         LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
 
         LTemplate := TMP_LISTE;
@@ -255,7 +319,7 @@ begin
         LTemplate := TMP_TABLE
       end;
 
-      FMsg := FMsg + 'ApplicationList';
+      FMsg := FMsg + 'FeedsList';
 
       LDM.QryListeFeeds.close;
       LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
@@ -263,7 +327,7 @@ begin
       LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
       LDM.QryListeFeeds.Open;
 
-      FWebStencilsProcessor.AddVar( 'feedList', LDM.QryListeFeeds, False );
+      FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
       Response.Content := RenderTemplate( LTemplate, Request );
@@ -338,19 +402,22 @@ begin
 
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/', Self.Main ),
-      TRoute.Create( mtGet, '/ApplicationsList', Self.FeedsList ),
-      TRoute.Create( mtDelete, '/DeleteApplication', Self.DeleteFeeds ),
-      TRoute.Create( mtPost, '/GetApplicationNavigation', Self.GetNavigation ),
-      TRoute.Create( mtPost, '/ApplicationEditLineMode', Self.FeedEditLineMode ),
-      TRoute.Create( mtPost, '/CancelApplicationEditLine', Self.CancelFeedEditLine ),
-      TRoute.Create( mtPost, '/ApplyApplicationEditLine', Self.ApplyFeedEditLine )
+      TRoute.Create( mtGet, '/FeedsList', Self.FeedsList ),
+      TRoute.Create( mtDelete, '/DeleteFeed', Self.DeleteFeeds ),
+      TRoute.Create( mtPost, '/GetFeedNavigation', Self.GetNavigation ),
+      TRoute.Create( mtPost, '/FeedEditLineMode', Self.FeedEditLineMode ),
+      TRoute.Create( mtAny, '/CancelFeedEditLine', Self.CancelFeedEditLine ),
+      TRoute.Create( mtPost, '/ApplyFeedEditLine', Self.ApplyFeedEditLine ),
+      TRoute.Create( mtPost, '/AddFeed', Self.AddFeed ),
+      TRoute.Create( mtPost, '/CancelAddFeed', Self.CancelAddFeed ),
+      TRoute.Create( mtPost, '/ApplyInsertFeed', Self.ApplyInsertFeed )
       ] );
 end;
 
 procedure TIndexController.Main( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 begin
-  Response.Content := RenderTemplate( 'home.html', Request );
+  Response.SendRedirect( '/FeedsList?scope=Page' );
 end;
 
 initialization

@@ -1,0 +1,21 @@
+		<Table  class="table">
+			<thead class="table-light">
+				<tr>
+				  <th scope="col"></th>
+				  <th scope="col"></th>
+				  <th scope="col"></th>
+				  <th scope="col">ID</th>
+				  <th scope="col">Titre</th>
+				  <th scope="col">Actif</th>
+				  <th scope="col">Date publication</th>
+				  <th scope="col">Date péremption</th>
+				  <th scope="col">Date création</th>
+				  <th scope="col">Date dernière modification</th>
+				</tr>
+			</thead>
+			<tbody id="TableNews" hx-target="closest tr" hx-swap="outerHTML">
+				@foreach newsList {
+					@import NewsLine {@News = @loop}
+				}
+			</tbody>
+		</table>

@@ -1,0 +1,64 @@
+		<tr id="Row@News.IDNEWS">
+			  <td>
+					<a href="#" hx-delete="@env.resource/DeleteNews?id=@News.IDNEWS" hx-confirm="Etes-vous certains de vouloir supprimer cette news ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+						<span class="material-icons">
+						delete
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+					   class="btnViewNews"
+					   data-id="@News.IDNEWS"
+					   data-content="@News.TEXTE"
+					   onclick="openPopup(this.dataset.content, this.dataset.id)">
+					  <span class="material-icons">visibility</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/NewsEditLineMode?id=@News.IDNEWS&col=1"
+						hx-trigger="edit"
+						onClick="let editing = document.querySelector('.editing')
+								 if(editing) {
+								   Swal.fire({title: 'Already Editing',
+											  showCancelButton: true,
+											  confirmButtonText: 'Yep, Edit This Row!',
+											  text:'Une ligne est déjà en cours d&#x2019;édition, voulez-vous continuer ?'})
+								   .then((result) => {
+										if(result.isConfirmed) {
+										   htmx.trigger(editing, 'Cancel')
+										   htmx.trigger(this, 'edit')
+										}
+									})
+								 } else {
+									htmx.trigger(this, 'edit')
+								 }"
+						>
+						<span class="material-icons">
+						edit
+						</span>
+					</a>
+			  </td>
+			  <td id="col1@News.IDNEWS">
+				@News.IDNEWS
+			  </td>
+			  <td  id="col2@News.IDNEWS">
+				@News.TITRE_NEWS
+			  </td>
+			  <td  id="col3@News.IDNEWS">
+				@News.HOLD
+			  </td>
+			  <td  id="col4@News.IDNEWS">
+				@News.DATE_PUBLICATION
+			  </td>
+			  <td  id="col5@News.IDNEWS">
+				@News.DATE_PEREMPTION
+			  </td>
+			  <td  id="col6@News.IDNEWS">
+				@News.DATE_CREATION
+			  </td>
+			  <td  id="col7@News.IDNEWS">
+				@News.DATE_MODIFICATION
+			  </td>
+			</tr>

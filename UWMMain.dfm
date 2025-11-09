@@ -8,6 +8,7 @@ object WebModule1: TWebModule1
       PathInfo = '/'
       OnAction = WebModule1DefaultHandlerAction
     end>
+  BeforeDispatch = WebModuleBeforeDispatch
   AfterDispatch = WebModuleAfterDispatch
   Height = 460
   Width = 830
@@ -70,6 +71,7 @@ object WebModule1: TWebModule1
     Top = 64
   end
   object WebSessionManager: TWebSessionManager
+    OnCreated = WebSessionManagerCreated
     Left = 112
     Top = 224
   end

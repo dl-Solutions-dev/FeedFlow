@@ -16,7 +16,8 @@ uses
   UDmSession in 'UDmSession.pas' {DmSession: TDataModule},
   UConsts in 'UConsts.pas',
   Helpers.Messages in 'Helpers.Messages.pas',
-  UPagination in 'UPagination.pas';
+  UPagination in 'UPagination.pas',
+  UListNewsController in 'Controllers\UListNewsController.pas';
 
 {$R *.res}
 

@@ -8,7 +8,7 @@
 					</a>
 			  </td>
 			  <td>
-					<a href="@env.resource/UpdateApplication?FeedId=@Feed.ID_FEED">
+					<a href="@env.resource/NewsList?FeedId=@Feed.ID_FEED&FeedName=@Feed.TITRE&Scope=Page">
 						<span class="material-icons">
 						visibility
 						</span>
@@ -43,12 +43,15 @@
 				@Feed.ID_FEED
 			  </td>
 			  <td  id="col2@Feed.ID_FEED">
-				@Feed.NOM
+				@Feed.TITRE
 			  </td>
 			  <td  id="col3@Feed.ID_FEED">
-			    @Feed.VISIBLE_FICHE
+				@Feed.STATUT
 			  </td>
 			  <td  id="col4@Feed.ID_FEED">
-				@Feed.APP_VERSION
+				@Feed.DATE_CREATION
+			  </td>
+			  <td  id="col4@Feed.ID_FEED">
+				@Feed.DATE_MODIFICATION
 			  </td>
 			</tr>

@@ -12,6 +12,9 @@
         <Projects Include="..\UserGuard\UserManagement\UserManagement.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +50,23 @@
     <Target Name="UserManagement:Make">
         <MSBuild Projects="..\UserGuard\UserManagement\UserManagement.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ExempleQuill_tests">
+        <MSBuild Projects="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj"/>
+    </Target>
+    <Target Name="ExempleQuill_tests:Clean">
+        <MSBuild Projects="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ExempleQuill_tests:Make">
+        <MSBuild Projects="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="FeedFlow_Tests;FeedFlow;UserManagement"/>
+        <CallTarget Targets="FeedFlow_Tests;FeedFlow;UserManagement;ExempleQuill_tests"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;UserManagement:Clean"/>
+        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;UserManagement:Clean;ExempleQuill_tests:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;UserManagement:Make"/>
+        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;UserManagement:Make;ExempleQuill_tests:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

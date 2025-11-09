@@ -1,0 +1,47 @@
+		<tr hx-trigger='cancel' class='editing' hx-get="/CancelNewsEditLine?Session=@App.SessionNo&id=@News.IDNEWS">
+			  <td>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/ApplyNewsEditLine?Session=@App.SessionNo&id=@News.IDNews&col=2"
+						hx-include="closest tr"
+					>
+						<span class="material-icons">
+						save
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/CancelNewsEditLine?Session=@App.SessionNo&id=@News.IDNews&col=2"
+					>
+						<span class="material-icons">
+						cancel
+						</span>
+					</a>
+			  </td>
+			  <td>
+				@News.IDNews
+			  </td>
+			  <td>
+				<input autofocus id="edtTitre" name="titre" value="@News.TITRE_NEWS">
+			  </td>
+			  <td>
+				<select id="Status" name="status">	
+					<option value="O" @if (NEWS.HOLD = 'O') {selected}>Affichée</option>
+					<option value="N" @if (NEWS.HOLD = 'N') {selected}>Non affichée</option>
+				</select>
+			  </td>
+			  <td>
+				<input type="date" id="datePublication" name="datepublication" value="@NEWS.DATE_PUBLICATION_FMT">
+			  </td>
+			  <td>
+				<input type="date" id="datePeremption" name="dateperemption" value="@NEWS.DATE_PEREMPTION_FMT">
+			  </td>
+			  <td>
+				@NEWS.DATE_CREATION
+			  </td>
+			  <td>
+				@NEWS.DATE_MODIFICATION
+			  </td>
+			</tr>

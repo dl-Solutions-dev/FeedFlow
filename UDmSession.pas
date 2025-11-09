@@ -45,15 +45,34 @@ type
     qryFeedsSTATUT: TWideStringField;
     qryFeedsDATE_CREATION: TSQLTimeStampField;
     qryFeedsDATE_MODIFICATION: TSQLTimeStampField;
-    qryFeedsCancel: TFDQuery;
-    qryFeedsCancelID_FEED: TIntegerField;
-    qryFeedsCancelTITRE: TWideStringField;
-    qryFeedsCancelSTATUT: TWideStringField;
-    qryFeedsCancelDATE_CREATION: TSQLTimeStampField;
-    qryFeedsCancelDATE_MODIFICATION: TSQLTimeStampField;
+    QryListeNews: TFDQuery;
+    QryCountNews: TFDQuery;
+    QryNews: TFDQuery;
+    QryListeNewsIDNEWS: TIntegerField;
+    QryListeNewsDATE_PUBLICATION: TDateField;
+    QryListeNewsDATE_PEREMPTION: TDateField;
+    QryListeNewsHOLD: TWideStringField;
+    QryListeNewsTITRE_NEWS: TWideStringField;
+    QryListeNewsTEXTE: TWideMemoField;
+    QryListeNewsID_FEED: TIntegerField;
+    QryListeNewsDATE_CREATION: TDateField;
+    QryListeNewsDATE_MODIFICATION: TSQLTimeStampField;
+    QryCountNewsNB_ENR: TIntegerField;
+    QryNewsIDNEWS: TIntegerField;
+    QryNewsDATE_PUBLICATION: TDateField;
+    QryNewsDATE_PEREMPTION: TDateField;
+    QryNewsHOLD: TWideStringField;
+    QryNewsTITRE_NEWS: TWideStringField;
+    QryNewsTEXTE: TWideMemoField;
+    QryNewsID_FEED: TIntegerField;
+    QryNewsDATE_CREATION: TDateField;
+    QryNewsDATE_MODIFICATION: TSQLTimeStampField;
+    QryNewsDATE_PUBLICATION_FMT: TWideStringField;
+    QryNewsDATE_PEREMPTION_FMT: TWideStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );
+    procedure QryNewsCalcFields( DataSet: TDataSet );
   private
     FCritical: TCriticalSection;
     FSessionVariables: TStrings;
@@ -81,6 +100,7 @@ procedure TDmSession.DataModuleDestroy( Sender: TObject );
 var
   LPagination: TPair<string, TPagination>;
 begin
+  cnxFeedFlow.Connected := False;
   FreeAndNil( FCritical );
   FreeAndNil( FSessionVariables );
 
@@ -110,6 +130,16 @@ begin
   FCritical := TCriticalSection.Create;
   FSessionVariables := TStringList.Create;
   FPaginations := TObjectDictionary<string, TPagination>.Create;
+
+  cnxFeedFlow.Connected := True;
+end;
+
+procedure TDmSession.QryNewsCalcFields( DataSet: TDataSet );
+begin
+  DataSet.FieldByName( 'DATE_PUBLICATION_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'DATE_PUBLICATION'
+    ).AsDateTime );
+  DataSet.FieldByName( 'DATE_PEREMPTION_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'DATE_PEREMPTION'
+    ).AsDateTime );
 end;
 
 end.

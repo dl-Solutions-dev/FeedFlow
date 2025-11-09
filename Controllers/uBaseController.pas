@@ -76,12 +76,16 @@ type
   private
     FLayoutTemplate: string;
     FLocation: string;
+
+    procedure SetTitre(const Value: string);
   protected
     // FWebStencilsProcessor: TWebStencilsProcessor;
     FWebStencilsEngine: TWebStencilsEngine;
     FWebStencilsProcessor: TWebStencilsProcessor;
     FFieldErrorManager: TFieldErrorManager;
     FControllerName: string;
+    FMsg: string;
+    FTitre: string;
 
     function PickList( aListe: TFDQuery; aPickListName, aCSSClass, aKey, aValue,
       aSelectedValue: string ): string;
@@ -109,6 +113,7 @@ type
 
     property LayoutTemplate: string read FLayoutTemplate;
     property Location: string read FLocation;
+    property Titre:string read FTitre write SetTitre;
   end;
 
 implementation
@@ -274,6 +279,11 @@ begin
   aResponse.Content := ' ';
   aResponse.ContentLength := 1;
   aResponse.StatusCode := 200;
+end;
+
+procedure TBaseController.SetTitre(const Value: string);
+begin
+  FTitre := Value;
 end;
 
 function TBaseController.WebModule( aWebActionitem: TObject ): TWebModule;

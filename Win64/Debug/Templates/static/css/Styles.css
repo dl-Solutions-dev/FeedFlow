@@ -162,3 +162,65 @@ tr.htmx-swapping td {
     padding: 10px;
 	overflow-x: hidden;
   }
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1000; /* au-dessus de l’overlay */
+}
+
+
+.popup-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 20px;
+  width: 800px;
+  border-radius: 8px;
+}
+
+.close {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999; /* juste en dessous de la popup */
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="sans-serif"]::before {
+  content: "Sans Serif";
+}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+  content: "Serif";
+}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+  content: "Monospace";
+}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before {
+  content: "Arial";
+}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times"]::before {
+  content: "Times New Roman";
+}
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="comic"]::before {
+  content: "Comic Sans MS";
+}
+
+.ql-font-arial {
+  font-family: Arial, sans-serif;
+}
+.ql-font-times {
+  font-family: 'Times New Roman', serif;
+}
+.ql-font-comic {
+  font-family: 'Comic Sans MS', cursive;
+}
+
