@@ -1,66 +1,77 @@
 @LayoutPage layouts/mainLayout
 
-<script>
-function confirmDelete(aForm){
-	if (confirm("Etes-vous certains de vouloir supprimer ce fil d'informations ?")){
-		aForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-	}
-}
-</script>
-
-<div class="container">
+<div class="container-fluid h-100">
 <h1 class="text-center">@Form.TITRE</h1>
 <br/>
-	<div id="overlay" class="overlay"></div>
-	<div id="popup" class="popup">
-	  <div class="popup-content">
-		<span class="close" onclick="closePopup()">&times;</span>
-		<div id="editor-container" style="height: 400px;"></div>
-		<button type="button"
-				id="btnSaveContent"
-				class="btn btn-primary"
-				data-id="2"
-				onclick="SendContent();"
-		>
-		Enregistrer
-		</button>
-	  </div>
-	</div>
-	
-	<div id="ListNavigation">
-		@import ListNavigation
-	</div>
-	<br/>
-	<div id="TargetTable">
-		@import NewsTable
-	</div>
-	<button type="button" 
-			id="btnAddLine"
-			class="btn btn-primary" 
-			hx-trigger="AddLine"
-			hx-post="@env.resource/AddNews?FeedId=@Form.FEEDID" 
-			hx-target="#TableNews" 
-			hx-swap="beforeend"
-			onClick="let addingLine = document.querySelector('.addingLine')
-					if(!addingLine) {
-						htmx.trigger(this, 'AddLine')
-					}">
-	Ajouter une news
-	</button>
+	<div class="row h-100 flex-nowrap">
+		<div class="col flex-grow-1 bg-light p-3">
 
-	<script>
-		document.body.addEventListener('htmx:afterRequest', function(evt) {
-			if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
-				// Une fois la première requête terminée, déclencher la deuxième requête
-				htmx.ajax("GET", "@env.resource/@pages.ActionList?Session=@App.SessionNo&Page=1@if (pages.UrlParameters <> '') {&@pages.UrlParameters}", "#TargetTable");
-			}
-		});
+			<div id="overlay" class="overlay"></div>
+			<div id="popup" class="popup">
+			  <div class="popup-content">
+				<span class="close" onclick="closePopup()">&times;</span>
+				<div id="editor-container" style="height: 400px;"></div>
+				<button type="button"
+						id="btnSaveContent"
+						class="btn btn-primary"
+						data-id="2"
+						data-Feedid="@Form.FeedId"
+						onclick="setLastEditedFeed(this); SendContent();"
+				>
+				Enregistrer
+				</button>
+			  </div>
+			</div>
+			
+			<div id="ListNavigation">
+				@import ListNavigation
+			</div>
+			<br/>
+			<div id="TargetTable">
+				@import NewsTable
+			</div>
+			<button type="button" 
+					id="btnAddLine"
+					class="btn btn-primary" 
+					hx-trigger="AddLine"
+					hx-post="@env.resource/AddNews?FeedId=@Form.FEEDID" 
+					hx-target="#TableNews" 
+					hx-swap="beforeend"
+					onClick="let addingLine = document.querySelector('.addingLine')
+							if(!addingLine) {
+								htmx.trigger(this, 'AddLine')
+							}">
+			Ajouter une news
+			</button>
+
+			<script>
+				document.body.addEventListener('htmx:afterRequest', function(evt) {
+					if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
+						// Une fois la première requête terminée, déclencher la deuxième requête
+						htmx.ajax("GET", "@env.resource/@pages.ActionList?FeedId=@Form.FeedId&Page=1@if (pages.UrlParameters <> '') {&@pages.UrlParameters}", "#TargetTable");
+					}
+				});
+				
+				document.addEventListener("keydown", function(event) {
+				  if (event.key === "Escape") {
+					closePopup();
+				  }
+				});
+
+			</script>
+
+		</div>
+
+		<div 
+			class="col-auto bg-white border-start p-3" 
+			style="width: 400px;" 
+			id="sidePanel"
+			hx-post="/Show?idFeed=@Form.FeedId&Template=ShowNews.html"
+			hx-trigger="load"
+			hx-sap="innerHTML"
+			>
 		
-		document.addEventListener("keydown", function(event) {
-		  if (event.key === "Escape") {
-			closePopup();
-		  }
-		});
-
-	</script>
+		</div>
+		<!--</div>-->
+	</div>
 </div>

@@ -15,7 +15,9 @@ uses
   uBaseController in 'Controllers\uBaseController.pas',
   UDmSession in 'UDmSession.pas' {DmSession: TDataModule},
   UConsts in 'UConsts.pas',
-  Helpers.Messages in 'Helpers.Messages.pas';
+  Helpers.Messages in 'Helpers.Messages.pas',
+  UListNewsController in 'Controllers\UListNewsController.pas',
+  UPagination in 'UPagination.pas';
 
 {$R *.res}
 

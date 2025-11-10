@@ -5,6 +5,8 @@
 					<a href="#"
 						hx-post="@env.resource/ApplyNewsEditLine?Session=@App.SessionNo&id=@News.IDNews&col=2"
 						hx-include="closest tr"
+						data-Feedid="@News.ID_FEED"
+						onclick="setLastEditedFeed(this)"
 					>
 						<span class="material-icons">
 						save

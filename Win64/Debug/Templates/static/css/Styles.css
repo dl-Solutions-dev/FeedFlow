@@ -77,6 +77,7 @@ body {
 .search-button:hover {
 	background-color: #0056b3;
 }
+
 .main-content {
 	margin-left: 270px;
 	padding: 20px;
@@ -223,4 +224,122 @@ tr.htmx-swapping td {
 .ql-font-comic {
   font-family: 'Comic Sans MS', cursive;
 }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  @media (min-width: 600px) {
+    .news-grid {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+
+  .news-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  .news-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .news-card img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .news-content {
+    padding: 1rem;
+    flex: 1;
+  }
+
+  .news-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .news-date {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+
+  .news-body {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/*panneau*/
+
+.layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.main-content-1 {
+  flex: 1;
+  min-width: 0;
+  background: #f5f5f5;
+  padding: 2rem;
+  overflow: auto;
+  display: block; /* plus de flex ici */
+}
+
+.side-panel {
+  width: 400px;
+  min-width: 250px;
+  background: #fafafa;
+  overflow: auto;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  padding: 1rem;
+}
+
+/* Responsive fallback */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .side-panel {
+    width: 100%;
+    box-shadow: none;
+    border-top: 1px solid #ddd;
+  }
+}
+
+
+
+
+
 

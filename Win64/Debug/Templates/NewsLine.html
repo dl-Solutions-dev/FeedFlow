@@ -1,6 +1,14 @@
 		<tr id="Row@News.IDNEWS">
 			  <td>
-					<a href="#" hx-delete="@env.resource/DeleteNews?id=@News.IDNEWS" hx-confirm="Etes-vous certains de vouloir supprimer cette news ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+					<a 
+						href="#" 
+						hx-delete="@env.resource/DeleteNews?id=@News.IDNEWS" 
+						hx-confirm="Etes-vous certains de vouloir supprimer cette news ?" 
+						hx-target="closest tr" 
+						hx-swap="outerHTML swap:1s"
+						data-Feedid="@News.ID_FEED"
+						onClick="setLastEditedFeed(this) "
+						>
 						<span class="material-icons">
 						delete
 						</span>
@@ -9,9 +17,9 @@
 			  <td>
 					<a href="#"
 					   class="btnViewNews"
-					   data-id="@News.IDNEWS"
+					   data-idnews="@News.IDNEWS"
 					   data-content="@News.TEXTE"
-					   onclick="openPopup(this.dataset.content, this.dataset.id)">
+					   onclick="openPopup(this.dataset.content, this.dataset.idnews)">
 					  <span class="material-icons">visibility</span>
 					</a>
 			  </td>

@@ -20,6 +20,7 @@ unit uBaseController;
 interface
 
 uses
+System.Classes,
   System.SysUtils,
   system.Generics.Collections,
   FireDAC.Comp.Client,
@@ -57,6 +58,7 @@ type
   end;
 
   // Field error manager for WebStencils compatibility
+  {$M+}
   TFieldErrorManager = class
   private
     FErrors: TDictionary<string, string>;
@@ -71,6 +73,7 @@ type
     function HasError( const AFieldName: string ): Boolean;
     property ErrorCount: integer read GetErrorCount;
   end;
+  {$M-}
 
   TBaseController = class( TInterfacedObject, IAction )
   private

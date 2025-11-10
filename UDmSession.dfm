@@ -7,6 +7,7 @@ object DmSession: TDmSession
   object cnxFeedFlow: TFDConnection
     Params.Strings = (
       'ConnectionDef=FeedFlow')
+    Connected = True
     LoginPrompt = False
     Left = 291
     Top = 100
@@ -337,6 +338,75 @@ object DmSession: TDmSession
     object QryNewsDATE_PEREMPTION_FMT: TWideStringField
       FieldKind = fkCalculated
       FieldName = 'DATE_PEREMPTION_FMT'
+      Calculated = True
+    end
+  end
+  object QryShowNews: TFDQuery
+    OnCalcFields = QryShowNewsCalcFields
+    Connection = cnxFeedFlow
+    SQL.Strings = (
+      'select * from NEWS'
+      'where ID_FEED = :ID_FEED'
+      'and HOLD = '#39'O'#39
+      'and DATE_PUBLICATION <= localtimestamp'
+      'and DATE_PEREMPTION > localtimestamp'
+      'order by DATE_PUBLICATION desc, TITRE_NEWS ')
+    Left = 296
+    Top = 824
+    ParamData = <
+      item
+        Name = 'ID_FEED'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end>
+    object QryShowNewsIDNEWS: TIntegerField
+      FieldName = 'IDNEWS'
+      Origin = 'IDNEWS'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Required = True
+    end
+    object QryShowNewsDATE_PUBLICATION: TDateField
+      FieldName = 'DATE_PUBLICATION'
+      Origin = 'DATE_PUBLICATION'
+    end
+    object QryShowNewsDATE_PEREMPTION: TDateField
+      FieldName = 'DATE_PEREMPTION'
+      Origin = 'DATE_PEREMPTION'
+    end
+    object QryShowNewsHOLD: TWideStringField
+      FieldName = 'HOLD'
+      Origin = 'HOLD'
+      FixedChar = True
+      Size = 1
+    end
+    object QryShowNewsTITRE_NEWS: TWideStringField
+      FieldName = 'TITRE_NEWS'
+      Origin = 'TITRE_NEWS'
+      Size = 500
+    end
+    object QryShowNewsTEXTE: TWideMemoField
+      FieldName = 'TEXTE'
+      Origin = 'TEXTE'
+      BlobType = ftWideMemo
+    end
+    object QryShowNewsID_FEED: TIntegerField
+      FieldName = 'ID_FEED'
+      Origin = 'ID_FEED'
+      Required = True
+    end
+    object QryShowNewsDATE_CREATION: TDateField
+      FieldName = 'DATE_CREATION'
+      Origin = 'DATE_CREATION'
+    end
+    object QryShowNewsDATE_MODIFICATION: TSQLTimeStampField
+      FieldName = 'DATE_MODIFICATION'
+      Origin = 'DATE_MODIFICATION'
+    end
+    object QryShowNewsDATE_AFFICHAGE: TStringField
+      FieldKind = fkCalculated
+      FieldName = 'DATE_AFFICHAGE'
+      Size = 50
       Calculated = True
     end
   end

@@ -5,6 +5,8 @@
 				hx-post="@env.resource/ApplyInsertNews?Session=@App.SessionNo" 
 				hx-include="closest tr"
 				hx-target="closest tr"
+				data-Feedid="@Form.Feedid"
+				onclick="setLastEditedFeed(this)"
 			>
 			<span class="material-icons">
 			  save
@@ -25,7 +27,7 @@
 		&nbsp;
 	  </td>
 	  <td>
-		<input autofocus id="edtTitre" name="titre" value="@News.TITRE_NEWS">
+		<input autofocus id="edtTitre" name="titre" value="">
 	  </td>
 	  <td>
 		<select id="Status" name="status">	

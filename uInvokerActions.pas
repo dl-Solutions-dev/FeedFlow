@@ -49,8 +49,8 @@ implementation
 { TInvokerActions }
 
 procedure TInvokerActions.AddAction( aAction: IAction );
-var
-  t: textfile;
+//var
+//  t: textfile;
 begin
 //  AssignFile( t, ExtractFilePath( ParamStr( 0 ) ) + 'tractinit.txt' );
 //  if not( FileExists( ExtractFilePath( ParamStr( 0 ) ) + 'tractinit.txt' ) ) then

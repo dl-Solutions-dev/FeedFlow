@@ -11,11 +11,17 @@ function showToast(type = 'info', message = 'Message par défaut') {
   }, 4000); // durée d'affichage
 }
 
+function confirmDelete(aForm){
+	if (confirm("Etes-vous certains de vouloir supprimer ce fil d'informations ?")){
+		aForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+	}
+}
+
 document.body.addEventListener('htmx:beforeSwap', function (evt) {
 	const xhr = evt.detail.xhr;
 
 	const text = event.detail.xhr.responseText;
-	console.log("retour : " + text);
+	
 	if (text.startsWith('ERR:')) {
 		evt.preventDefault(); // annule la suite de l'évennement
 		showToast('error', text.substr(4));
@@ -51,15 +57,17 @@ function openPopup(texte, id) {
 	Font.whitelist = ['sans-serif', 'serif', 'monospace', 'arial', 'times', 'comic'];
 	Quill.register(Font, true);
 
-
-	
     quill = new Quill('#editor-container', {
       theme: 'snow',
 	  modules: {
 		toolbar: [
 		  [{ font: Font.whitelist }],
 		  ['bold', 'italic', 'underline'],
+		  [{ 'align': [] }],
 		  [{ list: 'ordered' }, { list: 'bullet' }],
+		  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+		  [{ 'color': [] }, { 'background': [] }],
+		  ['link', 'image', 'video'],
 		  ['clean']
 		]
 	  }
@@ -82,7 +90,7 @@ function closePopup() {
 async function SendContent() {
   const btn = document.getElementById("btnSaveContent");
   idNews = btn.dataset.id;
-  
+
   html= quill.root.innerHTML;
   
   try {
@@ -96,12 +104,39 @@ async function SendContent() {
 
     // ✅ Met à jour le lien pour refléter le nouveau contenu
     //const btn = document.getElementById("btnViewNews");
-	const btn = document.querySelector('.btnViewNews[data-id="' + idNews + '"]');
+	const btn = document.querySelector('.btnViewNews[data-idnews="' + idNews + '"]');
     btn.dataset.content = html;
 	
 	closePopup();
+	
+	console.log('lastEditedFeedId ' + lastEditedFeedId);
+	refreshNewsPanel(lastEditedFeedId);
+	lastEditedFeedId = null; // reset
   } catch (err) {
     alert('Erreur en sauvegarde: ' + (err.message || 'Erreur inconnue') );
   }
 }
 
+let lastEditedFeedId = null;
+
+function setLastEditedFeed(el) {
+	lastEditedFeedId = el.getAttribute('data-Feedid');
+}
+  
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    if (lastEditedFeedId) {
+		console.log('refresh');
+      refreshNewsPanel(lastEditedFeedId);
+    }
+	
+	lastEditedFeedId = null; // reset
+  });
+  
+function refreshNewsPanel(idFeed) {
+  fetch('/Show?idFeed='+idFeed+'&Template=ShowNews.html')
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('sidePanel').innerHTML = html;
+    })
+    .catch(err => console.error('Erreur chargement fil d’info:', err));
+} 

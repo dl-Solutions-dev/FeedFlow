@@ -69,10 +69,22 @@ type
     QryNewsDATE_MODIFICATION: TSQLTimeStampField;
     QryNewsDATE_PUBLICATION_FMT: TWideStringField;
     QryNewsDATE_PEREMPTION_FMT: TWideStringField;
+    QryShowNews: TFDQuery;
+    QryShowNewsIDNEWS: TIntegerField;
+    QryShowNewsDATE_PUBLICATION: TDateField;
+    QryShowNewsDATE_PEREMPTION: TDateField;
+    QryShowNewsHOLD: TWideStringField;
+    QryShowNewsTITRE_NEWS: TWideStringField;
+    QryShowNewsTEXTE: TWideMemoField;
+    QryShowNewsID_FEED: TIntegerField;
+    QryShowNewsDATE_CREATION: TDateField;
+    QryShowNewsDATE_MODIFICATION: TSQLTimeStampField;
+    QryShowNewsDATE_AFFICHAGE: TStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );
     procedure QryNewsCalcFields( DataSet: TDataSet );
+    procedure QryShowNewsCalcFields(DataSet: TDataSet);
   private
     FCritical: TCriticalSection;
     FSessionVariables: TStrings;
@@ -140,6 +152,11 @@ begin
     ).AsDateTime );
   DataSet.FieldByName( 'DATE_PEREMPTION_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'DATE_PEREMPTION'
     ).AsDateTime );
+end;
+
+procedure TDmSession.QryShowNewsCalcFields(DataSet: TDataSet);
+begin
+  Dataset.FieldByName('DATE_AFFICHAGE').AsString:=FormatDateTime('dd mmmm yyyy', DataSet.FieldByName('DATE_PUBLICATION').AsDateTime);
 end;
 
 end.

@@ -56,7 +56,7 @@
 			name="search" 
 			value="@pages.Search"
 			hx-trigger="input changed delay:1s"
-			hx-post="@env.resource/@pages.ActionPagination?Session=@App.SessionNo&LinesPerPage=@pages.LinesPerPage&SearchChanged=Y@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
+			hx-post="@env.resource/@pages.ActionPagination?LinesPerPage=@pages.LinesPerPage&SearchChanged=Y@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
 			hx-include="[name='search']"
 			hx-target="closest #Navigation"
 			hx-swap="outerHTML"

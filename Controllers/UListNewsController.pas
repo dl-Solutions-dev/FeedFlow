@@ -26,6 +26,7 @@ type
     procedure CancelAddNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ApplyInsertNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure SaveContentNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure ShowNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -37,6 +38,7 @@ implementation
 uses
   System.SyncObjs,
   System.JSON,
+  System.IOUtils,
   System.Generics.Collections,
   System.StrUtils,
   IdHTTP,
@@ -319,7 +321,7 @@ begin
     LDM.Critical.Acquire;
     try
       LDM.QryCountNews.close;
-      LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := Request.ContentFields.Values[ 'FeedId' ].ToInteger;
+      LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
       LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
       LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
       LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
@@ -330,7 +332,7 @@ begin
       LPagination := LDM.Pagination( NAVIGATION_NAME );
 
       LPagination.GeneratePagesList( LDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
-        'Search' ], 'FeedsList', 'GetFeedNavigation' );
+        'Search' ], 'FeedsList', 'GetNewsNavigation' );
 
       FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
@@ -359,7 +361,8 @@ begin
       TRoute.Create( mtPost, '/AddNews', Self.AddNews ),
       TRoute.Create( mtPost, '/CancelAddNews', Self.CancelAddNews ),
       TRoute.Create( mtPost, '/ApplyInsertNews', Self.ApplyInsertNews ),
-      TRoute.Create( mtAny, '/SaveContent', Self.SaveContentNews )
+      TRoute.Create( mtAny, '/SaveContent', Self.SaveContentNews ),
+      TRoute.Create( mtAny, '/Show', Self.ShowNews )
       ] );
 end;
 
@@ -425,6 +428,11 @@ begin
       Dec( LPage );
     end;
 
+    if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
+    begin
+      LDateSearch := 0;
+    end;
+
     LDM.Critical.Acquire;
     try
       // Est-ce qu'on rafraichit également la barre de pagination
@@ -434,11 +442,6 @@ begin
         FFeedId := Request.ContentFields.Values[ 'FeedId' ];
 
         LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
-
-        if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
-        begin
-          LDateSearch := 0;
-        end;
 
         LTemplate := TMP_LISTE;
 
@@ -498,31 +501,41 @@ begin
   begin
     LDM.Critical.Acquire;
     try
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-      LDM.QryNews.Open;
+      LDM.cnxFeedFlow.StartTransaction;
+      try
+        LDM.QryNews.close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+        LDM.QryNews.Open;
 
-      if not ( LDM.QryNews.Eof ) then
-      begin
-        JSONVal := TJSONObject.ParseJSONValue( Request.Content );
-        try
-          if ( JSONVal <> nil ) and ( JSONVal is TJSONObject ) then
-          begin
-            LObj := TJSONObject( JSONVal );
-            ContentStr := LObj.GetValue( 'content' ).Value;
+        if not ( LDM.QryNews.Eof ) then
+        begin
+          JSONVal := TJSONObject.ParseJSONValue( Request.Content );
+          try
+            if ( JSONVal <> nil ) and ( JSONVal is TJSONObject ) then
+            begin
+              LObj := TJSONObject( JSONVal );
+              ContentStr := LObj.GetValue( 'content' ).Value;
 
-            LDM.QryNews.Edit;
-            LDM.QryNewsTEXTE.Value := ContentStr;
-            LDM.QryNews.Post;
-            LDM.QryNews.Close;
-          end
-          else
-          begin
-            Response.StatusCode := 400;
-            Response.Content := '{"error":"invalid json"}';
+              LDM.QryNews.Edit;
+              LDM.QryNewsTEXTE.Value := ContentStr;
+              LDM.QryNews.Post;
+              LDM.QryNews.Close;
+            end
+            else
+            begin
+              Response.StatusCode := 400;
+              Response.Content := '{"error":"invalid json"}';
+            end;
+          finally
+            JSONVal.Free;
           end;
-        finally
-          JSONVal.Free;
+        end;
+
+        LDM.cnxFeedFlow.Commit;
+      except
+        on e: Exception do
+        begin
+          LDM.cnxFeedFlow.Rollback;
         end;
       end;
     finally
@@ -530,14 +543,42 @@ begin
     end;
   end;
 
-  Handled:=True;
+  Handled := True;
 
-  Response.StatusCode:=200;
+  Response.StatusCode := 200;
 end;
 
 procedure TListENewsController.SetFeedId( const Value: string );
 begin
   FFeedId := Value;
+end;
+
+procedure TListENewsController.ShowNews( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+begin
+  if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, Request.QueryFields.Values[ 'Template' ] ) ) then
+  begin
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+      LDM.QryShowNews.Open;
+
+      FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+
+      Response.ContentType := 'text/html; charset=UTF-8';
+      Response.Content := RenderTemplate( Request.QueryFields.Values[ 'Template' ], Request );
+
+      LDM.QryShowNews.Close;
+    end;
+  end
+  else
+  begin
+    response.Content := 'Erreur : Template non trouvé ' + Request.QueryFields.Values[ 'Template' ];
+  end;
 end;
 
 initialization
