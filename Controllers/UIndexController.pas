@@ -13,7 +13,7 @@ uses
 type
   TIndexController = class( TBaseController )
   private
-
+    function SaisieOK( aTitre: string ): string;
   public
     procedure Main( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
@@ -99,30 +99,35 @@ begin
 
       if not ( LDM.QryFeeds.Eof ) then
       begin
-        LDM.QryFeeds.Edit;
+        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ] );
 
-        //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
-        LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-        LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
-        try
-          LDM.QryFeeds.Post;
-          LDM.cnxFeedFlow.Commit;
-        except
-          on e: Exception do
-          begin
-            LMsg := Request.QueryFields.Text;
-            LDM.cnxFeedFlow.Rollback;
+        if ( LMsg = 'OK' ) then
+        begin
+          LDM.QryFeeds.Edit;
+
+          //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
+          LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+          LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+          try
+            LDM.QryFeeds.Post;
+            LDM.cnxFeedFlow.Commit;
+          except
+            on e: Exception do
+            begin
+              LMsg := 'ERR:' + Request.QueryFields.Text;
+              LDM.cnxFeedFlow.Rollback;
+            end;
           end;
+
+          LDM.QryFeeds.close;
+          LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+          LDM.QryFeeds.Open;
+
+          FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
         end;
 
-        LDM.QryFeeds.close;
-        LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryFeeds.Open;
-
-        FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-        if LMsg = '' then
+        if LMsg = 'OK' then
         begin
           Response.Content := RenderTemplate( TMP_LINE, Request );
         end
@@ -146,28 +151,38 @@ procedure TIndexController.ApplyInsertFeed( Sender: TObject;
 var
   LDM: TDMSession;
   LLAstId: Integer;
+  LMsg: string;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LDM.qryFeeds.Open;
-    LDM.qryFeeds.Append;
-    LDM.qryFeedsID_FEED.Value := -1;
-    LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-    LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
+    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ] );
 
-    LDM.qryFeeds.Post;
+    if ( LMsg = 'OK' ) then
+    begin
+      LDM.qryFeeds.Open;
+      LDM.qryFeeds.Append;
+      LDM.qryFeedsID_FEED.Value := -1;
+      LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+      LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
 
-    LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
+      LDM.qryFeeds.Post;
 
-    LDM.qryFeeds.Close;
-    LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
-    LDM.qryFeeds.Open;
+      LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
 
-    FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+      LDM.qryFeeds.Close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
+      LDM.qryFeeds.Open;
 
-    Response.Content := RenderTemplate( TMP_LINE, Request );
+      FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+
+      Response.Content := RenderTemplate( TMP_LINE, Request );
+    end
+    else
+    begin
+      Response.Content := LMsg;
+    end;
 
     Handled := True;
   end;
@@ -417,7 +432,17 @@ end;
 procedure TIndexController.Main( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 begin
-  Response.SendRedirect( '/FeedsList?scope=Page' );
+  Response.SendRedirect( './FeedsList?scope=Page' );
+end;
+
+function TIndexController.SaisieOK( aTitre: string ): string;
+begin
+  Result := 'OK';
+
+  if ( aTitre.Trim = '' ) then
+  begin
+    Result := 'ERR:Il faut renseigner un titre';
+  end;
 end;
 
 initialization

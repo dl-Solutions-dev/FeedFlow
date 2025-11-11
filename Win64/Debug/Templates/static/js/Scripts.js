@@ -44,10 +44,17 @@ function updateHxPost(elementId, newUrl) {
 
 let quill;
 
-function openPopup(texte, id) {
+function openPopup_anc(texte1, id) {
   const btn = document.getElementById("btnSaveContent");
   btn.dataset.id = id;
   
+  fetch('./GetNews?id='+id)
+    .then(response => response.text())
+    .then(html => {
+      texte = html;
+    })
+    .catch(err => console.error('Erreur chargement fil d’info:', err));
+	
   document.getElementById("overlay").style.display = "block";
   document.getElementById("popup").style.display = "block";
   document.body.style.overflow = "hidden";
@@ -81,6 +88,55 @@ function openPopup(texte, id) {
   }
 }
 
+async function openPopup(id) {
+  const btn = document.getElementById("btnSaveContent");
+  btn.dataset.id = id;
+
+  // Affichage du popup
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("popup").style.display = "block";
+  document.body.style.overflow = "hidden";
+
+  // Initialisation Quill si nécessaire
+  if (!quill) {
+    const Font = Quill.import('formats/font');
+    Font.whitelist = ['sans-serif', 'serif', 'monospace', 'arial', 'times', 'comic'];
+    Quill.register(Font, true);
+
+    quill = new Quill('#editor-container', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ font: Font.whitelist }],
+          ['bold', 'italic', 'underline'],
+          [{ 'align': [] }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+          [{ 'color': [] }, { 'background': [] }],
+          ['link', 'image', 'video'],
+          ['clean']
+        ]
+      }
+    });
+  }
+
+  // Récupération du contenu serveur
+  try {
+    const response = await fetch('./GetNews?id=' + id);
+    const html = await response.text();
+
+    if (html && html.trim() !== "") {
+      quill.clipboard.dangerouslyPasteHTML(html);
+    } else {
+      quill.setText("");
+    }
+  } catch (err) {
+    console.error('Erreur chargement fil d’info:', err);
+    quill.setText("");
+  }
+}
+
+
 function closePopup() {
   document.getElementById("popup").style.display = "none";
   document.getElementById("overlay").style.display = "none";
@@ -94,7 +150,7 @@ async function SendContent() {
   html= quill.root.innerHTML;
   
   try {
-    const res = await fetch('/saveContent?idNews='+idNews, {
+    const res = await fetch('./saveContent?idNews='+idNews, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: html })
@@ -133,7 +189,7 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
   });
   
 function refreshNewsPanel(idFeed) {
-  fetch('/Show?idFeed='+idFeed+'&Template=ShowNews.html')
+  fetch('./Show?idFeed='+idFeed+'&Template=ShowNews.html')
     .then(response => response.text())
     .then(html => {
       document.getElementById('sidePanel').innerHTML = html;

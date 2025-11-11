@@ -6,8 +6,13 @@ object DmSession: TDmSession
   PixelsPerInch = 192
   object cnxFeedFlow: TFDConnection
     Params.Strings = (
-      'ConnectionDef=FeedFlow')
-    Connected = True
+      'Database=FeedFlow'
+      'DriverID=FB'
+      'Password=masterkey'
+      'User_Name=sysdba'
+      'Protocol=TCPIP'
+      'Server=localhost'
+      'CharacterSet=UNICODE_FSS')
     LoginPrompt = False
     Left = 291
     Top = 100

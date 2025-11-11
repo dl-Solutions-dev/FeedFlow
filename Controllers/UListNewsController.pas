@@ -14,6 +14,10 @@ type
   TListENewsController = class( TBaseController )
   private
     FFeedId: string;
+
+    function SaisieOK( aTitre: string; aDatePublication, aDatePeremption:
+      TDateTime ): string;
+
     procedure SetFeedId( const Value: string );
   public
     procedure NewsList( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
@@ -27,6 +31,7 @@ type
     procedure ApplyInsertNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure SaveContentNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ShowNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure GetNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -90,6 +95,7 @@ var
   LLAstId: Integer;
   LDatePublication, lDatePeremption: TDateTime;
   LFs: TFormatSettings;
+  LMsg: string;
 begin
   LDM := GetDMSession( Request );
 
@@ -112,26 +118,37 @@ begin
       lDatePeremption := 0;
     end;
 
-    LDM.QryNews.Open;
-    LDM.QryNews.Append;
-    LDM.QryNewsIDNEWS.Value := -1;
-    LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
-    LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-    LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
-    LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
-    LDM.QryNewsTEXTE.Value := '';
-    LDM.QryNewsID_FEED.Value := FFeedId.ToInteger;
-    LDM.QryNews.Post;
+    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LDatePublication, lDatePeremption );
+    if ( LMsg = 'OK' ) then
+    begin
+      LDM.QryNews.Open;
+      LDM.QryNews.Append;
+      LDM.QryNewsIDNEWS.Value := -1;
+      LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+      LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+      LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
+      LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
+      LDM.QryNewsTEXTE.Value := '';
+      LDM.QryNewsID_FEED.Value := FFeedId.ToInteger;
+      LDM.QryNews.Post;
 
-    LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
+      LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
 
-    LDM.QryNews.Close;
-    LDM.QryNews.ParamByName( 'IDNEWS' ).AsInteger := LLAstId;
-    LDM.QryNews.Open;
+      LDM.QryNews.Close;
+      LDM.QryNews.ParamByName( 'IDNEWS' ).AsInteger := LLAstId;
+      LDM.QryNews.Open;
 
-    FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+      FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+    end;
 
-    Response.Content := RenderTemplate( TMP_LINE, Request );
+    if ( LMsg = 'OK' ) then
+    begin
+      Response.Content := RenderTemplate( TMP_LINE, Request );
+    end
+    else
+    begin
+      Response.Content := LMsg;
+    end;
 
     Handled := True;
   end;
@@ -167,8 +184,6 @@ begin
         LFs.ShortTimeFormat := 'hh:mm';
         LFs.LongTimeFormat := 'hh:mm:ss';
 
-        LDM.QryNews.Edit;
-
         if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
         begin
           LDatePublication := 0;
@@ -179,30 +194,36 @@ begin
           lDatePeremption := 0;
         end;
 
-        //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
-        LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
-        LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-        LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
-        LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
-        try
-          LDM.QryNews.Post;
-          LDM.cnxFeedFlow.Commit;
-        except
-          on e: Exception do
-          begin
-            LMsg := Request.QueryFields.Text;
-            LDM.cnxFeedFlow.Rollback;
+        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LDatePublication, lDatePeremption );
+        if ( LMsg = 'OK' ) then
+        begin
+          LDM.QryNews.Edit;
+
+          //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
+          LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+          LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+          LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
+          LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
+          try
+            LDM.QryNews.Post;
+            LDM.cnxFeedFlow.Commit;
+          except
+            on e: Exception do
+            begin
+              LMsg := 'ERR:' + Request.QueryFields.Text;
+              LDM.cnxFeedFlow.Rollback;
+            end;
           end;
+
+          LDM.QryNews.close;
+          LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+          LDM.QryNews.Open;
+
+          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
         end;
 
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryNews.Open;
-
-        FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-        if LMsg = '' then
+        if LMsg = 'OK' then
         begin
           Response.Content := RenderTemplate( TMP_LINE, Request );
         end
@@ -346,6 +367,35 @@ begin
   end;
 end;
 
+procedure TListENewsController.GetNews( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+begin
+  LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    LDM.Critical.Acquire;
+    try
+      LDM.QryNews.close;
+      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.QryNews.Open;
+
+      if not ( LDM.QryNews.Eof ) then
+      begin
+        LDM.QryNews.Open;
+        LDM.QryNews.First;
+
+        Response.ContentType := 'text/plain; charset=utf-8';
+        Response.Content := LDM.QryNewsTEXTE.Value;
+      end;
+    finally
+      LDM.Critical.Leave;
+    end;
+  end;
+end;
+
 procedure TListENewsController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
 begin
@@ -362,7 +412,8 @@ begin
       TRoute.Create( mtPost, '/CancelAddNews', Self.CancelAddNews ),
       TRoute.Create( mtPost, '/ApplyInsertNews', Self.ApplyInsertNews ),
       TRoute.Create( mtAny, '/SaveContent', Self.SaveContentNews ),
-      TRoute.Create( mtAny, '/Show', Self.ShowNews )
+      TRoute.Create( mtAny, '/Show', Self.ShowNews ),
+      TRoute.Create( mtAny, '/GetNews', Self.GetNews )
       ] );
 end;
 
@@ -433,20 +484,27 @@ begin
       LDateSearch := 0;
     end;
 
+    FFeedId := Request.ContentFields.Values[ 'FeedId' ];
+    if FFeedId = '' then
+    begin
+      FFeedId := Request.QueryFields.Values[ 'FeedId' ];
+    end;
+
+    Logger.Info( 'Newslist, FeedId : ' + FFeedId );
+
     LDM.Critical.Acquire;
     try
       // Est-ce qu'on rafraichit également la barre de pagination
       if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
       begin
         FTitre := Request.ContentFields.Values[ 'FeedName' ];
-        FFeedId := Request.ContentFields.Values[ 'FeedId' ];
 
         LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
 
         LTemplate := TMP_LISTE;
 
         LDM.QryCountNews.close;
-        LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := Request.ContentFields.Values[ 'FeedId' ].ToInteger;
+        LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
         LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
         LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
         LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
@@ -456,6 +514,7 @@ begin
         begin
           LInt := 1;
         end;
+
         LPagination.GeneratePagesList( lDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
           'GetNewsNavigation' );
 
@@ -471,7 +530,7 @@ begin
       LDM.QryListeNews.close;
       LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
       LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := Request.ContentFields.Values[ 'FeedId' ].ToInteger;
+      LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
       LDM.QryListeNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
       LDM.QryListeNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
       LDM.QryListeNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
@@ -484,6 +543,29 @@ begin
     finally
       LDM.Critical.Release;
     end;
+  end;
+end;
+
+function TListENewsController.SaisieOK( aTitre: string; aDatePublication,
+  aDatePeremption: TDateTime ): string;
+begin
+  Result := 'OK';
+
+  if ( aTitre.Trim = '' ) then
+  begin
+    Result := 'ERR:Il faut renseigner un titre';
+  end
+  else if ( aDatePublication = 0 ) then
+  begin
+    Result := 'ERR:Il faut renseigner une date de publication';
+  end
+  else if ( aDatePeremption = 0 ) then
+  begin
+    Result := 'ERR:Il faut renseigner une date de péremption';
+  end
+  else if ( aDatePeremption < aDatePublication ) then
+  begin
+    Result := 'ERR:La date de péremption doit être postérieure à la date de publication';
   end;
 end;
 
@@ -557,14 +639,33 @@ procedure TListENewsController.ShowNews( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LIdFeed: Integer;
 begin
+  logger.Info( 'ShowNews' );
   if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, Request.QueryFields.Values[ 'Template' ] ) ) then
   begin
     LDM := GetDMSession( Request );
 
+    if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
+    begin
+      if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+      begin
+        LIdFeed := 0;
+      end;
+    end
+    else
+    begin
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+      begin
+        LIdFeed := 0;
+      end;
+    end;
+
+    Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
+
     if Assigned( LDM ) then
     begin
-      LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+      LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
       LDM.QryShowNews.Open;
 
       FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );

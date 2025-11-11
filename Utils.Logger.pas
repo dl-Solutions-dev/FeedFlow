@@ -45,8 +45,10 @@ const
   LOG_LEVEL_STRINGS: array[TLogLevel] of string = ('INFO', 'ERROR', 'DEBUG', 'WARN');
 
 constructor TLogger.Create;
-//var
-//  EnvLogPath: string;
+ {$IFDEF DEBUG}
+var
+  EnvLogPath: string;
+  {$ENDIF}
 begin
   inherited Create;
   FLogLevel := llInfo; // Default to Info level

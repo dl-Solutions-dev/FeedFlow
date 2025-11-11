@@ -186,6 +186,7 @@
         <DCCReference Include="Helpers.Messages.pas"/>
         <DCCReference Include="Controllers\UListNewsController.pas"/>
         <DCCReference Include="UPagination.pas"/>
+        <DCCReference Include="Utils.Config.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

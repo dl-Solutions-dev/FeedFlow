@@ -125,7 +125,8 @@ uses
   System.StrUtils,
   System.IOUtils,
   UConsts,
-  Utils.Logger;
+  Utils.Logger,
+  Utils.Config;
 
 { TBaseController }
 
@@ -150,7 +151,7 @@ end;
 
 constructor TBaseController.Create;
 begin
-  FLocation := LOCAT;
+  FLocation := TConfig.GetInstance.Location; // LOCAT;
 end;
 
 destructor TBaseController.Destroy;
@@ -180,13 +181,13 @@ end;
 
 function TBaseController.HtmlTemplate( aTemplateName: string ): string;
 begin
-  Result := TEMPLATE_FOLDER + aTemplateName;
+  Result := TConfig.GetInstance.TemplateFolder+ aTemplateName; // TEMPLATE_FOLDER + aTemplateName;
 end;
 
 procedure TBaseController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
 begin
-  FLayoutTemplate := TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
+  FLayoutTemplate := TConfig.GetInstance.TemplateFolder + LAYOUT_TEMPLATE; // TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
 
   try
     FWebStencilsEngine := aWebStencil;

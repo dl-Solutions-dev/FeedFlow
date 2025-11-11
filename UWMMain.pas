@@ -21,8 +21,8 @@ type
       Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure WebModuleAfterDispatch( Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean );
-    procedure WebModuleBeforeDispatch(Sender: TObject; Request: TWebRequest;
-        Response: TWebResponse; var Handled: Boolean);
+    procedure WebModuleBeforeDispatch( Sender: TObject; Request: TWebRequest;
+      Response: TWebResponse; var Handled: Boolean );
     procedure WebSessionManagerCreated( Sender: TCustomWebSessionManager; Request:
       TWebRequest; Session: TWebSession );
   private
@@ -33,7 +33,8 @@ type
     procedure InitRequiredData;
   public
     { Public declarations }
-    property DM: TDMSession read FDM;
+//    property DM: TDMSession read FDM;
+//    property ResourcesPath: string read FResourcesPath;
   end;
 
 var
@@ -43,7 +44,8 @@ implementation
 
 uses
   System.IOUtils,
-  Utils.Logger;
+  Utils.Logger,
+  Utils.Config;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
@@ -55,30 +57,32 @@ begin
 
   TInvokerActions.GetInvokerActions.InitializeActions( Self, wsEngineApplication );
 
-  FormatSettings.ShortDateFormat:='dd/mm/YYYY';
+  FormatSettings.ShortDateFormat := 'dd/mm/YYYY';
 end;
 
 procedure TWebModule1.InitRequiredData;
 begin
-  FResourcesPath := './';
+  FResourcesPath := TConfig.GetInstance.ResourcePath;
 
   wsEngineApplication.RootDirectory := TPath.Combine( FResourcesPath, 'Templates' );
   WebFileDispatcher.RootDirectory := wsEngineApplication.RootDirectory;
+
+  Logger.Info( 'Resource ' + TConfig.GetInstance.Resource );
 
   wsEngineApplication.AddVar( 'env', nil, false,
     function( AVar: TWebStencilsDataVar; const APropName: string; var AValue:
       string ): Boolean
     begin
       if APropName = 'app_name' then
-        AValue := 'Feeds Management'
+        AValue := TConfig.GetInstance.App_Name // 'Feeds Management'
       else if APropName = 'version' then
-        AValue := '1.0.0'
+        AValue := TConfig.GetInstance.Version // '1.0.0'
       else if APropName = 'edition' then
-        AValue := 'WebBroker Delphi'{$IFDEF CONTAINER} + ' in Docker'{$ENDIF}
+        AValue := TConfig.GetInstance.Edition // 'WebBroker Delphi'{$IFDEF CONTAINER} + ' in Docker'{$ENDIF}
       else if APropName = 'company' then
-        Avalue := 'Solution dev'
+        Avalue := TConfig.GetInstance.Company // 'Solution dev'
       else if APropName = 'resource' then
-        AValue := '.'
+        AValue := TConfig.GetInstance.Resource // {$IFDEF DEBUG}AValue := '.'{$ELSE}AValue := '.'{$ENDIF}
       else if APropName = 'is_rad_server' then
         AValue := 'False'
       else if APropName = 'debug' then
@@ -95,11 +99,11 @@ end;
 procedure TWebModule1.WebModule1DefaultHandlerAction( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
-//  Response.Content :=
-//    '<html>' +
-//    '<head><title>Web Server Application</title></head>' +
-//    '<body>Web Server Application</body>' +
-//    '</html>';
+  //  Response.Content :=
+  //    '<html>' +
+  //    '<head><title>Web Server Application</title></head>' +
+  //    '<body>Web Server Application</body>' +
+  //    '</html>';
 end;
 
 procedure TWebModule1.WebModuleAfterDispatch( Sender: TObject; Request:
@@ -111,10 +115,10 @@ begin
     TMessageManager.ClearMessages( Request.Session );
 end;
 
-procedure TWebModule1.WebModuleBeforeDispatch(Sender: TObject; Request:
-    TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TWebModule1.WebModuleBeforeDispatch( Sender: TObject; Request:
+  TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
-  Logger.Info(Request.PathInfo);
+  Logger.Info( Request.PathInfo );
 end;
 
 procedure TWebModule1.WebSessionManagerCreated( Sender:
