@@ -15,7 +15,7 @@ type
   private
     FFeedId: string;
 
-    function SaisieOK( aTitre: string; aDatePublication, aDatePeremption:
+    function SaisieOK( aTitre, aOrdre: string; aDatePublication, aDatePeremption:
       TDateTime ): string;
 
     procedure SetFeedId( const Value: string );
@@ -96,6 +96,7 @@ var
   LDatePublication, lDatePeremption: TDateTime;
   LFs: TFormatSettings;
   LMsg: string;
+  LOrdre: Integer;
 begin
   LDM := GetDMSession( Request );
 
@@ -118,13 +119,21 @@ begin
       lDatePeremption := 0;
     end;
 
-    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LDatePublication, lDatePeremption );
+    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
+      LDatePublication, lDatePeremption );
+
     if ( LMsg = 'OK' ) then
     begin
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
+      begin
+        LOrdre := 0;
+      end;
+
       LDM.QryNews.Open;
       LDM.QryNews.Append;
       LDM.QryNewsIDNEWS.Value := -1;
       LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+      LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
       LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
       LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
       LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
@@ -161,6 +170,7 @@ var
   LMsg: string;
   LDatePublication, lDatePeremption: TDateTime;
   LFs: TFormatSettings;
+  LOrdre: Integer;
 begin
   LMsg := '';
 
@@ -194,13 +204,20 @@ begin
           lDatePeremption := 0;
         end;
 
-        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LDatePublication, lDatePeremption );
+        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
+          LDatePublication, lDatePeremption );
         if ( LMsg = 'OK' ) then
         begin
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
+          begin
+            LOrdre := 0;
+          end;
+
           LDM.QryNews.Edit;
 
           //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
           LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+          LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
           LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
           LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
           LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
@@ -546,7 +563,7 @@ begin
   end;
 end;
 
-function TListENewsController.SaisieOK( aTitre: string; aDatePublication,
+function TListENewsController.SaisieOK( aTitre, aOrdre: string; aDatePublication,
   aDatePeremption: TDateTime ): string;
 begin
   Result := 'OK';
@@ -566,6 +583,14 @@ begin
   else if ( aDatePeremption < aDatePublication ) then
   begin
     Result := 'ERR:La date de péremption doit être postérieure à la date de publication';
+  end
+  else
+  begin
+    try
+      StrToInt( aOrdre );
+    except
+      Result := 'ERR:l''ordre d''affichage de la news doit être un entier';
+    end;
   end;
 end;
 

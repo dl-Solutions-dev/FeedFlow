@@ -80,6 +80,8 @@ type
     QryShowNewsDATE_CREATION: TDateField;
     QryShowNewsDATE_MODIFICATION: TSQLTimeStampField;
     QryShowNewsDATE_AFFICHAGE: TStringField;
+    QryNewsORDRE_AFFICHAGE: TIntegerField;
+    QryListeNewsORDRE_AFFICHAGE: TIntegerField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

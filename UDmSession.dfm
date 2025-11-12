@@ -13,6 +13,7 @@ object DmSession: TDmSession
       'Protocol=TCPIP'
       'Server=localhost'
       'CharacterSet=UNICODE_FSS')
+    Connected = True
     LoginPrompt = False
     Left = 291
     Top = 100
@@ -230,6 +231,11 @@ object DmSession: TDmSession
       FieldName = 'DATE_MODIFICATION'
       Origin = 'DATE_MODIFICATION'
     end
+    object QryListeNewsORDRE_AFFICHAGE: TIntegerField
+      FieldName = 'ORDRE_AFFICHAGE'
+      Origin = 'ORDRE_AFFICHAGE'
+      Required = True
+    end
   end
   object QryCountNews: TFDQuery
     Connection = cnxFeedFlow
@@ -345,17 +351,34 @@ object DmSession: TDmSession
       FieldName = 'DATE_PEREMPTION_FMT'
       Calculated = True
     end
+    object QryNewsORDRE_AFFICHAGE: TIntegerField
+      FieldName = 'ORDRE_AFFICHAGE'
+      Origin = 'ORDRE_AFFICHAGE'
+      Required = True
+    end
   end
   object QryShowNews: TFDQuery
     OnCalcFields = QryShowNewsCalcFields
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'select * from NEWS'
+      'select '
+      '  (100000 - COALESCE(n.ORDRE_AFFICHAGE, 0) ) as ORDRE_INV,'
+      '  n.ORDRE_AFFICHAGE,'
+      '  n.IDNEWS,'
+      '  n.DATE_PUBLICATION,'
+      '  n.DATE_PEREMPTION,'
+      '  n.HOLD,'
+      '  n.TITRE_NEWS,'
+      '  n.TEXTE,'
+      '  n.ID_FEED,'
+      '  n.DATE_CREATION,'
+      '  n.DATE_MODIFICATION'
+      'from NEWS n'
       'where ID_FEED = :ID_FEED'
-      'and HOLD = '#39'O'#39
-      'and DATE_PUBLICATION <= localtimestamp'
-      'and DATE_PEREMPTION > localtimestamp'
-      'order by DATE_PUBLICATION desc, TITRE_NEWS ')
+      '  and HOLD = '#39'O'#39
+      '  and DATE_PUBLICATION <= localtimestamp'
+      '  and DATE_PEREMPTION > localtimestamp'
+      'order by ORDRE_INV, DATE_PUBLICATION desc, TITRE_NEWS;')
     Left = 296
     Top = 824
     ParamData = <
@@ -363,7 +386,7 @@ object DmSession: TDmSession
         Name = 'ID_FEED'
         DataType = ftInteger
         ParamType = ptInput
-        Value = Null
+        Value = 3
       end>
     object QryShowNewsIDNEWS: TIntegerField
       FieldName = 'IDNEWS'
