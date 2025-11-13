@@ -369,7 +369,7 @@ begin
 
       LPagination := LDM.Pagination( NAVIGATION_NAME );
 
-      LPagination.GeneratePagesList( LDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
+      LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
         'Search' ], 'FeedsList', 'GetNewsNavigation' );
 
       FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
@@ -532,7 +532,7 @@ begin
           LInt := 1;
         end;
 
-        LPagination.GeneratePagesList( lDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
+        LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
           'GetNewsNavigation' );
 
         FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
@@ -690,15 +690,20 @@ begin
 
     if Assigned( LDM ) then
     begin
-      LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-      LDM.QryShowNews.Open;
+      LDM.Critical.Acquire;
+      try
+        LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+        LDM.QryShowNews.Open;
 
-      FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+        FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
 
-      Response.ContentType := 'text/html; charset=UTF-8';
-      Response.Content := RenderTemplate( Request.QueryFields.Values[ 'Template' ], Request );
+        Response.ContentType := 'text/html; charset=UTF-8';
+        Response.Content := RenderTemplate( Request.QueryFields.Values[ 'Template' ], Request );
 
-      LDM.QryShowNews.Close;
+        LDM.QryShowNews.Close;
+      finally
+        LDM.Critical.Release;
+      end;
     end;
   end
   else

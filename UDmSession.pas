@@ -57,7 +57,6 @@ type
     QryListeNewsID_FEED: TIntegerField;
     QryListeNewsDATE_CREATION: TDateField;
     QryListeNewsDATE_MODIFICATION: TSQLTimeStampField;
-    QryCountNewsNB_ENR: TIntegerField;
     QryNewsIDNEWS: TIntegerField;
     QryNewsDATE_PUBLICATION: TDateField;
     QryNewsDATE_PEREMPTION: TDateField;
@@ -82,6 +81,7 @@ type
     QryShowNewsDATE_AFFICHAGE: TStringField;
     QryNewsORDRE_AFFICHAGE: TIntegerField;
     QryListeNewsORDRE_AFFICHAGE: TIntegerField;
+    QryCountNewsNB_ENR: TIntegerField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

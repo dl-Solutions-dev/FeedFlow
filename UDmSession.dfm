@@ -13,7 +13,6 @@ object DmSession: TDmSession
       'Protocol=TCPIP'
       'Server=localhost'
       'CharacterSet=UNICODE_FSS')
-    Connected = True
     LoginPrompt = False
     Left = 291
     Top = 100
