@@ -82,6 +82,8 @@ type
     QryNewsORDRE_AFFICHAGE: TIntegerField;
     QryListeNewsORDRE_AFFICHAGE: TIntegerField;
     QryCountNewsNB_ENR: TIntegerField;
+    qryFeedsTEMPLATE_AFFICHAGE: TWideStringField;
+    QryListeFeedsTEMPLATE_AFFICHAGE: TWideStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

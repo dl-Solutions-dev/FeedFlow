@@ -23,6 +23,37 @@
 			  </div>
 			</div>
 			
+			<div style="display:none" id="FeedId">@Form.FEEDID</div>
+			
+			<!--<form action="/UploadTemplate?FeedId=@Form.FEEDID" method="post" enctype="multipart/form-data">
+			<input type="file" name="file">
+			<button type="submit">Envoyer</button>
+			</form>-->
+			<div class="upload-container">
+			
+			<h3 class="upload-title">Uploader un template d'affichage</h3>
+			
+			<div class="upload-zone" id="uploadZone">
+				Glissez-déposez un fichier ou cliquez pour sélectionner 📂
+				<input type="file" id="fileInput" hidden>
+			</div>
+
+			<!-- Affichage du fichier sélectionné -->
+			  <div class="file-info" id="file-info" style="display:none;">
+				<span class="material-icons">description</span>
+				<span class="file-name" id="file-name"></span>
+				<span class="file-size" id="file-size"></span>
+				<button type="button" class="remove-file" id="remove-file">✕</button>
+			  </div>
+			  
+			<div id="preview">Fichier template : <span id="TemplateName">@Form.TemplateName</span></div>
+			<div class="progress">
+				<div class="progress-bar" id="progressBar"></div>
+			</div>
+			</div>
+			
+
+
 			<div id="ListNavigation">
 				@import ListNavigation
 			</div>
@@ -75,3 +106,4 @@
 		<!--</div>-->
 	</div>
 </div>
+<script src="@env.resource/static/js/ScriptUpload.js"></script>

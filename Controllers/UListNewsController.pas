@@ -1,8 +1,9 @@
-unit UListNewsController;
+ï»¿unit UListNewsController;
 
 interface
 
 uses
+  System.Classes,
   System.SysUtils,
   Web.HTTPApp,
   Web.Stencils,
@@ -14,11 +15,13 @@ type
   TListENewsController = class( TBaseController )
   private
     FFeedId: string;
+    FTemplateName: string;
 
     function SaisieOK( aTitre, aOrdre: string; aDatePublication, aDatePeremption:
       TDateTime ): string;
 
     procedure SetFeedId( const Value: string );
+    procedure SetTemplateName( const Value: string );
   public
     procedure NewsList( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure DeleteNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
@@ -32,10 +35,12 @@ type
     procedure SaveContentNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ShowNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure UploadTemplate( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
     property FeedId: string read FFeedId write SetFeedId;
+    property TemplateName: string read FTemplateName write SetTemplateName;
   end;
 
 implementation
@@ -46,6 +51,7 @@ uses
   System.IOUtils,
   System.Generics.Collections,
   System.StrUtils,
+  Web.ReqFiles,
   IdHTTP,
   FireDAC.Stan.Param,
   utils.ClassHelpers,
@@ -251,7 +257,7 @@ begin
       end
       else
       begin
-        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
+        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvÃ©.';
       end;
 
       Handled := True;
@@ -312,7 +318,7 @@ begin
     end
     else
     begin
-      Response.Content := 'liste non trouvée.';
+      Response.Content := 'liste non trouvÃ©e.';
     end;
   end;
 end;
@@ -430,7 +436,8 @@ begin
       TRoute.Create( mtPost, '/ApplyInsertNews', Self.ApplyInsertNews ),
       TRoute.Create( mtAny, '/SaveContent', Self.SaveContentNews ),
       TRoute.Create( mtAny, '/Show', Self.ShowNews ),
-      TRoute.Create( mtAny, '/GetNews', Self.GetNews )
+      TRoute.Create( mtAny, '/GetNews', Self.GetNews ),
+      TRoute.Create( mtPost, '/UploadTemplate', Self.UploadTemplate )
       ] );
 end;
 
@@ -511,7 +518,7 @@ begin
 
     LDM.Critical.Acquire;
     try
-      // Est-ce qu'on rafraichit également la barre de pagination
+      // Est-ce qu'on rafraichit Ã©galement la barre de pagination
       if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
       begin
         FTitre := Request.ContentFields.Values[ 'FeedName' ];
@@ -553,6 +560,12 @@ begin
       LDM.QryListeNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
       LDM.QryListeNews.Open;
 
+      LDM.qryFeeds.close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+      LDM.qryFeeds.Open;
+
+      FTemplateName := LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
+
       FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListeNews, False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
@@ -578,18 +591,18 @@ begin
   end
   else if ( aDatePeremption = 0 ) then
   begin
-    Result := 'ERR:Il faut renseigner une date de péremption';
+    Result := 'ERR:Il faut renseigner une date de pÃ©remption';
   end
   else if ( aDatePeremption < aDatePublication ) then
   begin
-    Result := 'ERR:La date de péremption doit être postérieure à la date de publication';
+    Result := 'ERR:La date de pÃ©remption doit Ãªtre postÃ©rieure Ã  la date de publication';
   end
   else
   begin
     try
       StrToInt( aOrdre );
     except
-      Result := 'ERR:l''ordre d''affichage de la news doit être un entier';
+      Result := 'ERR:l''ordre d''affichage de la news doit Ãªtre un entier';
     end;
   end;
 end;
@@ -660,6 +673,11 @@ begin
   FFeedId := Value;
 end;
 
+procedure TListENewsController.SetTemplateName( const Value: string );
+begin
+  FTemplateName := Value;
+end;
+
 procedure TListENewsController.ShowNews( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
@@ -667,10 +685,10 @@ var
   LIdFeed: Integer;
 begin
   logger.Info( 'ShowNews' );
-  if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, Request.QueryFields.Values[ 'Template' ] ) ) then
-  begin
-    LDM := GetDMSession( Request );
+  LDM := GetDMSession( Request );
 
+  if Assigned( LDM ) then
+  begin
     if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
     begin
       if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
@@ -686,30 +704,88 @@ begin
       end;
     end;
 
-    Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
+    LDM.qryFeeds.close;
+    LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+    LDM.qryFeeds.Open;
 
-    if Assigned( LDM ) then
+    if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
     begin
-      LDM.Critical.Acquire;
-      try
-        LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-        LDM.QryShowNews.Open;
+      Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-        FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+      if Assigned( LDM ) then
+      begin
+        LDM.Critical.Acquire;
+        try
+          LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+          LDM.QryShowNews.Open;
 
-        Response.ContentType := 'text/html; charset=UTF-8';
-        Response.Content := RenderTemplate( Request.QueryFields.Values[ 'Template' ], Request );
+          FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
 
-        LDM.QryShowNews.Close;
-      finally
-        LDM.Critical.Release;
+          Response.ContentType := 'text/html; charset=UTF-8';
+          Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
+
+          LDM.QryShowNews.Close;
+        finally
+          LDM.Critical.Release;
+        end;
       end;
+    end
+    else
+    begin
+      response.Content := 'Erreur : Template non trouvÃ© ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
     end;
-  end
-  else
-  begin
-    response.Content := 'Erreur : Template non trouvé ' + Request.QueryFields.Values[ 'Template' ];
+
+    LDM.qryFeeds.close;
   end;
+end;
+
+procedure TListENewsController.UploadTemplate( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+var
+  LSavePath: string;
+  LMemoryStream: TMemoryStream;
+  LFile: TAbstractWebRequestFile;
+  LDM: TDMSession;
+  LIdFeed: Integer;
+begin
+  LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) and TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LIdFeed ) then
+  begin
+    if Request.Files.Count > 0 then
+    begin
+      LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // ðŸ”§ adapte ton chemin
+
+      LMemoryStream := TMemoryStream.Create;
+      try
+        LFile := Request.Files[ 0 ];
+        LFile.Stream.Position := 0;
+        LMemoryStream.CopyFrom( LFile.Stream, LFile.Stream.Size );
+        LMemoryStream.SaveToFile( LSavePath );
+      finally
+        FreeAndNil( LMemoryStream );
+      end;
+
+      LDM.qryFeeds.close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+      LDM.qryFeeds.Open;
+
+      LDM.qryFeeds.Edit;
+      LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.Files[ 0 ].FileName;
+      LDM.qryFeeds.Post;
+
+      LDM.qryFeeds.Close;
+
+      Response.ContentType := 'application/json';
+      Response.Content := '{"status":"success","file":"' + Request.Files[ 0 ].FileName + '"}';
+    end
+    else
+    begin
+      Response.StatusCode := 400;
+      Response.Content := '{"status":"error","message":"No file uploaded"}';
+    end;
+  end;
+  Handled := True;
 end;
 
 initialization

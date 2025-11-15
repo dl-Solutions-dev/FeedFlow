@@ -1,19 +1,22 @@
+		
 		<tr hx-trigger='cancel' class='editing' hx-get="/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED">
 			  <td>
 			  </td>
-			  <td>
-					<a href="#"
+			  <td>				
+				  <a href="#"
 						hx-post="@env.resource/ApplyFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
 						hx-include="closest tr"
-					>
+					>	
 						<span class="material-icons">
 						save
 						</span>
 					</a>
 			  </td>
 			  <td>
+
 					<a href="#"
 						hx-post="@env.resource/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
+						hx-swap="outerHTML"
 					>
 						<span class="material-icons">
 						cancel
@@ -22,9 +25,6 @@
 			  </td>
 			  <td>
 				@Feed.ID_FEED
-			  </td>
-			  <td>
-				<input type="number" id="edtOrdreAffichage" name="ordreaffichage" value="@Feed.ORDRE_AFFICHAGE">
 			  </td>
 			  <td>
 				<input autofocus id="edtTitre" name="titre" value="@Feed.TITRE">
@@ -42,3 +42,4 @@
 				@Feed.DATE_MODIFICATION
 			  </td>
 			</tr>
+			

@@ -196,3 +196,6 @@ function refreshNewsPanel(idFeed) {
     })
     .catch(err => console.error('Erreur chargement fil d’info:', err));
 } 
+
+
+

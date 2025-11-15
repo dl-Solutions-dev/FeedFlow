@@ -1,8 +1,9 @@
-unit UIndexController;
+ï»¿unit UIndexController;
 
 interface
 
 uses
+  System.Classes,
   System.SysUtils,
   Web.HTTPApp,
   Web.Stencils,
@@ -27,6 +28,7 @@ type
     procedure CancelAddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ApplyInsertFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
+
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
 
@@ -34,9 +36,12 @@ implementation
 
 uses
   System.SyncObjs,
+  System.IOUtils,
   System.Generics.Collections,
   System.StrUtils,
+  Web.ReqMulti,
   IdHTTP,
+  Web.ReqFiles,
   FireDAC.Stan.Param,
   utils.ClassHelpers,
   UConsts,
@@ -82,9 +87,14 @@ procedure TIndexController.ApplyFeedEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  LMsg: string;
+  LMsg,
+    LSavePAth,
+    LFileName: string;
+  FileData: TStream;
+  //  FileName: string;
 begin
   LMsg := '';
+  //  LFileName:='';
 
   LDM := GetDMSession( Request );
   if Assigned( LDM ) then
@@ -99,15 +109,24 @@ begin
 
       if not ( LDM.QryFeeds.Eof ) then
       begin
+
+        //        if Request.Files.Count > 0 then
+        //        begin
+        //          LFileName:=Request.Files[ 0 ].FileName;
+        //          LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // ðŸ”§ adapte ton chemin
+        //
+        //          TMemoryStream( Request.Files[ 0 ] ).SaveToFile( LSavePath );
+        //        end;
+
         LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ] );
 
         if ( LMsg = 'OK' ) then
         begin
           LDM.QryFeeds.Edit;
 
-          //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
           LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
           LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+          //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
           try
             LDM.QryFeeds.Post;
             LDM.cnxFeedFlow.Commit;
@@ -138,7 +157,7 @@ begin
       end
       else
       begin
-        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
+        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvÃ©.';
       end;
 
       Handled := True;
@@ -166,7 +185,7 @@ begin
       LDM.qryFeedsID_FEED.Value := -1;
       LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
       LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
-
+      LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
       LDM.qryFeeds.Post;
 
       LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
@@ -240,7 +259,7 @@ begin
     end
     else
     begin
-      Response.Content := 'liste non trouvée.';
+      Response.Content := 'liste non trouvÃ©e.';
     end;
   end;
 end;
@@ -308,7 +327,7 @@ begin
 
     LDM.Critical.Acquire;
     try
-      // Est-ce qu'on rafraichit également la barre de pagination
+      // Est-ce qu'on rafraichit Ã©galement la barre de pagination
       if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
       begin
         FTitre := 'Fils d''informations';

@@ -18,6 +18,7 @@
 					<a href="#"
 						hx-post="@env.resource/FeedEditLineMode?id=@Feed.ID_FEED&col=1"
 						hx-trigger="edit"
+						hx-swap="outerHTML"
 						onClick="let editing = document.querySelector('.editing')
 								 if(editing) {
 								   Swal.fire({title: 'Already Editing',

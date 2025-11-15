@@ -13,6 +13,7 @@ object DmSession: TDmSession
       'Protocol=TCPIP'
       'Server=localhost'
       'CharacterSet=UNICODE_FSS')
+    Connected = True
     LoginPrompt = False
     Left = 291
     Top = 100
@@ -70,6 +71,11 @@ object DmSession: TDmSession
     object QryListeFeedsDATE_MODIFICATION: TSQLTimeStampField
       FieldName = 'DATE_MODIFICATION'
       Origin = 'DATE_MODIFICATION'
+    end
+    object QryListeFeedsTEMPLATE_AFFICHAGE: TWideStringField
+      FieldName = 'TEMPLATE_AFFICHAGE'
+      Origin = 'TEMPLATE_AFFICHAGE'
+      Size = 512
     end
   end
   object qryCountFeeds: TFDQuery
@@ -135,6 +141,11 @@ object DmSession: TDmSession
     object qryFeedsDATE_MODIFICATION: TSQLTimeStampField
       FieldName = 'DATE_MODIFICATION'
       Origin = 'DATE_MODIFICATION'
+    end
+    object qryFeedsTEMPLATE_AFFICHAGE: TWideStringField
+      FieldName = 'TEMPLATE_AFFICHAGE'
+      Origin = 'TEMPLATE_AFFICHAGE'
+      Size = 512
     end
   end
   object QryListeNews: TFDQuery
