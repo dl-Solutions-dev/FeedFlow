@@ -81,3 +81,4 @@ __recovery/
 # Boss dependency manager vendor folder https://github.com/HashLoad/boss
 modules/
 /Win64/Debug/logs
+Win64/Release/checkacl.ls1

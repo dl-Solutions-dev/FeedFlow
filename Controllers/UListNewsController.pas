@@ -748,6 +748,8 @@ var
   LDM: TDMSession;
   LIdFeed: Integer;
 begin
+  Logger.Info( 'UploadTemplate' );
+
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) and TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LIdFeed ) then
@@ -756,14 +758,24 @@ begin
     begin
       LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // 🔧 adapte ton chemin
 
+      Logger.Info( 'LSavePAth : ' + LSavePath );
+
       LMemoryStream := TMemoryStream.Create;
       try
         LFile := Request.Files[ 0 ];
         LFile.Stream.Position := 0;
+        Logger.Info( 'Copie du stream' );
         LMemoryStream.CopyFrom( LFile.Stream, LFile.Stream.Size );
+        Logger.Info( 'Sauvegarde du fichier' );
         LMemoryStream.SaveToFile( LSavePath );
-      finally
+        Logger.Info( 'Sauvegardé' );
         FreeAndNil( LMemoryStream );
+      except
+        on e: Exception do
+        begin
+          Logger.Info( e.Message );
+          FreeAndNil( LMemoryStream );
+        end;
       end;
 
       LDM.qryFeeds.close;
