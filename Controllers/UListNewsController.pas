@@ -689,33 +689,33 @@ begin
 
   if Assigned( LDM ) then
   begin
-    if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
-    begin
-      if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+    LDM.Critical.Acquire;
+    try
+      if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
       begin
-        LIdFeed := 0;
+        if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+        begin
+          LIdFeed := 0;
+        end;
+      end
+      else
+      begin
+        if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+        begin
+          LIdFeed := 0;
+        end;
       end;
-    end
-    else
-    begin
-      if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+
+      LDM.qryFeeds.close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+      LDM.qryFeeds.Open;
+
+      if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
       begin
-        LIdFeed := 0;
-      end;
-    end;
+        Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-    LDM.qryFeeds.close;
-    LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-    LDM.qryFeeds.Open;
-
-    if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
-    begin
-      Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
-
-      if Assigned( LDM ) then
-      begin
-        LDM.Critical.Acquire;
-        try
+        if Assigned( LDM ) then
+        begin
           LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
           LDM.QryShowNews.Open;
 
@@ -725,17 +725,17 @@ begin
           Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
 
           LDM.QryShowNews.Close;
-        finally
-          LDM.Critical.Release;
         end;
+      end
+      else
+      begin
+        response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
       end;
-    end
-    else
-    begin
-      response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
-    end;
 
-    LDM.qryFeeds.close;
+      LDM.qryFeeds.close;
+    finally
+      LDM.Critical.Release;
+    end;
   end;
 end;
 
