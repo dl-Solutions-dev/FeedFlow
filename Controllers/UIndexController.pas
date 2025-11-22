@@ -14,7 +14,7 @@ uses
 type
   TIndexController = class( TBaseController )
   private
-    function SaisieOK( aTitre: string ): string;
+    function SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;
   public
     procedure Main( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
@@ -27,7 +27,6 @@ type
     procedure AddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure CancelAddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ApplyInsertFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
-
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
@@ -91,6 +90,7 @@ var
     LSavePAth,
     LFileName: string;
   FileData: TStream;
+  LCategorie, LSousCategorie: Integer;
   //  FileName: string;
 begin
   LMsg := '';
@@ -110,22 +110,29 @@ begin
       if not ( LDM.QryFeeds.Eof ) then
       begin
 
-        //        if Request.Files.Count > 0 then
-        //        begin
-        //          LFileName:=Request.Files[ 0 ].FileName;
-        //          LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // 🔧 adapte ton chemin
-        //
-        //          TMemoryStream( Request.Files[ 0 ] ).SaveToFile( LSavePath );
-        //        end;
+        if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+        begin
+          LCategorie := 0;
+        end;
 
-        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ] );
+        if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
+        begin
+          LSousCategorie := 0;
+        end;
+
+        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
 
         if ( LMsg = 'OK' ) then
         begin
           LDM.QryFeeds.Edit;
 
+          LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
           LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
           LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+          LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
+          LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
+          LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
+          LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
           //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
           try
             LDM.QryFeeds.Post;
@@ -171,21 +178,38 @@ var
   LDM: TDMSession;
   LLAstId: Integer;
   LMsg: string;
+  LCategorie, LSousCategorie: Integer;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ] );
+    if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+    begin
+      LCategorie := 0;
+    end;
+
+    if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
+    begin
+      LSousCategorie := 0;
+    end;
+
+    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
 
     if ( LMsg = 'OK' ) then
     begin
       LDM.qryFeeds.Open;
       LDM.qryFeeds.Append;
       LDM.qryFeedsID_FEED.Value := -1;
+      LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
       LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
       LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
+      LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
+      LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
+      LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
+      LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
       LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
+
       LDM.qryFeeds.Post;
 
       LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
@@ -285,10 +309,16 @@ begin
         LDM.qryFeeds.First;
 
         FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
       end;
+
+      LDM.qryFeeds.close;
     finally
       LDM.Critical.Leave;
     end;
@@ -454,9 +484,19 @@ begin
   Response.SendRedirect( './FeedsList?scope=Page' );
 end;
 
-function TIndexController.SaisieOK( aTitre: string ): string;
+function TIndexController.SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;
 begin
   Result := 'OK';
+
+  if ( aCategorie = 0 ) then
+  begin
+    Result := 'ERR:Il faut sélectionner une catégorie';
+  end;
+
+  if ( aSousCategorie = 0 ) then
+  begin
+    Result := 'ERR:Il faut sélectionner une sous-catégorie';
+  end;
 
   if ( aTitre.Trim = '' ) then
   begin
