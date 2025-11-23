@@ -17,6 +17,16 @@ function confirmDelete(aForm){
 	}
 }
 
+// Intercepter toutes les requêtes HTMX pour ajouter le JWT
+document.body.addEventListener('htmx:configRequest', function(evt) {
+  console.log("enregistrement token");
+  const token = sessionStorage.getItem('jwt');
+  if (token) {
+	console.log("enregistrement ok");
+	evt.detail.headers['jwt'] = 'Bearer ${'+token+'}';
+  }
+});
+	
 document.body.addEventListener('htmx:beforeSwap', function (evt) {
 	const xhr = evt.detail.xhr;
 
@@ -122,7 +132,14 @@ async function openPopup(id) {
 
   // Récupération du contenu serveur
   try {
-    const response = await fetch('./GetNews?id=' + id);
+	const token = sessionStorage.getItem('jwt');
+
+    const response = await fetch('./GetNews?id=' + id, {
+	  method: "GET",
+	  headers: {
+		"jwt": "Bearer " + token
+	  }
+	});
     const html = await response.text();
 
     if (html && html.trim() !== "") {
@@ -150,9 +167,13 @@ async function SendContent() {
   html= quill.root.innerHTML;
   
   try {
+	const token = sessionStorage.getItem('jwt');
+	
     const res = await fetch('./saveContent?idNews='+idNews, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+		"Content-Type": "application/json",
+		"jwt": "Bearer " + token},
       body: JSON.stringify({ content: html })
     });
 
@@ -188,8 +209,15 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
 	lastEditedFeedId = null; // reset
   });
   
-function refreshNewsPanel(idFeed) {
-  fetch('./Show?idFeed='+idFeed+'&Template=ShowNews.html')
+function refreshNewsPanel(idFeed) {	
+	const token = sessionStorage.getItem('jwt');
+	
+	fetch('./Show?idFeed='+idFeed+'&Template=ShowNews.html', {
+	  method: "GET",
+	  headers: {
+		"jwt": "Bearer " + token
+	  }
+	})
     .then(response => response.text())
     .then(html => {
       document.getElementById('sidePanel').innerHTML = html;

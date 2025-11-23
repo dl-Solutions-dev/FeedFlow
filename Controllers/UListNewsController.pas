@@ -59,7 +59,8 @@ uses
   uInvokerActions,
   UWMMain,
   Utils.Logger,
-  UPagination;
+  UPagination,
+  Utils.Token;
 
 const
   NAVIGATION_NAME: string = 'NewsList';
@@ -78,19 +79,23 @@ procedure TListENewsController.AddNews( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
-    FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+    LDM := GetDMSession( Request );
 
-    Response.Content := RenderTemplate( TMP_ADD, Request );
-  end
-  else
-  begin
-    Response.Content := 'Invalid session';
+    if Assigned( LDM ) then
+    begin
+      //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
+      FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+
+      Response.Content := RenderTemplate( TMP_ADD, Request );
+    end
+    else
+    begin
+      Response.Content := 'Invalid session';
+    end;
   end;
 end;
 
@@ -103,70 +108,74 @@ var
   LFs: TFormatSettings;
   LMsg: string;
   LOrdre: Integer;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LFs := TFormatSettings.Create;
-    LFs.DateSeparator := '-';
-    LFs.ShortDateFormat := 'yyyy-MM-dd';
-    LFs.TimeSeparator := ':';
-    LFs.ShortTimeFormat := 'hh:mm';
-    LFs.LongTimeFormat := 'hh:mm:ss';
+    LDM := GetDMSession( Request );
 
-    if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
+    if Assigned( LDM ) then
     begin
-      LDatePublication := 0;
-    end;
+      LFs := TFormatSettings.Create;
+      LFs.DateSeparator := '-';
+      LFs.ShortDateFormat := 'yyyy-MM-dd';
+      LFs.TimeSeparator := ':';
+      LFs.ShortTimeFormat := 'hh:mm';
+      LFs.LongTimeFormat := 'hh:mm:ss';
 
-    if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
-    begin
-      lDatePeremption := 0;
-    end;
-
-    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
-      LDatePublication, lDatePeremption );
-
-    if ( LMsg = 'OK' ) then
-    begin
-      if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
+      if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
       begin
-        LOrdre := 0;
+        LDatePublication := 0;
       end;
 
-      LDM.QryNews.Open;
-      LDM.QryNews.Append;
-      LDM.QryNewsIDNEWS.Value := -1;
-      LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
-      LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
-      LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-      LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
-      LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
-      LDM.QryNewsTEXTE.Value := '';
-      LDM.QryNewsID_FEED.Value := FFeedId.ToInteger;
-      LDM.QryNews.Post;
+      if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
+      begin
+        lDatePeremption := 0;
+      end;
 
-      LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
+      LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
+        LDatePublication, lDatePeremption );
 
-      LDM.QryNews.Close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsInteger := LLAstId;
-      LDM.QryNews.Open;
+      if ( LMsg = 'OK' ) then
+      begin
+        if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
+        begin
+          LOrdre := 0;
+        end;
 
-      FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+        LDM.QryNews.Open;
+        LDM.QryNews.Append;
+        LDM.QryNewsIDNEWS.Value := -1;
+        LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+        LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
+        LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+        LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
+        LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
+        LDM.QryNewsTEXTE.Value := '';
+        LDM.QryNewsID_FEED.Value := FFeedId.ToInteger;
+        LDM.QryNews.Post;
+
+        LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
+
+        LDM.QryNews.Close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsInteger := LLAstId;
+        LDM.QryNews.Open;
+
+        FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+      end;
+
+      if ( LMsg = 'OK' ) then
+      begin
+        Response.Content := RenderTemplate( TMP_LINE, Request );
+      end
+      else
+      begin
+        Response.Content := LMsg;
+      end;
     end;
-
-    if ( LMsg = 'OK' ) then
-    begin
-      Response.Content := RenderTemplate( TMP_LINE, Request );
-    end
-    else
-    begin
-      Response.Content := LMsg;
-    end;
-
-    Handled := True;
   end;
+
+  Handled := True;
 end;
 
 procedure TListENewsController.ApplyNewsEditLine( Sender: TObject;
@@ -177,92 +186,96 @@ var
   LDatePublication, lDatePeremption: TDateTime;
   LFs: TFormatSettings;
   LOrdre: Integer;
+  LToken: TToken;
 begin
-  LMsg := '';
-
-  LDM := GetDMSession( Request );
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    if ( Request.QueryFields.Values[ 'Id' ] <> '' ) then
+    LMsg := '';
+
+    LDM := GetDMSession( Request );
+    if Assigned( LDM ) then
     begin
-      LDM.cnxFeedFlow.StartTransaction;
-
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryNews.Open;
-
-      if not ( LDM.QryNews.Eof ) then
+      if ( Request.QueryFields.Values[ 'Id' ] <> '' ) then
       begin
-        LFs := TFormatSettings.Create;
-        LFs.DateSeparator := '-';
-        LFs.ShortDateFormat := 'yyyy-MM-dd';
-        LFs.TimeSeparator := ':';
-        LFs.ShortTimeFormat := 'hh:mm';
-        LFs.LongTimeFormat := 'hh:mm:ss';
+        LDM.cnxFeedFlow.StartTransaction;
 
-        if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
-        begin
-          LDatePublication := 0;
-        end;
+        LDM.QryNews.close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.QryNews.Open;
 
-        if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
+        if not ( LDM.QryNews.Eof ) then
         begin
-          lDatePeremption := 0;
-        end;
+          LFs := TFormatSettings.Create;
+          LFs.DateSeparator := '-';
+          LFs.ShortDateFormat := 'yyyy-MM-dd';
+          LFs.TimeSeparator := ':';
+          LFs.ShortTimeFormat := 'hh:mm';
+          LFs.LongTimeFormat := 'hh:mm:ss';
 
-        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
-          LDatePublication, lDatePeremption );
-        if ( LMsg = 'OK' ) then
-        begin
-          if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
+          if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
           begin
-            LOrdre := 0;
+            LDatePublication := 0;
           end;
 
-          LDM.QryNews.Edit;
+          if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
+          begin
+            lDatePeremption := 0;
+          end;
 
-          //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
-          LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
-          LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
-          LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-          LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
-          LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
-          try
-            LDM.QryNews.Post;
-            LDM.cnxFeedFlow.Commit;
-          except
-            on e: Exception do
+          LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
+            LDatePublication, lDatePeremption );
+          if ( LMsg = 'OK' ) then
+          begin
+            if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
             begin
-              LMsg := 'ERR:' + Request.QueryFields.Text;
-              LDM.cnxFeedFlow.Rollback;
+              LOrdre := 0;
             end;
+
+            LDM.QryNews.Edit;
+
+            //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
+            LDM.QryNewsTITRE_NEWS.Value := Request.ContentFields.Values[ 'titre' ];
+            LDM.QryNewsORDRE_AFFICHAGE.Value := LOrdre;
+            LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+            LDM.QryNewsDATE_PUBLICATION.Value := LDatePublication;
+            LDM.QryNewsDATE_PEREMPTION.Value := lDatePeremption;
+            try
+              LDM.QryNews.Post;
+              LDM.cnxFeedFlow.Commit;
+            except
+              on e: Exception do
+              begin
+                LMsg := 'ERR:' + Request.QueryFields.Text;
+                LDM.cnxFeedFlow.Rollback;
+              end;
+            end;
+
+            LDM.QryNews.close;
+            LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryNews.Open;
+
+            FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+            FWebStencilsProcessor.AddVar( 'Form', Self, False );
           end;
 
-          LDM.QryNews.close;
-          LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-          LDM.QryNews.Open;
-
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-          FWebStencilsProcessor.AddVar( 'Form', Self, False );
-        end;
-
-        if LMsg = 'OK' then
-        begin
-          Response.Content := RenderTemplate( TMP_LINE, Request );
+          if LMsg = 'OK' then
+          begin
+            Response.Content := RenderTemplate( TMP_LINE, Request );
+          end
+          else
+          begin
+            Response.Content := LMsg;
+          end;
         end
         else
         begin
-          Response.Content := LMsg;
+          Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
         end;
-      end
-      else
-      begin
-        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
       end;
-
-      Handled := True;
     end;
   end;
+
+  Handled := True;
 end;
 
 procedure TListENewsController.CancelAddNews( Sender: TObject;
@@ -275,50 +288,57 @@ procedure TListENewsController.CancelNewsEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryNews.Open;
+    LDM := GetDMSession( Request );
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.QryNews.close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.QryNews.Open;
 
-      if not ( LDM.QryNews.Eof ) then
-      begin
-        FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        if not ( LDM.QryNews.Eof ) then
+        begin
+          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
-        Response.Content := RenderTemplate( TMP_LINE, Request );
+          Response.Content := RenderTemplate( TMP_LINE, Request );
+        end;
+      finally
+        LDM.Critical.Leave;
       end;
-    finally
-      LDM.Critical.Leave;
     end;
   end;
-
 end;
 
 procedure TListENewsController.DeleteNews( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LDM.QryNews.close;
-    LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-    LDM.QryNews.Open;
+    LDM := GetDMSession( Request );
+    if Assigned( LDM ) then
+    begin
+      LDM.QryNews.close;
+      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.QryNews.Open;
 
-    if not ( LDM.QryNews.Eof ) then
-    begin
-      LDM.QryNews.Delete;
-      SendEmptyContent( Response );
-    end
-    else
-    begin
-      Response.Content := 'liste non trouvée.';
+      if not ( LDM.QryNews.Eof ) then
+      begin
+        LDM.QryNews.Delete;
+        SendEmptyContent( Response );
+      end
+      else
+      begin
+        Response.Content := 'liste non trouvée.';
+      end;
     end;
   end;
 end;
@@ -332,89 +352,97 @@ var
   LLinesPerPage: Integer;
   LDM: TDMSession;
   LDateSearch: TDateTime;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
-    begin
-      LLinesPerPage := 10;
-    end;
+    LDM := GetDMSession( Request );
 
-    LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ] := LLinesPerPage.ToString;
-
-    if ( Request.QueryFields.Values[ 'SearchChanged' ] <> '' ) then
+    if Assigned( LDM ) then
     begin
-      LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := Request.ContentFields.Values[ 'Search' ].ToUpper;
-      LInt := 1;
-    end
-    else
-    begin
-      if not ( TryStrToInt( Request.QueryFields.Values[ 'Page' ], LInt ) ) then
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
       begin
+        LLinesPerPage := 10;
+      end;
+
+      LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ] := LLinesPerPage.ToString;
+
+      if ( Request.QueryFields.Values[ 'SearchChanged' ] <> '' ) then
+      begin
+        LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := Request.ContentFields.Values[ 'Search' ].ToUpper;
         LInt := 1;
+      end
+      else
+      begin
+        if not ( TryStrToInt( Request.QueryFields.Values[ 'Page' ], LInt ) ) then
+        begin
+          LInt := 1;
+        end;
+      end;
+
+      if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
+      begin
+        LDateSearch := 0;
+      end;
+
+      LDM.Critical.Acquire;
+      try
+        LDM.QryCountNews.close;
+        LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+        LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
+        LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
+        LDM.QryCountNews.Open;
+
+        FMsg := 'GetPagination';
+
+        LPagination := LDM.Pagination( NAVIGATION_NAME );
+
+        LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
+          'Search' ], 'FeedsList', 'GetNewsNavigation' );
+
+        FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+      finally
+        LDM.Critical.Release;
       end;
     end;
-
-    if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
-    begin
-      LDateSearch := 0;
-    end;
-
-    LDM.Critical.Acquire;
-    try
-      LDM.QryCountNews.close;
-      LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
-      LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
-      LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
-      LDM.QryCountNews.Open;
-
-      FMsg := 'GetPagination';
-
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
-
-      LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
-        'Search' ], 'FeedsList', 'GetNewsNavigation' );
-
-      FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
-      FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-      Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
-    finally
-      LDM.Critical.Release;
-    end;
-
-    Handled := True;
   end;
+
+  Handled := True;
 end;
 
 procedure TListENewsController.GetNews( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryNews.Open;
+    LDM := GetDMSession( Request );
 
-      if not ( LDM.QryNews.Eof ) then
-      begin
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.QryNews.close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.QryNews.Open;
-        LDM.QryNews.First;
 
-        Response.ContentType := 'text/plain; charset=utf-8';
-        Response.Content := LDM.QryNewsTEXTE.Value;
+        if not ( LDM.QryNews.Eof ) then
+        begin
+          LDM.QryNews.Open;
+          LDM.QryNews.First;
+
+          Response.ContentType := 'text/plain; charset=utf-8';
+          Response.Content := LDM.QryNewsTEXTE.Value;
+        end;
+      finally
+        LDM.Critical.Leave;
       end;
-    finally
-      LDM.Critical.Leave;
     end;
   end;
 end;
@@ -445,29 +473,33 @@ procedure TListENewsController.NewsEditLineMode( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryNews.Open;
+    LDM := GetDMSession( Request );
 
-      if not ( LDM.QryNews.Eof ) then
-      begin
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.QryNews.close;
+        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.QryNews.Open;
-        LDM.QryNews.First;
 
-        FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        if not ( LDM.QryNews.Eof ) then
+        begin
+          LDM.QryNews.Open;
+          LDM.QryNews.First;
 
-        Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+          Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+        end;
+      finally
+        LDM.Critical.Leave;
       end;
-    finally
-      LDM.Critical.Leave;
     end;
   end;
 end;
@@ -482,96 +514,100 @@ var
   LInt: Integer;
   LDateSearch: TDateTime;
   LTemplate: string;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LDM.cnxFeedFlow.Rollback;
-
-    if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
+    if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
-      LLinesPerPage := 10;
-    end;
+      LDM.cnxFeedFlow.Rollback;
 
-    LPagination := LDM.Pagination( NAVIGATION_NAME );
-
-    LPage := LPagination.actualPage;
-
-    if ( LPage > 0 ) then
-    begin
-      Dec( LPage );
-    end;
-
-    if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
-    begin
-      LDateSearch := 0;
-    end;
-
-    FFeedId := Request.ContentFields.Values[ 'FeedId' ];
-    if FFeedId = '' then
-    begin
-      FFeedId := Request.QueryFields.Values[ 'FeedId' ];
-    end;
-
-    Logger.Info( 'Newslist, FeedId : ' + FFeedId );
-
-    LDM.Critical.Acquire;
-    try
-      // Est-ce qu'on rafraichit également la barre de pagination
-      if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
       begin
-        FTitre := Request.ContentFields.Values[ 'FeedName' ];
-
-        LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
-
-        LTemplate := TMP_LISTE;
-
-        LDM.QryCountNews.close;
-        LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
-        LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-        LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
-        LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
-        LDM.QryCountNews.Open;
-
-        if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
-        begin
-          LInt := 1;
-        end;
-
-        LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
-          'GetNewsNavigation' );
-
-        FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
-      end
-      else // Sinon, on rafraichit juste la liste
-      begin
-        LTemplate := TMP_TABLE
+        LLinesPerPage := 10;
       end;
 
-      FMsg := FMsg + 'NewsList';
+      LPagination := LDM.Pagination( NAVIGATION_NAME );
 
-      LDM.QryListeNews.close;
-      LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
-      LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
-      LDM.QryListeNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      LDM.QryListeNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
-      LDM.QryListeNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
-      LDM.QryListeNews.Open;
+      LPage := LPagination.actualPage;
 
-      LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
-      LDM.qryFeeds.Open;
+      if ( LPage > 0 ) then
+      begin
+        Dec( LPage );
+      end;
 
-      FTemplateName := LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
+      if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
+      begin
+        LDateSearch := 0;
+      end;
 
-      FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListeNews, False );
-      FWebStencilsProcessor.AddVar( 'Form', Self, False );
+      FFeedId := Request.ContentFields.Values[ 'FeedId' ];
+      if FFeedId = '' then
+      begin
+        FFeedId := Request.QueryFields.Values[ 'FeedId' ];
+      end;
 
-      Response.Content := RenderTemplate( LTemplate, Request );
-    finally
-      LDM.Critical.Release;
+      Logger.Info( 'Newslist, FeedId : ' + FFeedId );
+
+      LDM.Critical.Acquire;
+      try
+        // Est-ce qu'on rafraichit également la barre de pagination
+        if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
+        begin
+          FTitre := Request.ContentFields.Values[ 'FeedName' ];
+
+          LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
+
+          LTemplate := TMP_LISTE;
+
+          LDM.QryCountNews.close;
+          LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+          LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+          LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
+          LDM.QryCountNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
+          LDM.QryCountNews.Open;
+
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
+          begin
+            LInt := 1;
+          end;
+
+          LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
+            'GetNewsNavigation' );
+
+          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+        end
+        else // Sinon, on rafraichit juste la liste
+        begin
+          LTemplate := TMP_TABLE
+        end;
+
+        FMsg := FMsg + 'NewsList';
+
+        LDM.QryListeNews.close;
+        LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+        LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+        LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+        LDM.QryListeNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.QryListeNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
+        LDM.QryListeNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
+        LDM.QryListeNews.Open;
+
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+        LDM.qryFeeds.Open;
+
+        FTemplateName := LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
+
+        FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListeNews, False );
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.Content := RenderTemplate( LTemplate, Request );
+      finally
+        LDM.Critical.Release;
+      end;
     end;
   end;
 end;
@@ -614,58 +650,62 @@ var
   JSONVal: TJSONValue;
   LObj: TJSONObject;
   ContentStr: string;
+  LToken: TToken;
 begin
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.cnxFeedFlow.StartTransaction;
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
       try
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-        LDM.QryNews.Open;
+        LDM.cnxFeedFlow.StartTransaction;
+        try
+          LDM.QryNews.close;
+          LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+          LDM.QryNews.Open;
 
-        if not ( LDM.QryNews.Eof ) then
-        begin
-          JSONVal := TJSONObject.ParseJSONValue( Request.Content );
-          try
-            if ( JSONVal <> nil ) and ( JSONVal is TJSONObject ) then
-            begin
-              LObj := TJSONObject( JSONVal );
-              ContentStr := LObj.GetValue( 'content' ).Value;
+          if not ( LDM.QryNews.Eof ) then
+          begin
+            JSONVal := TJSONObject.ParseJSONValue( Request.Content );
+            try
+              if ( JSONVal <> nil ) and ( JSONVal is TJSONObject ) then
+              begin
+                LObj := TJSONObject( JSONVal );
+                ContentStr := LObj.GetValue( 'content' ).Value;
 
-              LDM.QryNews.Edit;
-              LDM.QryNewsTEXTE.Value := ContentStr;
-              LDM.QryNews.Post;
-              LDM.QryNews.Close;
-            end
-            else
-            begin
-              Response.StatusCode := 400;
-              Response.Content := '{"error":"invalid json"}';
+                LDM.QryNews.Edit;
+                LDM.QryNewsTEXTE.Value := ContentStr;
+                LDM.QryNews.Post;
+                LDM.QryNews.Close;
+              end
+              else
+              begin
+                Response.StatusCode := 400;
+                Response.Content := '{"error":"invalid json"}';
+              end;
+            finally
+              JSONVal.Free;
             end;
-          finally
-            JSONVal.Free;
+          end;
+
+          LDM.cnxFeedFlow.Commit;
+        except
+          on e: Exception do
+          begin
+            LDM.cnxFeedFlow.Rollback;
           end;
         end;
-
-        LDM.cnxFeedFlow.Commit;
-      except
-        on e: Exception do
-        begin
-          LDM.cnxFeedFlow.Rollback;
-        end;
+      finally
+        LDM.Critical.Leave;
       end;
-    finally
-      LDM.Critical.Leave;
     end;
+
+    Response.StatusCode := 200;
   end;
 
   Handled := True;
-
-  Response.StatusCode := 200;
 end;
 
 procedure TListENewsController.SetFeedId( const Value: string );
@@ -683,58 +723,62 @@ procedure TListENewsController.ShowNews( Sender: TObject; Request: TWebRequest;
 var
   LDM: TDMSession;
   LIdFeed: Integer;
+  LToken: TToken;
 begin
-  logger.Info( 'ShowNews' );
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) then
+  if ValidToken( Request, True, True, LToken ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
-      begin
-        if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+    logger.Info( 'ShowNews' );
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
         begin
-          LIdFeed := 0;
-        end;
-      end
-      else
-      begin
-        if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+          begin
+            LIdFeed := 0;
+          end;
+        end
+        else
         begin
-          LIdFeed := 0;
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+          begin
+            LIdFeed := 0;
+          end;
         end;
+
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+        LDM.qryFeeds.Open;
+
+        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
+        begin
+          Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
+
+          if Assigned( LDM ) then
+          begin
+            LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+            LDM.QryShowNews.Open;
+
+            FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+
+            Response.ContentType := 'text/html; charset=UTF-8';
+            Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
+
+            LDM.QryShowNews.Close;
+          end;
+        end
+        else
+        begin
+          response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
+        end;
+
+        LDM.qryFeeds.close;
+      finally
+        LDM.Critical.Release;
       end;
-
-      LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-      LDM.qryFeeds.Open;
-
-      if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
-      begin
-        Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
-
-        if Assigned( LDM ) then
-        begin
-          LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-          LDM.QryShowNews.Open;
-
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
-
-          Response.ContentType := 'text/html; charset=UTF-8';
-          Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
-
-          LDM.QryShowNews.Close;
-        end;
-      end
-      else
-      begin
-        response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
-      end;
-
-      LDM.qryFeeds.close;
-    finally
-      LDM.Critical.Release;
     end;
   end;
 end;
@@ -747,56 +791,61 @@ var
   LFile: TAbstractWebRequestFile;
   LDM: TDMSession;
   LIdFeed: Integer;
+  LToken: TToken;
 begin
-  Logger.Info( 'UploadTemplate' );
-
-  LDM := GetDMSession( Request );
-
-  if Assigned( LDM ) and TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LIdFeed ) then
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
-    if Request.Files.Count > 0 then
+    Logger.Info( 'UploadTemplate' );
+
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) and TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LIdFeed ) then
     begin
-      LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // 🔧 adapte ton chemin
+      if Request.Files.Count > 0 then
+      begin
+        LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // 🔧 adapte ton chemin
 
-      Logger.Info( 'LSavePAth : ' + LSavePath );
+        Logger.Info( 'LSavePAth : ' + LSavePath );
 
-      LMemoryStream := TMemoryStream.Create;
-      try
-        LFile := Request.Files[ 0 ];
-        LFile.Stream.Position := 0;
-        Logger.Info( 'Copie du stream' );
-        LMemoryStream.CopyFrom( LFile.Stream, LFile.Stream.Size );
-        Logger.Info( 'Sauvegarde du fichier' );
-        LMemoryStream.SaveToFile( LSavePath );
-        Logger.Info( 'Sauvegardé' );
-        FreeAndNil( LMemoryStream );
-      except
-        on e: Exception do
-        begin
-          Logger.Info( e.Message );
+        LMemoryStream := TMemoryStream.Create;
+        try
+          LFile := Request.Files[ 0 ];
+          LFile.Stream.Position := 0;
+          Logger.Info( 'Copie du stream' );
+          LMemoryStream.CopyFrom( LFile.Stream, LFile.Stream.Size );
+          Logger.Info( 'Sauvegarde du fichier' );
+          LMemoryStream.SaveToFile( LSavePath );
+          Logger.Info( 'Sauvegardé' );
           FreeAndNil( LMemoryStream );
+        except
+          on e: Exception do
+          begin
+            Logger.Info( e.Message );
+            FreeAndNil( LMemoryStream );
+          end;
         end;
+
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+        LDM.qryFeeds.Open;
+
+        LDM.qryFeeds.Edit;
+        LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.Files[ 0 ].FileName;
+        LDM.qryFeeds.Post;
+
+        LDM.qryFeeds.Close;
+
+        Response.ContentType := 'application/json';
+        Response.Content := '{"status":"success","file":"' + Request.Files[ 0 ].FileName + '"}';
+      end
+      else
+      begin
+        Response.StatusCode := 400;
+        Response.Content := '{"status":"error","message":"No file uploaded"}';
       end;
-
-      LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-      LDM.qryFeeds.Open;
-
-      LDM.qryFeeds.Edit;
-      LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.Files[ 0 ].FileName;
-      LDM.qryFeeds.Post;
-
-      LDM.qryFeeds.Close;
-
-      Response.ContentType := 'application/json';
-      Response.Content := '{"status":"success","file":"' + Request.Files[ 0 ].FileName + '"}';
-    end
-    else
-    begin
-      Response.StatusCode := 400;
-      Response.Content := '{"status":"error","message":"No file uploaded"}';
     end;
   end;
+
   Handled := True;
 end;
 

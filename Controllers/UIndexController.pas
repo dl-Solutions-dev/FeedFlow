@@ -5,6 +5,7 @@ interface
 uses
   System.Classes,
   System.SysUtils,
+  System.JSON,
   Web.HTTPApp,
   Web.Stencils,
   uBaseController,
@@ -17,6 +18,7 @@ type
     function SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;
   public
     procedure Main( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure Login( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure FeedsList( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure DeleteFeeds( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
@@ -47,7 +49,9 @@ uses
   uInvokerActions,
   UWMMain,
   Utils.Logger,
-  UPagination;
+  UPagination,
+  Helpers.Messages,
+  Utils.Token;
 
 const
   NAVIGATION_NAME: string = 'FeedList';
@@ -59,6 +63,7 @@ const
   TMP_LINE: string = 'FeedLine.html';
   TMP_LINE_EDIT: string = 'FeedLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
+  TMP_LOGIN: string = 'IndexAdmin.html';
 
   { TIndexController }
 
@@ -66,15 +71,19 @@ procedure TIndexController.AddFeed( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
-    FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+    begin
+      //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
+      FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
 
-    Response.Content := RenderTemplate( TMP_ADD, Request );
+      Response.Content := RenderTemplate( TMP_ADD, Request );
+    end;
   end
   else
   begin
@@ -91,85 +100,87 @@ var
     LFileName: string;
   FileData: TStream;
   LCategorie, LSousCategorie: Integer;
-  //  FileName: string;
+  LToken: TToken;
 begin
   LMsg := '';
-  //  LFileName:='';
 
   LDM := GetDMSession( Request );
   if Assigned( LDM ) then
   begin
-    if ( Request.QueryFields.Values[ 'Id' ] <> '' ) then
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
-      LDM.cnxFeedFlow.StartTransaction;
-
-      LDM.QryFeeds.close;
-      LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryFeeds.Open;
-
-      if not ( LDM.QryFeeds.Eof ) then
+      if ( Request.QueryFields.Values[ 'Id' ] <> '' ) then
       begin
+        LDM.cnxFeedFlow.StartTransaction;
 
-        if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+        LDM.QryFeeds.close;
+        LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.QryFeeds.Open;
+
+        if not ( LDM.QryFeeds.Eof ) then
         begin
-          LCategorie := 0;
-        end;
 
-        if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
-        begin
-          LSousCategorie := 0;
-        end;
-
-        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
-
-        if ( LMsg = 'OK' ) then
-        begin
-          LDM.QryFeeds.Edit;
-
-          LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
-          LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-          LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
-          LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
-          LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
-          LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
-          LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
-          //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
-          try
-            LDM.QryFeeds.Post;
-            LDM.cnxFeedFlow.Commit;
-          except
-            on e: Exception do
-            begin
-              LMsg := 'ERR:' + Request.QueryFields.Text;
-              LDM.cnxFeedFlow.Rollback;
-            end;
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+          begin
+            LCategorie := 0;
           end;
 
-          LDM.QryFeeds.close;
-          LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-          LDM.QryFeeds.Open;
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
+          begin
+            LSousCategorie := 0;
+          end;
 
-          FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
-          FWebStencilsProcessor.AddVar( 'Form', Self, False );
-        end;
+          LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
 
-        if LMsg = 'OK' then
-        begin
-          Response.Content := RenderTemplate( TMP_LINE, Request );
+          if ( LMsg = 'OK' ) then
+          begin
+            LDM.QryFeeds.Edit;
+
+            LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
+            LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+            LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+            LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
+            LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
+            LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
+            LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
+            //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
+            try
+              LDM.QryFeeds.Post;
+              LDM.cnxFeedFlow.Commit;
+            except
+              on e: Exception do
+              begin
+                LMsg := 'ERR:' + Request.QueryFields.Text;
+                LDM.cnxFeedFlow.Rollback;
+              end;
+            end;
+
+            LDM.QryFeeds.close;
+            LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeeds.Open;
+
+            FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
+            FWebStencilsProcessor.AddVar( 'Form', Self, False );
+          end;
+
+          if LMsg = 'OK' then
+          begin
+            Response.Content := RenderTemplate( TMP_LINE, Request );
+          end
+          else
+          begin
+            Response.Content := LMsg;
+          end;
         end
         else
         begin
-          Response.Content := LMsg;
+          Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
         end;
-      end
-      else
-      begin
-        Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
       end;
-
-      Handled := True;
     end;
   end;
+
+  Handled := True;
 end;
 
 procedure TIndexController.ApplyInsertFeed( Sender: TObject;
@@ -179,56 +190,60 @@ var
   LLAstId: Integer;
   LMsg: string;
   LCategorie, LSousCategorie: Integer;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
-      LCategorie := 0;
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'Categorie' ], LCategorie ) ) then
+      begin
+        LCategorie := 0;
+      end;
+
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
+      begin
+        LSousCategorie := 0;
+      end;
+
+      LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
+
+      if ( LMsg = 'OK' ) then
+      begin
+        LDM.qryFeeds.Open;
+        LDM.qryFeeds.Append;
+        LDM.qryFeedsID_FEED.Value := -1;
+        LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
+        LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
+        LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
+        LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
+        LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
+        LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
+        LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
+        LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
+
+        LDM.qryFeeds.Post;
+
+        LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
+
+        LDM.qryFeeds.Close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
+        LDM.qryFeeds.Open;
+
+        FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+
+        Response.Content := RenderTemplate( TMP_LINE, Request );
+      end
+      else
+      begin
+        Response.Content := LMsg;
+      end;
     end;
-
-    if not ( TryStrToInt( Request.ContentFields.Values[ 'SousCategorie' ], LSousCategorie ) ) then
-    begin
-      LSousCategorie := 0;
-    end;
-
-    LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], LCategorie, LSousCategorie );
-
-    if ( LMsg = 'OK' ) then
-    begin
-      LDM.qryFeeds.Open;
-      LDM.qryFeeds.Append;
-      LDM.qryFeedsID_FEED.Value := -1;
-      LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
-      LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-      LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
-      LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
-      LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
-      LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
-      LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
-      LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
-
-      LDM.qryFeeds.Post;
-
-      LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
-
-      LDM.qryFeeds.Close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
-      LDM.qryFeeds.Open;
-
-      FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
-
-      Response.Content := RenderTemplate( TMP_LINE, Request );
-    end
-    else
-    begin
-      Response.Content := LMsg;
-    end;
-
-    Handled := True;
   end;
+
+  Handled := True;
 end;
 
 procedure TIndexController.CancelAddFeed( Sender: TObject; Request: TWebRequest;
@@ -241,25 +256,29 @@ procedure TIndexController.CancelFeedEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
   if Assigned( LDM ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.qryFeeds.Open;
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.qryFeeds.Open;
 
-      if not ( LDM.qryFeeds.Eof ) then
-      begin
-        FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        if not ( LDM.qryFeeds.Eof ) then
+        begin
+          FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
-        Response.Content := RenderTemplate( TMP_LINE, Request );
+          Response.Content := RenderTemplate( TMP_LINE, Request );
+        end;
+      finally
+        LDM.Critical.Leave;
       end;
-    finally
-      LDM.Critical.Leave;
     end;
   end;
 end;
@@ -268,22 +287,26 @@ procedure TIndexController.DeleteFeeds( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
   if Assigned( LDM ) then
   begin
-    LDM.qryFeeds.close;
-    LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-    LDM.qryFeeds.Open;
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+    begin
+      LDM.qryFeeds.close;
+      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.qryFeeds.Open;
 
-    if not ( LDM.qryFeeds.Eof ) then
-    begin
-      LDM.qryFeeds.Delete;
-      SendEmptyContent( Response );
-    end
-    else
-    begin
-      Response.Content := 'liste non trouvée.';
+      if not ( LDM.qryFeeds.Eof ) then
+      begin
+        LDM.qryFeeds.Delete;
+        SendEmptyContent( Response );
+      end
+      else
+      begin
+        Response.Content := 'liste non trouvée.';
+      end;
     end;
   end;
 end;
@@ -292,35 +315,39 @@ procedure TIndexController.FeedEditLineMode( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LDM.Critical.Acquire;
-    try
-      LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.qryFeeds.Open;
-
-      if not ( LDM.qryFeeds.Eof ) then
-      begin
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.qryFeeds.Open;
-        LDM.qryFeeds.First;
 
-        FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
-        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
-        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
-        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
-        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        if not ( LDM.qryFeeds.Eof ) then
+        begin
+          LDM.qryFeeds.Open;
+          LDM.qryFeeds.First;
 
-        Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+          FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
+          FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+          FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+          FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+          FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+          Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+        end;
+
+        LDM.qryFeeds.close;
+      finally
+        LDM.Critical.Leave;
       end;
-
-      LDM.qryFeeds.close;
-    finally
-      LDM.Critical.Leave;
     end;
   end;
 end;
@@ -334,69 +361,78 @@ var
   LPage: Integer;
   LInt: Integer;
   LTemplate: string;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LDM.cnxFeedFlow.Rollback;
-
-    if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
+    if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
-      LLinesPerPage := 10;
-    end;
+      LDM.cnxFeedFlow.Rollback;
 
-    LPagination := LDM.Pagination( NAVIGATION_NAME );
-
-    LPage := LPagination.actualPage;
-
-    if ( LPage > 0 ) then
-    begin
-      Dec( LPage );
-    end;
-
-    LDM.Critical.Acquire;
-    try
-      // Est-ce qu'on rafraichit également la barre de pagination
-      if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
       begin
-        FTitre := 'Fils d''informations';
-
-        LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
-
-        LTemplate := TMP_LISTE;
-        LDM.qryCountFeeds.close;
-        LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-        LDM.qryCountFeeds.Open;
-
-        if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
-        begin
-          LInt := 1;
-        end;
-        LPagination.GeneratePagesList( lDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'FeedsList',
-          'GetFeedNavigation' );
-
-        FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
-      end
-      else // Sinon, on rafraichit juste la liste
-      begin
-        LTemplate := TMP_TABLE
+        LLinesPerPage := 10;
       end;
 
-      FMsg := FMsg + 'FeedsList';
+      LPagination := LDM.Pagination( NAVIGATION_NAME );
 
-      LDM.QryListeFeeds.close;
-      LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
-      LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      LDM.QryListeFeeds.Open;
+      LPage := LPagination.actualPage;
 
-      FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
-      FWebStencilsProcessor.AddVar( 'Form', Self, False );
+      if ( LPage > 0 ) then
+      begin
+        Dec( LPage );
+      end;
 
-      Response.Content := RenderTemplate( LTemplate, Request );
-    finally
-      LDM.Critical.Release;
+      LDM.Critical.Acquire;
+      try
+        // Est-ce qu'on rafraichit également la barre de pagination
+        if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
+        begin
+          FTitre := 'Fils d''informations';
+
+          LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
+
+          LTemplate := TMP_LISTE;
+          LDM.qryCountFeeds.close;
+          LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+          LDM.qryCountFeeds.Open;
+
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
+          begin
+            LInt := 1;
+          end;
+          LPagination.GeneratePagesList( lDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'FeedsList',
+            'GetFeedNavigation' );
+
+          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+        end
+        else // Sinon, on rafraichit juste la liste
+        begin
+          LTemplate := TMP_TABLE
+        end;
+
+        FMsg := FMsg + 'FeedsList';
+
+        LDM.QryListeFeeds.close;
+        LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+        LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+        LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.QryListeFeeds.Open;
+
+        FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.StatusCode := 200;
+        Response.Content := RenderTemplate( LTemplate, Request );
+      finally
+        LDM.Critical.Release;
+      end;
+    end
+    else
+    begin
+      Response.StatusCode := 403;
     end;
   end;
 end;
@@ -409,54 +445,58 @@ var
   LInt: Integer;
   LLinesPerPage: Integer;
   LDM: TDMSession;
+  LToken: TToken;
 begin
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
+    if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
-      LLinesPerPage := 10;
-    end;
-
-    LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ] := LLinesPerPage.ToString;
-
-    if ( Request.QueryFields.Values[ 'SearchChanged' ] <> '' ) then
-    begin
-      LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := Request.ContentFields.Values[ 'Search' ].ToUpper;
-      LInt := 1;
-    end
-    else
-    begin
-      if not ( TryStrToInt( Request.QueryFields.Values[ 'Page' ], LInt ) ) then
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
       begin
+        LLinesPerPage := 10;
+      end;
+
+      LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ] := LLinesPerPage.ToString;
+
+      if ( Request.QueryFields.Values[ 'SearchChanged' ] <> '' ) then
+      begin
+        LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := Request.ContentFields.Values[ 'Search' ].ToUpper;
         LInt := 1;
+      end
+      else
+      begin
+        if not ( TryStrToInt( Request.QueryFields.Values[ 'Page' ], LInt ) ) then
+        begin
+          LInt := 1;
+        end;
+      end;
+
+      LDM.Critical.Acquire;
+      try
+        LDM.qryCountFeeds.close;
+        LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.qryCountFeeds.Open;
+
+        FMsg := 'GetPagination';
+
+        LPagination := LDM.Pagination( NAVIGATION_NAME );
+
+        LPagination.GeneratePagesList( LDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
+          'Search' ], 'FeedsList', 'GetFeedNavigation' );
+
+        FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+      finally
+        LDM.Critical.Release;
       end;
     end;
-
-    LDM.Critical.Acquire;
-    try
-      LDM.qryCountFeeds.close;
-      LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      LDM.qryCountFeeds.Open;
-
-      FMsg := 'GetPagination';
-
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
-
-      LPagination.GeneratePagesList( LDM.qryCountFeedsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
-        'Search' ], 'FeedsList', 'GetFeedNavigation' );
-
-      FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
-      FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-      Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
-    finally
-      LDM.Critical.Release;
-    end;
-
-    Handled := True;
   end;
+
+  Handled := True;
 end;
 
 procedure TIndexController.InitializeActions( aWebModule: TWebModule;
@@ -466,6 +506,7 @@ begin
 
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/', Self.Main ),
+      TRoute.Create( mtPost, '/Login', Self.Login ),
       TRoute.Create( mtGet, '/FeedsList', Self.FeedsList ),
       TRoute.Create( mtDelete, '/DeleteFeed', Self.DeleteFeeds ),
       TRoute.Create( mtPost, '/GetFeedNavigation', Self.GetNavigation ),
@@ -478,10 +519,51 @@ begin
       ] );
 end;
 
+procedure TIndexController.Login( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  LJwt: TToken;
+  LToken: string;
+  LCookie: TStrings;
+begin
+  LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    if Request.ContentFields.Values[ 'username' ] = 'Admin' then
+    begin
+      LJwt := TToken.Create;
+      LToken := LJwt.CreateToken(
+        Request.ContentFields.Values[ 'username' ],
+        'FR',
+        'fr',
+        '',
+        '',
+        'ADMIN' );
+
+      LCookie := TStringList.Create;
+      LCookie.Values[ 'jwt' ] := LToken;
+
+      Response.SetCookieField( LCookie, '', '/', Now + 1, False, True );
+
+      FreeAndNil( LCookie );
+
+      Response.Content := Format( '{"token": "%s"}', [ LToken ] );
+    end
+    else
+    begin
+      Response.StatusCode := 401;
+      Response.Content := '{"error":"Identifiants invalides"}';
+    end;
+  end;
+end;
+
 procedure TIndexController.Main( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 begin
-  Response.SendRedirect( './FeedsList?scope=Page' );
+  Response.Content := RenderTemplate( TMP_LOGIN, Request );
+  //  Response.SendRedirect( './FeedsList?scope=Page&token=' + Request.QueryFields.Values[ 'Token' ] );
 end;
 
 function TIndexController.SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;

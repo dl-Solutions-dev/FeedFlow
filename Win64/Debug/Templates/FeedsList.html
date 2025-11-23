@@ -33,6 +33,18 @@ function confirmDelete(aForm){
 	</button>
 
 	<script>
+	    // Récupérer le JWT depuis l'URL
+		const urlParams = new URLSearchParams(window.location.search);
+		const token = urlParams.get('token');
+
+		if (token) {
+			// Stocker le JWT dans localStorage
+			localStorage.setItem('jwt', token);
+
+			// Supprimer le token de l'URL pour éviter qu'il ne reste visible
+			//window.history.replaceState({}, document.title, window.location.pathname);
+		}
+		
 		document.body.addEventListener('htmx:afterRequest', function(evt) {
 			if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
 				// Une fois la première requête terminée, déclencher la deuxième requête

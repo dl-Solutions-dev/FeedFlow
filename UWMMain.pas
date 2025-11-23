@@ -8,7 +8,7 @@ uses
   Web.HTTPApp,
   Web.Stencils,
   uInvokerActions,
-  Helpers.Messages,
+  Helpers.Messages, System.JSON,
   UDmSession;
 
 type
@@ -33,8 +33,7 @@ type
     procedure InitRequiredData;
   public
     { Public declarations }
-//    property DM: TDMSession read FDM;
-//    property ResourcesPath: string read FResourcesPath;
+    function TokenValid(aRequest:TWebRequest; out Payload:TJSONObject):Boolean;
   end;
 
 var
@@ -94,6 +93,12 @@ begin
       end;
       Result := True;
     end );
+end;
+
+function TWebModule1.TokenValid(aRequest: TWebRequest;
+  out Payload: TJSONObject): Boolean;
+begin
+  Result:=True;
 end;
 
 procedure TWebModule1.WebModule1DefaultHandlerAction( Sender: TObject;

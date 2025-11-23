@@ -15,6 +15,12 @@
         <Projects Include="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\Composants\delphi-jose-jwt-master\Samples\Basic\JWTDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\temp\jwt\Project1.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +65,32 @@
     <Target Name="ExempleQuill_tests:Make">
         <MSBuild Projects="..\Tests\DelphiQuillExample\ExempleQuill_tests.dproj" Targets="Make"/>
     </Target>
+    <Target Name="JWTDemo">
+        <MSBuild Projects="..\Composants\delphi-jose-jwt-master\Samples\Basic\JWTDemo.dproj"/>
+    </Target>
+    <Target Name="JWTDemo:Clean">
+        <MSBuild Projects="..\Composants\delphi-jose-jwt-master\Samples\Basic\JWTDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="JWTDemo:Make">
+        <MSBuild Projects="..\Composants\delphi-jose-jwt-master\Samples\Basic\JWTDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Project1">
+        <MSBuild Projects="..\temp\jwt\Project1.dproj"/>
+    </Target>
+    <Target Name="Project1:Clean">
+        <MSBuild Projects="..\temp\jwt\Project1.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Project1:Make">
+        <MSBuild Projects="..\temp\jwt\Project1.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="FeedFlow_Tests;FeedFlow;UserManagement;ExempleQuill_tests"/>
+        <CallTarget Targets="FeedFlow_Tests;FeedFlow;UserManagement;ExempleQuill_tests;JWTDemo;Project1"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;UserManagement:Clean;ExempleQuill_tests:Clean"/>
+        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;UserManagement:Clean;ExempleQuill_tests:Clean;JWTDemo:Clean;Project1:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;UserManagement:Make;ExempleQuill_tests:Make"/>
+        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;UserManagement:Make;ExempleQuill_tests:Make;JWTDemo:Make;Project1:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

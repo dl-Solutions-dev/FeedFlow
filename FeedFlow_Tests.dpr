@@ -17,7 +17,8 @@ uses
   UConsts in 'UConsts.pas',
   Helpers.Messages in 'Helpers.Messages.pas',
   UPagination in 'UPagination.pas',
-  UListNewsController in 'Controllers\UListNewsController.pas';
+  UListNewsController in 'Controllers\UListNewsController.pas',
+  Utils.Token in 'Utils.Token.pas';
 
 {$R *.res}
 

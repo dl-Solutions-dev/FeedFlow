@@ -20,14 +20,15 @@ unit uBaseController;
 interface
 
 uses
-System.Classes,
+  System.Classes,
   System.SysUtils,
   system.Generics.Collections,
   FireDAC.Comp.Client,
   Web.HTTPApp,
   Web.Stencils,
   uInterfaces,
-  UDMSession;
+  UDMSession,
+  Utils.Token;
 
 type
   TActions = class
@@ -58,7 +59,7 @@ type
   end;
 
   // Field error manager for WebStencils compatibility
-  {$M+}
+{$M+}
   TFieldErrorManager = class
   private
     FErrors: TDictionary<string, string>;
@@ -73,14 +74,14 @@ type
     function HasError( const AFieldName: string ): Boolean;
     property ErrorCount: integer read GetErrorCount;
   end;
-  {$M-}
+{$M-}
 
   TBaseController = class( TInterfacedObject, IAction )
   private
     FLayoutTemplate: string;
     FLocation: string;
 
-    procedure SetTitre(const Value: string);
+    procedure SetTitre( const Value: string );
   protected
     // FWebStencilsProcessor: TWebStencilsProcessor;
     FWebStencilsEngine: TWebStencilsEngine;
@@ -97,6 +98,8 @@ type
     function HtmlTemplate( aTemplateName: string ): string; inline;
     function RenderTemplate( const ATemplatePath: string; ARequest: TWebRequest ): string;
     function GetDMSession( Request: TWebRequest ): TDMSession;
+    function ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean;
+      out Token: TToken ): Boolean;
 
     procedure SendEmptyContent( aResponse: TWebResponse );
     procedure ClearValidationErrors;
@@ -116,7 +119,7 @@ type
 
     property LayoutTemplate: string read FLayoutTemplate;
     property Location: string read FLocation;
-    property Titre:string read FTitre write SetTitre;
+    property Titre: string read FTitre write SetTitre;
   end;
 
 implementation
@@ -166,7 +169,7 @@ function TBaseController.GetDMSession( Request: TWebRequest ): TDMSession;
 begin
   Result := TDMSession( Request.Session.DataVars.Objects[ Request.Session.DataVars.IndexOf( 'DM' ) ] );
 
-//  FWebStencilsProcessor.AddVar( 'Menus', Result.Menus, False );
+  //  FWebStencilsProcessor.AddVar( 'Menus', Result.Menus, False );
 end;
 
 function TBaseController.GetFieldError( const AFieldName: string ): string;
@@ -181,7 +184,7 @@ end;
 
 function TBaseController.HtmlTemplate( aTemplateName: string ): string;
 begin
-  Result := TConfig.GetInstance.TemplateFolder+ aTemplateName; // TEMPLATE_FOLDER + aTemplateName;
+  Result := TConfig.GetInstance.TemplateFolder + aTemplateName; // TEMPLATE_FOLDER + aTemplateName;
 end;
 
 procedure TBaseController.InitializeActions( aWebModule: TWebModule;
@@ -193,7 +196,7 @@ begin
     FWebStencilsEngine := aWebStencil;
     FWebStencilsProcessor := TWebStencilsProcessor.Create( nil );
     FWebStencilsProcessor.Engine := FWebStencilsEngine;
-    FWebStencilsProcessor.DataVars.Duplicates:=TWebStencilsDataVarDuplicates.ddReplace;
+    FWebStencilsProcessor.DataVars.Duplicates := TWebStencilsDataVarDuplicates.ddReplace;
 
     //    FControllerName := AControllerName;
 
@@ -285,9 +288,49 @@ begin
   aResponse.StatusCode := 200;
 end;
 
-procedure TBaseController.SetTitre(const Value: string);
+procedure TBaseController.SetTitre( const Value: string );
 begin
   FTitre := Value;
+end;
+
+function TBaseController.ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean;
+  out Token: TToken ): Boolean;
+var
+  LReqToken: string;
+  LToken: TToken;
+begin
+  if aHeader then
+  begin
+    // Récupérer le LReqToken depuis l'en-tête "Authorization"
+    Request.AllHeaders.NameValueSeparator:=':';
+    LReqToken := Request.AllHeaders.Values[ 'jwt' ].Trim;
+  end
+  else
+  begin
+    LReqToken := Request.CookieFields.Values['jwt'];
+  end;
+
+  if ( LReqToken <> '' ) then
+  begin
+    if LReqToken.StartsWith( 'Bearer ' ) then
+      LReqToken := LReqToken.Substring( 7 ); // Enlever "Bearer "
+
+    LToken := TToken.Create;
+    Result := LToken.Valid( LReqToken, aLoadData );
+
+    if aLoadData then
+    begin
+      Token := LToken;
+    end
+    else
+    begin
+      FreeAndNil( LToken );
+    end;
+  end
+  else
+  begin
+    Result := False;
+  end;
 end;
 
 function TBaseController.WebModule( aWebActionitem: TObject ): TWebModule;
