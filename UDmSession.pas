@@ -115,6 +115,22 @@ type
     qryFeedsLANGUE: TWideStringField;
     qryFeedsNOM: TWideStringField;
     QryListeFeedsNOM: TWideStringField;
+    QryListeNewsCODE_PAYS: TWideStringField;
+    QryListeNewsCODE_LANGUE: TWideStringField;
+    QryListeNewsID_CATEGORIE: TIntegerField;
+    QryListeNewsID_SOUS_CATEGORIE: TIntegerField;
+    QryListeNewsCATEGORIE: TWideStringField;
+    QryListeNewsSOUS_CATEGORIE: TWideStringField;
+    QryListeNewsPAYS: TWideStringField;
+    QryListeNewsLANGUE: TWideStringField;
+    QryNewsCODE_PAYS: TWideStringField;
+    QryNewsCODE_LANGUE: TWideStringField;
+    QryNewsID_CATEGORIE: TIntegerField;
+    QryNewsID_SOUS_CATEGORIE: TIntegerField;
+    QryNewsCATEGORIE: TWideStringField;
+    QryNewsSOUS_CATEGORIE: TWideStringField;
+    QryNewsPAYS: TWideStringField;
+    QryNewsLANGUE: TWideStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

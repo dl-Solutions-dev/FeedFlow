@@ -140,13 +140,20 @@ async function openPopup(id) {
 		"jwt": "Bearer " + token
 	  }
 	});
-    const html = await response.text();
+    const data = await response.json();
 
-    if (html && html.trim() !== "") {
-      quill.clipboard.dangerouslyPasteHTML(html);
+    if (data.content && data.content.trim() !== "") {
+      quill.clipboard.dangerouslyPasteHTML(data.content);
     } else {
       quill.setText("");
     }
+	
+	console.log(data.BU);
+	// Positionner les valeurs dans les listes déroulantes
+	document.getElementById("select1").value = data.BU;
+	document.getElementById("select2").value = data.TypePartner;
+	document.getElementById("select3").value = data.Country;
+	document.getElementById("select4").value = data.Lang;
   } catch (err) {
     console.error('Erreur chargement fil d’info:', err);
     quill.setText("");
@@ -169,12 +176,27 @@ async function SendContent() {
   try {
 	const token = sessionStorage.getItem('jwt');
 	
+	// Récupération des valeurs des listes
+	const BU = document.getElementById("select1").value;
+	const TypePartner = document.getElementById("select2").value;
+	const Country = document.getElementById("select3").value;
+	const Lang = document.getElementById("select4").value;
+	
+	// Construction du payload
+	const payload = {
+	  content: html,       // ton texte Quill
+	  BU: BU,  // valeur du select1
+	  TypePartner: TypePartner,          // valeur du select2
+	  Country: Country,      // valeur du select3
+	  Lang: Lang   // valeur du select4
+	};
+
     const res = await fetch('./saveContent?idNews='+idNews, {
       method: 'POST',
       headers: { 
 		"Content-Type": "application/json",
 		"jwt": "Bearer " + token},
-      body: JSON.stringify({ content: html })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) throw new Error(res.statusText || 'Erreur HTTP');

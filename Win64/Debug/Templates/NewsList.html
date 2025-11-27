@@ -10,18 +10,59 @@
 			<div id="popup" class="popup">
 			  <div class="popup-content">
 				<span class="close" onclick="closePopup()">&times;</span>
+				
 				<div id="editor-container" style="height: 400px;"></div>
+				<br/>
+
+				<!-- Zone des listes déroulantes avec labels -->
+				<div class="dropdown-grid">
+				  <div class="form-group">
+					<label for="select1">B.U</label>
+					<select id="select1" class="form-select">
+						@foreach Categories {
+							<option value="@Categories.ID_CATEGORIE">@LOOP.LIBELLE</Option>
+						}
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="select2">Type Partenaire</label>
+					<select id="select2" class="form-select">
+						@foreach SousCategories {
+							<option value="@SousCategories.ID_SOUS_CATEGORIE">@LOOP.LIBELLE</Option>
+						}
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="select3">Pays</label>
+					<select id="select3" class="form-select">
+						@foreach Pays {
+							<option value="@Pays.CODE_PAYS">@LOOP.LIBELLE</Option>
+						}
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="select4">Langue</label>
+					<select id="select4" class="form-select">
+						@foreach Langues {
+							<option value="@Langues.CODE_LANGUE">@LOOP.LIBELLE</Option>
+						}
+					</select>
+				  </div>
+				</div>
+
+				<br/>
 				<button type="button"
 						id="btnSaveContent"
 						class="btn btn-primary"
 						data-id="2"
 						data-Feedid="@Form.FeedId"
-						onclick="setLastEditedFeed(this); SendContent();"
-				>
-				Enregistrer
+						onclick="setLastEditedFeed(this); SendContent();">
+				  Enregistrer
 				</button>
 			  </div>
 			</div>
+
+
 			
 			<div style="display:none" id="FeedId">@Form.FEEDID</div>
 			

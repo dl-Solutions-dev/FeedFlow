@@ -13,6 +13,7 @@ object DmSession: TDmSession
       'Protocol=TCPIP'
       'Server=localhost'
       'CharacterSet=UNICODE_FSS')
+    Connected = True
     LoginPrompt = False
     Left = 291
     Top = 100
@@ -278,13 +279,21 @@ object DmSession: TDmSession
   object QryListeNews: TFDQuery
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'SELECT first :FIRST skip :SKIP * FROM NEWS'
+      
+        'SELECT first :FIRST skip :SKIP n.*, c.LIBELLE as "CATEGORIE", sc' +
+        '.LIBELLE as "SOUS_CATEGORIE",'
+      'p.LIBELLE as "PAYS", l.LIBELLE as "LANGUE" FROM NEWS n'
+      'join CATEGORIE c on (c.ID_CATEGORIE = n.ID_CATEGORIE)'
+      
+        'join SOUS_CATEGORIE sc on (sc.ID_SOUS_CATEGORIE = n.ID_SOUS_CATE' +
+        'GORIE)'
+      'join PAYS p on (p.CODE_PAYS = n.CODE_PAYS)'
+      'join LANGUE l on (l.CODE_LANGUE = n.CODE_LANGUE)'
       'where ID_FEED = :ID_FEED'
       'and (upper(TITRE_NEWS) like :TITRE_NEWS'
       'or DATE_CREATION = :DATE_CREATION'
       'or DATE_PUBLICATION = :DATE_PUBLICATION)'
-      'order by DATE_CREATION desc, TITRE_NEWS'
-      '')
+      'order by DATE_CREATION desc, TITRE_NEWS')
     Left = 294
     Top = 541
     ParamData = <
@@ -373,6 +382,56 @@ object DmSession: TDmSession
       Origin = 'ORDRE_AFFICHAGE'
       Required = True
     end
+    object QryListeNewsCODE_PAYS: TWideStringField
+      FieldName = 'CODE_PAYS'
+      Origin = 'CODE_PAYS'
+      Size = 3
+    end
+    object QryListeNewsCODE_LANGUE: TWideStringField
+      FieldName = 'CODE_LANGUE'
+      Origin = 'CODE_LANGUE'
+      Size = 3
+    end
+    object QryListeNewsID_CATEGORIE: TIntegerField
+      FieldName = 'ID_CATEGORIE'
+      Origin = 'ID_CATEGORIE'
+    end
+    object QryListeNewsID_SOUS_CATEGORIE: TIntegerField
+      FieldName = 'ID_SOUS_CATEGORIE'
+      Origin = 'ID_SOUS_CATEGORIE'
+    end
+    object QryListeNewsCATEGORIE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'CATEGORIE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryListeNewsSOUS_CATEGORIE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'SOUS_CATEGORIE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryListeNewsPAYS: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'PAYS'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryListeNewsLANGUE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'LANGUE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 100
+    end
   end
   object QryCountNews: TFDQuery
     Connection = cnxFeedFlow
@@ -422,7 +481,16 @@ object DmSession: TDmSession
     OnCalcFields = QryNewsCalcFields
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'SELECT * FROM NEWS'
+      
+        'SELECT n.*, c.LIBELLE as "CATEGORIE", sc.LIBELLE as "SOUS_CATEGO' +
+        'RIE",'
+      'p.LIBELLE as "PAYS", l.LIBELLE as "LANGUE"  FROM NEWS n'
+      'join CATEGORIE c on (c.ID_CATEGORIE = n.ID_CATEGORIE)'
+      
+        'join SOUS_CATEGORIE sc on (sc.ID_SOUS_CATEGORIE = n.ID_SOUS_CATE' +
+        'GORIE)'
+      'join PAYS p on (p.CODE_PAYS = n.CODE_PAYS)'
+      'join LANGUE l on (l.CODE_LANGUE = n.CODE_LANGUE)'
       'where IDNEWS = :IDNEWS')
     Left = 294
     Top = 692
@@ -492,6 +560,56 @@ object DmSession: TDmSession
       FieldName = 'ORDRE_AFFICHAGE'
       Origin = 'ORDRE_AFFICHAGE'
       Required = True
+    end
+    object QryNewsCODE_PAYS: TWideStringField
+      FieldName = 'CODE_PAYS'
+      Origin = 'CODE_PAYS'
+      Size = 3
+    end
+    object QryNewsCODE_LANGUE: TWideStringField
+      FieldName = 'CODE_LANGUE'
+      Origin = 'CODE_LANGUE'
+      Size = 3
+    end
+    object QryNewsID_CATEGORIE: TIntegerField
+      FieldName = 'ID_CATEGORIE'
+      Origin = 'ID_CATEGORIE'
+    end
+    object QryNewsID_SOUS_CATEGORIE: TIntegerField
+      FieldName = 'ID_SOUS_CATEGORIE'
+      Origin = 'ID_SOUS_CATEGORIE'
+    end
+    object QryNewsCATEGORIE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'CATEGORIE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryNewsSOUS_CATEGORIE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'SOUS_CATEGORIE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryNewsPAYS: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'PAYS'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 500
+    end
+    object QryNewsLANGUE: TWideStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'LANGUE'
+      Origin = 'LIBELLE'
+      ProviderFlags = []
+      ReadOnly = True
+      Size = 100
     end
   end
   object QryShowNews: TFDQuery

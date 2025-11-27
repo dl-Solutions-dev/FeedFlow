@@ -419,6 +419,7 @@ procedure TListENewsController.GetNews( Sender: TObject; Request: TWebRequest;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LJson: TJSONObject;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -437,8 +438,28 @@ begin
           LDM.QryNews.Open;
           LDM.QryNews.First;
 
-          Response.ContentType := 'text/plain; charset=utf-8';
-          Response.Content := LDM.QryNewsTEXTE.Value;
+          LJson := TJSONObject.Create;
+          try
+            LJson.AddPair( 'content', LDM.QryNewsTEXTE.Value );
+            LJson.AddPair( 'BU', LDM.QryNewsID_CATEGORIE.Value.ToString );
+            LJson.AddPair( 'TypePartner', LDM.QryNewsID_SOUS_CATEGORIE.Value.ToString );
+            LJson.AddPair( 'Country', LDM.QryNewsCODE_PAYS.Value );
+            LJson.AddPair( 'Lang', LDM.QryNewsCODE_LANGUE.Value );
+
+            Response.ContentType := 'application/json; charset=utf-8';
+            Response.Content := LJson.ToJSON;
+          finally
+            LJson.Free;
+          end;
+
+          //          Response.ContentType := 'text/plain; charset=utf-8';
+          //          Response.Content := '{' +
+          //            '"content":"' + LDM.QryNewsTEXTE.Value + '",' +
+          //            '"BU":"' + LDM.QryNewsCATEGORIE.Value + '",' +
+          //            '"TypePartner":"' + LDM.QryNewsSOUS_CATEGORIE.Value + '",' +
+          //            '"Country:":"' + LDM.QryNewsPAYS.Value + '",' +
+          //            '"Lang":"' + LDM.QryNewsLANGUE.Value + '"' +
+          //            '}';
         end;
       finally
         LDM.Critical.Leave;
@@ -602,6 +623,10 @@ begin
         FTemplateName := LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
 
         FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListeNews, False );
+        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         Response.Content := RenderTemplate( LTemplate, Request );
@@ -651,6 +676,8 @@ var
   LObj: TJSONObject;
   ContentStr: string;
   LToken: TToken;
+  LJsonObj: TJSONObject;
+  LContent, LBU, LTypePartner, LPays, LLangue: string;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -662,6 +689,17 @@ begin
       try
         LDM.cnxFeedFlow.StartTransaction;
         try
+          LJsonObj := TJSONObject.ParseJSONValue( Request.Content ) as TJSONObject;
+          try
+            LContent := LJsonObj.GetValue<string>( 'content' );
+            LBU := LJsonObj.GetValue<string>( 'BU' );
+            LTypePartner := LJsonObj.GetValue<string>( 'TypePartner' );
+            LPays := LJsonObj.GetValue<string>( 'Country' );
+            LLangue := LJsonObj.GetValue<string>( 'Lang' );
+          finally
+            FreeAndNil( LJsonObj );
+          end;
+
           LDM.QryNews.close;
           LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
           LDM.QryNews.Open;
@@ -677,6 +715,11 @@ begin
 
                 LDM.QryNews.Edit;
                 LDM.QryNewsTEXTE.Value := ContentStr;
+                LDM.QryNewsID_CATEGORIE.Value := LBU.ToInteger;
+                LDM.QryNewsID_SOUS_CATEGORIE.Value := LTypePartner.ToInteger;
+                LDM.QryNewsCODE_PAYS.Value := LPays;
+                LDM.QryNewsCODE_LANGUE.Value := LLangue;
+
                 LDM.QryNews.Post;
                 LDM.QryNews.Close;
               end
