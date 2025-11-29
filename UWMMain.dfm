@@ -1,4 +1,4 @@
-object WebModule1: TWebModule1
+object wmMain: TwmMain
   OnCreate = WebModuleCreate
   Actions = <
     item

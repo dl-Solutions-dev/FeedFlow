@@ -4,69 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-        .login-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .forgot-password {
-            margin-top: 15px;
-            text-align: right;
-        }
-        .forgot-password a {
-            color: #3498db;
-            text-decoration: none;
-        }
-    </style>
+    <link rel="stylesheet" href="@env.resource/static/css/StylesIndex.css">
 </head>
 <body>
     <div class="login-container">
@@ -85,29 +23,10 @@
                 <a href="#">Mot de passe oublié ?</a>
             </div>
 
+			<!-- Zone pour afficher les erreurs -->
+			<div id="errorMsg" style="color:red; margin-top:10px;"></div>
     </div>
-	
-	<script>
-		document.getElementById("btnLogin").addEventListener("click", async () => {
-		  const user = document.getElementById("username").value;
-		  const pass = document.getElementById("passwd").value;
-
-		  // Envoi des identifiants au serveur
-		  const response = await fetch("./login", {
-			method: "POST",
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: `username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`
-		  });
-
-		  // Supposons que le serveur renvoie le JWT en texte ou JSON
-		  const data = await response.json(); // ex: { token: "eyJhbGciOi..." }
-
-		  // Stockage du JWT
-		  sessionStorage.setItem("jwt", data.token);
-
-		  // Redirection vers la page principale
-		  window.location.href = "./FeedsList?scope=Page";
-		});
-	</script>
+		
+	<script src="@env.resource/static/js/ScriptsIndex.js"></script>
 </body>
 </html>

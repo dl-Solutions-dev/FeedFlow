@@ -20,7 +20,7 @@ function confirmDelete(aForm){
 // Intercepter toutes les requêtes HTMX pour ajouter le JWT
 document.body.addEventListener('htmx:configRequest', function(evt) {
   console.log("enregistrement token");
-  const token = sessionStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
   if (token) {
 	console.log("enregistrement ok");
 	evt.detail.headers['jwt'] = 'Bearer ${'+token+'}';
@@ -132,7 +132,7 @@ async function openPopup(id) {
 
   // Récupération du contenu serveur
   try {
-	const token = sessionStorage.getItem('jwt');
+	const token = localStorage.getItem('jwt');
 
     const response = await fetch('./GetNews?id=' + id, {
 	  method: "GET",
@@ -174,7 +174,7 @@ async function SendContent() {
   html= quill.root.innerHTML;
   
   try {
-	const token = sessionStorage.getItem('jwt');
+	const token = localStorage.getItem('jwt');
 	
 	// Récupération des valeurs des listes
 	const BU = document.getElementById("select1").value;
@@ -232,7 +232,7 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
   });
   
 function refreshNewsPanel(idFeed) {	
-	const token = sessionStorage.getItem('jwt');
+	const token = localStorage.getItem('jwt');
 	
 	fetch('./Show?idFeed='+idFeed+'&Template=ShowNews.html', {
 	  method: "GET",
@@ -246,6 +246,5 @@ function refreshNewsPanel(idFeed) {
     })
     .catch(err => console.error('Erreur chargement fil d’info:', err));
 } 
-
 
 

@@ -6,7 +6,7 @@ uses
   Web.WebReq,
   IdHTTPWebBrokerBridge,
   UFrmMainTest in 'UFrmMainTest.pas' {FrmMainTest},
-  UWMMain in 'UWMMain.pas' {WebModule1: TWebModule},
+  UWMMain in 'UWMMain.pas' {wmMain: TWebModule},
   uInterfaces in 'uInterfaces.pas',
   uInvokerActions in 'uInvokerActions.pas',
   utils.ClassHelpers in 'utils.ClassHelpers.pas',
@@ -18,7 +18,9 @@ uses
   Helpers.Messages in 'Helpers.Messages.pas',
   UPagination in 'UPagination.pas',
   UListNewsController in 'Controllers\UListNewsController.pas',
-  Utils.Token in 'Utils.Token.pas';
+  Utils.Token in 'Utils.Token.pas',
+  UListFeedsController in 'Controllers\UListFeedsController.pas',
+  UUserFeedsController in 'Controllers\UUserFeedsController.pas';
 
 {$R *.res}
 

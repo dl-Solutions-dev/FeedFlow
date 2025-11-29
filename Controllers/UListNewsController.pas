@@ -768,7 +768,8 @@ var
   LIdFeed: Integer;
   LToken: TToken;
 begin
-  if ValidToken( Request, True, True, LToken ) then
+  //TODO: remettre True
+  if ValidToken( Request, False, True, LToken ) then
   begin
     logger.Info( 'ShowNews' );
     LDM := GetDMSession( Request );

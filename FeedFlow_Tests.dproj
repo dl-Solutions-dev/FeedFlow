@@ -131,7 +131,7 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UWMMain.pas">
-            <Form>WebModule1</Form>
+            <Form>wmMain</Form>
             <FormType>dfm</FormType>
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>
@@ -151,6 +151,8 @@
         <DCCReference Include="UPagination.pas"/>
         <DCCReference Include="Controllers\UListNewsController.pas"/>
         <DCCReference Include="Utils.Token.pas"/>
+        <DCCReference Include="Controllers\UListFeedsController.pas"/>
+        <DCCReference Include="Controllers\UUserFeedsController.pas"/>
         <None Include="ReadMe.md"/>
         <None Include="Win64\Debug\Templates\FeelsTable.html"/>
         <BuildConfiguration Include="Base">

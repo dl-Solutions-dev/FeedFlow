@@ -167,7 +167,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="UWMMain.pas">
-            <Form>WebModule1</Form>
+            <Form>wmMain</Form>
             <FormType>dfm</FormType>
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>

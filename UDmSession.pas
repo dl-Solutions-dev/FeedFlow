@@ -131,6 +131,10 @@ type
     QryNewsSOUS_CATEGORIE: TWideStringField;
     QryNewsPAYS: TWideStringField;
     QryNewsLANGUE: TWideStringField;
+    MtUrls: TFDMemTable;
+    MtUrlsURL: TStringField;
+    MtUrlsImageFileName: TStringField;
+    MtUrlsAlt: TStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

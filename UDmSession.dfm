@@ -772,4 +772,27 @@ object DmSession: TDmSession
       Size = 100
     end
   end
+  object MtUrls: TFDMemTable
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    Left = 296
+    Top = 1480
+    object MtUrlsURL: TStringField
+      FieldName = 'URL'
+      Size = 500
+    end
+    object MtUrlsImageFileName: TStringField
+      FieldName = 'ImageFileName'
+      Size = 500
+    end
+    object MtUrlsAlt: TStringField
+      FieldName = 'Alt'
+      Size = 500
+    end
+  end
 end

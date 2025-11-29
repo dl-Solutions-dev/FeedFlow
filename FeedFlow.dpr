@@ -6,7 +6,7 @@ uses
   Web.WebBroker,
   Web.Win.ISAPIApp,
   Web.Win.ISAPIThreadPool,
-  UWMMain in 'UWMMain.pas' {WebModule1: TWebModule},
+  UWMMain in 'UWMMain.pas' {wmMain: TWebModule},
   Utils.Logger in 'Utils.Logger.pas',
   utils.ClassHelpers in 'utils.ClassHelpers.pas',
   uInvokerActions in 'uInvokerActions.pas',

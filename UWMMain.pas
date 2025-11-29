@@ -12,7 +12,7 @@ uses
   UDmSession;
 
 type
-  TWebModule1 = class( TWebModule )
+  TwmMain = class( TWebModule )
     wsEngineApplication: TWebStencilsEngine;
     WebFileDispatcher: TWebFileDispatcher;
     WebSessionManager: TWebSessionManager;
@@ -37,7 +37,7 @@ type
   end;
 
 var
-  WebModuleClass: TComponentClass = TWebModule1;
+  WebModuleClass: TComponentClass = TwmMain;
 
 implementation
 
@@ -50,7 +50,7 @@ uses
 
 {$R *.dfm}
 
-procedure TWebModule1.WebModuleCreate( Sender: TObject );
+procedure TwmMain.WebModuleCreate( Sender: TObject );
 begin
   InitRequiredData;
 
@@ -59,7 +59,7 @@ begin
   FormatSettings.ShortDateFormat := 'dd/mm/YYYY';
 end;
 
-procedure TWebModule1.InitRequiredData;
+procedure TwmMain.InitRequiredData;
 begin
   FResourcesPath := TConfig.GetInstance.ResourcePath;
 
@@ -95,13 +95,13 @@ begin
     end );
 end;
 
-function TWebModule1.TokenValid(aRequest: TWebRequest;
+function TwmMain.TokenValid(aRequest: TWebRequest;
   out Payload: TJSONObject): Boolean;
 begin
   Result:=True;
 end;
 
-procedure TWebModule1.WebModule1DefaultHandlerAction( Sender: TObject;
+procedure TwmMain.WebModule1DefaultHandlerAction( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
   //  Response.Content :=
@@ -111,7 +111,7 @@ begin
   //    '</html>';
 end;
 
-procedure TWebModule1.WebModuleAfterDispatch( Sender: TObject; Request:
+procedure TwmMain.WebModuleAfterDispatch( Sender: TObject; Request:
   TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
   var IsRedirect := ( Response.StatusCode >= 300 ) and ( Response.StatusCode <
@@ -120,13 +120,13 @@ begin
     TMessageManager.ClearMessages( Request.Session );
 end;
 
-procedure TWebModule1.WebModuleBeforeDispatch( Sender: TObject; Request:
+procedure TwmMain.WebModuleBeforeDispatch( Sender: TObject; Request:
   TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
   Logger.Info( Request.PathInfo );
 end;
 
-procedure TWebModule1.WebSessionManagerCreated( Sender:
+procedure TwmMain.WebSessionManagerCreated( Sender:
   TCustomWebSessionManager; Request: TWebRequest; Session: TWebSession );
 begin
   Logger.Info( Format( 'New session created: %s', [ Session.Id ] ) );
