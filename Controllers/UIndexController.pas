@@ -107,8 +107,8 @@ begin
         Request.ContentFields.Values[ 'username' ],
         'FR',
         'fr',
-        '',
-        '',
+        '1',
+        '1',
         'ADMIN' );
 
       LCookie := TStringList.Create;
@@ -127,8 +127,8 @@ begin
         Request.ContentFields.Values[ 'username' ],
         'FR',
         'fr',
-        '',
-        '',
+        '1',
+        '1',
         'USER' );
 
       LCookie := TStringList.Create;

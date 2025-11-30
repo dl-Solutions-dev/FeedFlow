@@ -346,7 +346,6 @@ end;
 procedure TListENewsController.GetNavigation( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
-  //  LSession: TUserSession;
   LPagination: TPagination;
   LInt: Integer;
   LLinesPerPage: Integer;
@@ -420,6 +419,7 @@ var
   LDM: TDMSession;
   LToken: TToken;
   LJson: TJSONObject;
+  LArray: TJSONArray;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -441,25 +441,76 @@ begin
           LJson := TJSONObject.Create;
           try
             LJson.AddPair( 'content', LDM.QryNewsTEXTE.Value );
-            LJson.AddPair( 'BU', LDM.QryNewsID_CATEGORIE.Value.ToString );
-            LJson.AddPair( 'TypePartner', LDM.QryNewsID_SOUS_CATEGORIE.Value.ToString );
-            LJson.AddPair( 'Country', LDM.QryNewsCODE_PAYS.Value );
-            LJson.AddPair( 'Lang', LDM.QryNewsCODE_LANGUE.Value );
+
+            // On envoi les catégories
+            LArray := TJSONArray.Create;
+            LDM.QryNewsCategories.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryNewsCategories.Open;
+
+            while not ( LDM.QryNewsCategories.Eof ) do
+            begin
+              LArray.Add( LDM.QryNewsCategoriesID_CATEGORIE.Value );
+
+              LDM.QryNewsCategories.Next;
+            end;
+
+            LDM.QryNewsCategories.Close;
+
+            LJson.AddPair( 'BU', LArray );
+
+            // On envoi les sous-catégories
+            LArray := TJSONArray.Create;
+            LDM.QryNewsSousCategories.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryNewsSousCategories.Open;
+
+            while not ( LDM.QryNewsSousCategories.Eof ) do
+            begin
+              LArray.Add( LDM.QryNewsSousCategoriesID_SOUS_CATEGORIE.Value );
+
+              LDM.QryNewsSousCategories.Next;
+            end;
+
+            LDM.QryNewsSousCategories.Close;
+
+            LJson.AddPair( 'TypePartner', LArray );
+
+            // On envoi les pays
+            LArray := TJSONArray.Create;
+            LDM.QryNewsPays.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryNewsPays.Open;
+
+            while not ( LDM.QryNewsPays.Eof ) do
+            begin
+              LArray.Add( LDM.QryNewsPaysCODE_PAYS.Value );
+
+              LDM.QryNewsPays.Next;
+            end;
+
+            LDM.QryNewsPays.Close;
+
+            LJson.AddPair( 'Country', LArray );
+
+            // On envoi les langues
+            LArray := TJSONArray.Create;
+            LDM.QryNewsLangue.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryNewsLangue.Open;
+
+            while not ( LDM.QryNewsLangue.Eof ) do
+            begin
+              LArray.Add( LDM.QryNewsLangueCODE_LANGUE.Value );
+
+              LDM.QryNewsLangue.Next;
+            end;
+
+            LDM.QryNewsLangue.Close;
+
+            LJson.AddPair( 'Lang', LArray );
 
             Response.ContentType := 'application/json; charset=utf-8';
             Response.Content := LJson.ToJSON;
           finally
             LJson.Free;
           end;
-
-          //          Response.ContentType := 'text/plain; charset=utf-8';
-          //          Response.Content := '{' +
-          //            '"content":"' + LDM.QryNewsTEXTE.Value + '",' +
-          //            '"BU":"' + LDM.QryNewsCATEGORIE.Value + '",' +
-          //            '"TypePartner":"' + LDM.QryNewsSOUS_CATEGORIE.Value + '",' +
-          //            '"Country:":"' + LDM.QryNewsPAYS.Value + '",' +
-          //            '"Lang":"' + LDM.QryNewsLANGUE.Value + '"' +
-          //            '}';
         end;
       finally
         LDM.Critical.Leave;
@@ -677,7 +728,12 @@ var
   ContentStr: string;
   LToken: TToken;
   LJsonObj: TJSONObject;
-  LContent, LBU, LTypePartner, LPays, LLangue: string;
+  LContent: string;
+  LValue: TJSONValue;
+  LArrayCategorie,
+    LArraySousCategorie,
+    LArrayPays,
+    LArrayLangue: TJSONArray;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -692,45 +748,98 @@ begin
           LJsonObj := TJSONObject.ParseJSONValue( Request.Content ) as TJSONObject;
           try
             LContent := LJsonObj.GetValue<string>( 'content' );
-            LBU := LJsonObj.GetValue<string>( 'BU' );
-            LTypePartner := LJsonObj.GetValue<string>( 'TypePartner' );
-            LPays := LJsonObj.GetValue<string>( 'Country' );
-            LLangue := LJsonObj.GetValue<string>( 'Lang' );
+
+            LArrayCategorie := LJsonObj.GetValue<TJSONArray>( 'BU' );
+            LArraySousCategorie := LJsonObj.GetValue<TJSONArray>( 'TypePartner' );
+            LArrayPays := LJsonObj.GetValue<TJSONArray>( 'Country' );
+            LArrayLangue := LJsonObj.GetValue<TJSONArray>( 'Lang' );
+
+            LDM.QryNews.close;
+            LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.QryNews.Open;
+
+            if not ( LDM.QryNews.Eof ) then
+            begin
+              LDM.QryNews.Edit;
+              LDM.QryNewsTEXTE.Value := LContent;
+
+              LDM.QryNews.Post;
+              LDM.QryNews.Close;
+            end;
+
+            // on Sauvegarde le lien avec les catégories
+            LDM.QryNewsCategories.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.QryNewsCategories.Open;
+            while not ( LDM.QryNewsCategories.Eof ) do
+            begin
+              LDM.QryNewsCategories.Delete;
+            end;
+
+            for var i := 0 to LArrayCategorie.Count - 1 do
+            begin
+              LDM.QryNewsCategories.Append;
+              LDM.QryNewsCategoriesID_CATEGORIE.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
+              LDM.QryNewsCategoriesID_NEWS.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              LDM.QryNewsCategories.Post;
+            end;
+
+            LDM.QryNewsCategories.Close;
+
+            // on Sauvegarde le lien avec les sous-catégories
+            LDM.QryNewsSousCategories.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.QryNewsSousCategories.Open;
+            while not ( LDM.QryNewsSousCategories.Eof ) do
+            begin
+              LDM.QryNewsSousCategories.Delete;
+            end;
+
+            for var i := 0 to LArraySousCategorie.Count - 1 do
+            begin
+              LDM.QryNewsSousCategories.Append;
+              LDM.QryNewsSousCategoriesID_SOUS_CATEGORIE.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
+              LDM.QryNewsSousCategoriesID_NEWS.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              LDM.QryNewsSousCategories.Post;
+            end;
+
+            LDM.QryNewsSousCategories.Close;
+
+            // on Sauvegarde le lien avec les pays
+            LDM.QryNewsPays.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.QryNewsPays.Open;
+            while not ( LDM.QryNewsPays.Eof ) do
+            begin
+              LDM.QryNewsPays.Delete;
+            end;
+
+            for var i := 0 to LArrayPays.Count - 1 do
+            begin
+              LDM.QryNewsPays.Append;
+              LDM.QryNewsPaysCODE_PAYS.Value := LArrayPays.Items[ i ].Value;
+              LDM.QryNewsPaysID_NEWS.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              LDM.QryNewsPays.Post;
+            end;
+
+            LDM.QryNewsPays.Close;
+
+            // on Sauvegarde le lien avec les langues
+            LDM.QryNewsLangue.ParamByName( 'ID_NEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.QryNewsLangue.Open;
+            while not ( LDM.QryNewsLangue.Eof ) do
+            begin
+              LDM.QryNewsLangue.Delete;
+            end;
+
+            for var i := 0 to LArrayLangue.Count - 1 do
+            begin
+              LDM.QryNewsLangue.Append;
+              LDM.QryNewsLangueCODE_LANGUE.Value := LArrayLangue.Items[ i ].Value;
+              LDM.QryNewsLangueID_NEWS.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              LDM.QryNewsLangue.Post;
+            end;
+
+            LDM.QryNewsLangue.Close;
           finally
             FreeAndNil( LJsonObj );
-          end;
-
-          LDM.QryNews.close;
-          LDM.QryNews.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-          LDM.QryNews.Open;
-
-          if not ( LDM.QryNews.Eof ) then
-          begin
-            JSONVal := TJSONObject.ParseJSONValue( Request.Content );
-            try
-              if ( JSONVal <> nil ) and ( JSONVal is TJSONObject ) then
-              begin
-                LObj := TJSONObject( JSONVal );
-                ContentStr := LObj.GetValue( 'content' ).Value;
-
-                LDM.QryNews.Edit;
-                LDM.QryNewsTEXTE.Value := ContentStr;
-                LDM.QryNewsID_CATEGORIE.Value := LBU.ToInteger;
-                LDM.QryNewsID_SOUS_CATEGORIE.Value := LTypePartner.ToInteger;
-                LDM.QryNewsCODE_PAYS.Value := LPays;
-                LDM.QryNewsCODE_LANGUE.Value := LLangue;
-
-                LDM.QryNews.Post;
-                LDM.QryNews.Close;
-              end
-              else
-              begin
-                Response.StatusCode := 400;
-                Response.Content := '{"error":"invalid json"}';
-              end;
-            finally
-              JSONVal.Free;
-            end;
           end;
 
           LDM.cnxFeedFlow.Commit;
@@ -801,18 +910,15 @@ begin
         begin
           Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-          if Assigned( LDM ) then
-          begin
-            LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-            LDM.QryShowNews.Open;
+          LDM.QryShowNews.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+          LDM.QryShowNews.Open;
 
-            FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+          FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
 
-            Response.ContentType := 'text/html; charset=UTF-8';
-            Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
+          Response.ContentType := 'text/html; charset=UTF-8';
+          Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
 
-            LDM.QryShowNews.Close;
-          end;
+          LDM.QryShowNews.Close;
         end
         else
         begin

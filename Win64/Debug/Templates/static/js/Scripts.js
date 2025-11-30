@@ -149,11 +149,26 @@ async function openPopup(id) {
     }
 	
 	console.log(data.BU);
-	// Positionner les valeurs dans les listes déroulantes
-	document.getElementById("select1").value = data.BU;
-	document.getElementById("select2").value = data.TypePartner;
-	document.getElementById("select3").value = data.Country;
-	document.getElementById("select4").value = data.Lang;
+	
+	const tsBU = document.getElementById("categories").tomselect;
+	const selectedBU = data.BU.map(String);
+	tsBU.setValue(selectedBU);
+	
+	const tsSousCategorie = document.getElementById("sousCategories").tomselect;
+	const selectedTypePartner = data.TypePartner.map(String);
+	tsSousCategorie.setValue(selectedTypePartner);
+	
+	const tsPays = document.getElementById("pays").tomselect;
+	const selectedPays = data.Country.map(String);
+	tsPays.setValue(selectedPays);
+	
+	const tsLang = document.getElementById("langues").tomselect;
+	const selectedLang = data.Lang.map(String);
+	tsLang.setValue(selectedLang);
+	
+	//document.getElementById("select2").value = data.TypePartner;
+	//document.getElementById("select3").value = data.Country;
+	//document.getElementById("select4").value = data.Lang;
   } catch (err) {
     console.error('Erreur chargement fil d’info:', err);
     quill.setText("");
@@ -177,10 +192,23 @@ async function SendContent() {
 	const token = localStorage.getItem('jwt');
 	
 	// Récupération des valeurs des listes
-	const BU = document.getElementById("select1").value;
-	const TypePartner = document.getElementById("select2").value;
-	const Country = document.getElementById("select3").value;
-	const Lang = document.getElementById("select4").value;
+	
+	// Récupère le <select multiple>
+	const categoriesSelect = document.getElementById('categories');
+	console.log("categoriesSelect "+categoriesSelect);
+	const BU = Array.from(categoriesSelect.selectedOptions).map(opt => opt.value);
+	
+	const sousCategoriesSelect = document.getElementById("sousCategories");
+	console.log("sousCategoriesSelect "+sousCategoriesSelect);
+	const TypePartner = Array.from(sousCategoriesSelect.selectedOptions).map(opt => opt.value);
+	
+	const CountrySelect = document.getElementById("pays");
+	console.log("CountrySelect "+CountrySelect);
+	const Country = Array.from(CountrySelect.selectedOptions).map(opt => opt.value);
+	
+	const LangSelect = document.getElementById("langues");
+	console.log("langselect "+LangSelect);
+	const Lang = Array.from(LangSelect.selectedOptions).map(opt => opt.value);
 	
 	// Construction du payload
 	const payload = {

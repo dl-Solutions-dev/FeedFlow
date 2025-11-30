@@ -49,9 +49,12 @@ function uploadFile(file) {
   const formData = new FormData();
   formData.append('file', file);
 
+  const token = localStorage.getItem('jwt');
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '/uploadTemplate?FeedId='+FeedId.innerHTML); // 🔧 adapte ton endpoint backend
 
+  xhr.setRequestHeader('jwt', 'Bearer ' + token);
+  
   xhr.upload.addEventListener('progress', (e) => {
 	if (e.lengthComputable) {
 	  const percent = (e.loaded / e.total) * 100;

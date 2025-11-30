@@ -17,32 +17,32 @@
 				<!-- Zone des listes déroulantes avec labels -->
 				<div class="dropdown-grid">
 				  <div class="form-group">
-					<label for="select1">B.U</label>
-					<select id="select1" class="form-select">
-						@foreach Categories {
+					<label for="categories">B.U</label>
+					<select id="categories" name="categories[]" multiple class="form-control">
+					   @foreach Categories {
 							<option value="@Categories.ID_CATEGORIE">@LOOP.LIBELLE</Option>
 						}
-					</select>
+				    </select>
 				  </div>
 				  <div class="form-group">
-					<label for="select2">Type Partenaire</label>
-					<select id="select2" class="form-select">
+					<label for="sousCategories">Type Partenaire</label>
+					<select id="sousCategories" name="sousCategories[]" multiple class="form-control">
 						@foreach SousCategories {
 							<option value="@SousCategories.ID_SOUS_CATEGORIE">@LOOP.LIBELLE</Option>
 						}
 					</select>
 				  </div>
 				  <div class="form-group">
-					<label for="select3">Pays</label>
-					<select id="select3" class="form-select">
+					<label for="pays">Pays</label>
+					<select id="pays" name="pays[]" multiple class="form-control">
 						@foreach Pays {
 							<option value="@Pays.CODE_PAYS">@LOOP.LIBELLE</Option>
 						}
 					</select>
 				  </div>
 				  <div class="form-group">
-					<label for="select4">Langue</label>
-					<select id="select4" class="form-select">
+					<label for="langues">Langue</label>
+					<select id="langues" name="langues[]" multiple class="form-control">
 						@foreach Langues {
 							<option value="@Langues.CODE_LANGUE">@LOOP.LIBELLE</Option>
 						}
@@ -147,4 +147,13 @@
 		<!--</div>-->
 	</div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="@env.resource/static/js/ScriptUpload.js"></script>
+
+<script>
+  new TomSelect("#categories",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#sousCategories",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#pays",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#langues",   { plugins: ['remove_button'], maxItems: null });
+</script>

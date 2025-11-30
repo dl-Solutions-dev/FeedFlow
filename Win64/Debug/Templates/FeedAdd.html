@@ -26,36 +26,7 @@
 	  </td>
 	  <td>
 		<input autofocus id="edtNom" name="Nom" value="">
-	  </td>			  
-	  <td>
-		<select id="Categorie" name="Categorie">
-			@foreach Categories {
-			<option value="@Categories.ID_CATEGORIE">@LOOP.LIBELLE</Option>
-			}
-		</select>
-	  </td>
-	  <td>
-		<select id="SousCategorie" name="SousCategorie">
-			@foreach SousCategories {
-			<option value="@SousCategories.ID_SOUS_CATEGORIE">@LOOP.LIBELLE</Option>
-			}
-		</select>
-	  </td>
-	  <td>
-		<select id="Pays" name="Pays">
-			@foreach Pays {
-			<option value="@Pays.CODE_PAYS">@LOOP.LIBELLE</Option>
-			}
-		</select>
-	  </td>
-	  <td>
-		<select id="Langue" name="Langue">
-			@foreach Langues {
-			<option value="@Langues.CODE_LANGUE">@LOOP.LIBELLE</Option>
-			}
-		</select>
-	  </td>			  
-
+	  </td>			  	  
 	  <td>
 		<input id="edtTitre" name="titre" value="">
 	  </td>

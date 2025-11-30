@@ -136,10 +136,6 @@ begin
             LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
             LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
             LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
-            LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
-            LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
-            LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
-            LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
             //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
             try
               LDM.QryFeeds.Post;
@@ -215,10 +211,6 @@ begin
         LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
         LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
         LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
-        LDM.qryFeedsCODE_PAYS.Value := Request.ContentFields.Values[ 'pays' ];
-        LDM.qryFeedsCODE_LANGUE.Value := Request.ContentFields.Values[ 'Langue' ];
-        LDM.qryFeedsID_CATEGORIE.Value := LCategorie;
-        LDM.qryFeedsID_SOUS_CATEGORIE.Value := LSousCategorie;
         LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
 
         LDM.qryFeeds.Post;
@@ -518,16 +510,6 @@ function TListFeedsController.SaisieOK(aTitre: string; aCategorie,
   aSousCategorie: Integer): string;
 begin
   Result := 'OK';
-
-  if ( aCategorie = 0 ) then
-  begin
-    Result := 'ERR:Il faut sélectionner une catégorie';
-  end;
-
-  if ( aSousCategorie = 0 ) then
-  begin
-    Result := 'ERR:Il faut sélectionner une sous-catégorie';
-  end;
 
   if ( aTitre.Trim = '' ) then
   begin
