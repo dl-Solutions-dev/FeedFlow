@@ -36,6 +36,8 @@ type
     procedure ShowNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure UploadTemplate( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure GetGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure ShowGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -72,6 +74,7 @@ const
   TMP_LINE: string = 'NewsLine.html';
   TMP_LINE_EDIT: string = 'NewsLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
+  TMP_GROUP: string = 'ShowGroupe.html';
 
   { TListENewsController }
 
@@ -343,6 +346,36 @@ begin
   end;
 end;
 
+procedure TListENewsController.GetGroup( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  LToken: TToken;
+begin
+  if ValidToken( Request, True, True, LToken ) then
+  begin
+    LDM := GetDMSession( Request );
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.QryListeGroup.close;
+        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.ContentFields.Values[ 'IdGroupe' ];
+        LDM.QryListeGroup.Open;
+
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        FWebStencilsProcessor.AddVar( 'Group', LDM.QryListeGroup, False );
+
+        Response.Content := RenderTemplate( TMP_GROUP, Request );
+      finally
+        LDM.Critical.Release;
+      end;
+    end;
+  end;
+
+  Handled := True;
+end;
+
 procedure TListENewsController.GetNavigation( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
@@ -537,7 +570,9 @@ begin
       TRoute.Create( mtAny, '/SaveContent', Self.SaveContentNews ),
       TRoute.Create( mtAny, '/Show', Self.ShowNews ),
       TRoute.Create( mtAny, '/GetNews', Self.GetNews ),
-      TRoute.Create( mtPost, '/UploadTemplate', Self.UploadTemplate )
+      TRoute.Create( mtPost, '/UploadTemplate', Self.UploadTemplate ),
+      TRoute.Create( mtPost, '/GetGroup', Self.GetGroup ),
+      TRoute.Create( mtGet, '/ShowGroup', Self.ShowGroup )
       ] );
 end;
 
@@ -868,6 +903,31 @@ end;
 procedure TListENewsController.SetTemplateName( const Value: string );
 begin
   FTemplateName := Value;
+end;
+
+procedure TListENewsController.ShowGroup( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  LToken: TToken;
+begin
+  if ValidToken( Request, True, True, LToken ) then
+  begin
+    LDM := GetDMSession( Request );
+    if Assigned( LDM ) then
+    begin
+      LDM.QryShowGroup.close;
+      LDM.QryShowGroup.ParamByName( 'ID_FEED' ).AsString := Request.ContentFields.Values[ 'contact-choice' ];
+      LDM.QryShowGroup.Open;
+
+      Response.ContentType:='text/html';
+      Response.Content := '<div class="slide-content"><p>'+
+       LDM.QryShowGroupTEXTE.Value +
+       '</p></div>';
+    end;
+  end;
+
+  Handled := True;
 end;
 
 procedure TListENewsController.ShowNews( Sender: TObject; Request: TWebRequest;

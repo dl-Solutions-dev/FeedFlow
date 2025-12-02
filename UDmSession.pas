@@ -126,6 +126,13 @@ type
     QryNewsPaysID_NEWS: TIntegerField;
     QryNewsLangueCODE_LANGUE: TWideStringField;
     QryNewsLangueID_NEWS: TIntegerField;
+    qryFeedsGROUPE: TSmallintField;
+    QryListeFeedsGROUPE: TSmallintField;
+    QryListeGroup: TFDQuery;
+    QryListeGroupID_FEED: TIntegerField;
+    QryListeGroupTITRE: TWideStringField;
+    QryShowGroup: TFDQuery;
+    QryShowGroupTEXTE: TWideMemoField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

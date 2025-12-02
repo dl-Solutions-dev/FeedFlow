@@ -32,6 +32,21 @@
 			<div class="card-custom order-lg-1 order-2 order-sm-1 mb-4">
 				<h3 class="fw-semibold mb-3">Colonne 3 – Partie haute</h3>
 				<p>Contenu de la partie haute de la colonne 3.</p>
+				<section class="contact-us">
+					<div 
+						hx-post="./GetGroup?idGroupe=1"
+						hx-trigger="load"
+						hx-sap="innerHTML"
+					>
+					</div>
+					<!-- Zone où le contenu serveur sera injecté -->
+					<div 
+						id="contact-result" 
+						class="slide-container"
+						hx-swap="innerHTML transition:true"
+					>
+					</div>
+				</section>
 			</div>
 			<!-- Partie basse -->
 			<div class="card-custom order-lg-2 order-1 order-sm-2 mb-4"

@@ -33,6 +33,9 @@
 				<input id="edtTitre" name="titre" value="@Feed.TITRE">
 			  </td>
 			  <td>
+				<input id="edtGroupe" name="Groupe" value="@Feed.GROUPE">
+			  </td>
+			  <td>
 			    <select id="Statut" name="statut">	
 					<option value="O" @if (Feed.STATUT = 'O'){selected}>Actif</option>
 					<option value="N" @if (Feed.STATUT <> 'O'){selected}>Désactivé</option>

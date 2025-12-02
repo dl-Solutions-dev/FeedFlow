@@ -39,6 +39,49 @@ footer {
   color: #333;
 }
 
+.contact-us {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 600px;   /* tu peux élargir le bloc si besoin */
+  margin: 20px auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.contact-us h2 {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 2px solid #0078d7;
+  padding-bottom: 5px;
+}
+
+.contact-us label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.contact-us select {
+  width: 95%;              /* occupe presque toute la largeur */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1em;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;  /* évite que padding déborde */
+}
+
+.contact-us select:focus {
+  border-color: #0078d7;
+  outline: none;
+  box-shadow: 0 0 4px rgba(0,120,215,0.3);
+}
+
+
 .card-custom {
   background: white;
   border-radius: 18px;

@@ -13,7 +13,7 @@ uses
   UDMSession;
 
 type
-  TListFeedsController = class(TBaseController)
+  TListFeedsController = class( TBaseController )
   private
     function SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;
   public
@@ -62,10 +62,10 @@ const
   TMP_NAVIGATION: string = 'ListNavigation.html';
   TMP_LOGIN: string = 'IndexAdmin.html';
 
-{ TListFeedsController }
+  { TListFeedsController }
 
-procedure TListFeedsController.AddFeed(Sender: TObject; Request: TWebRequest;
-  Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.AddFeed( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LToken: TToken;
@@ -88,15 +88,17 @@ begin
   end;
 end;
 
-procedure TListFeedsController.ApplyFeedEditLine(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.ApplyFeedEditLine( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LMsg,
     LSavePAth,
     LFileName: string;
   FileData: TStream;
-  LCategorie, LSousCategorie: Integer;
+  LCategorie,
+    LSousCategorie,
+    LGroupe: Integer;
   LToken: TToken;
 begin
   LMsg := '';
@@ -136,6 +138,11 @@ begin
             LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
             LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
             LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+            if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
+            begin
+              LGroupe := 0;
+            end;
+            LDM.qryFeedsGROUPE.Value := LGroupe;
             //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
             try
               LDM.QryFeeds.Post;
@@ -176,11 +183,12 @@ begin
   Handled := True;
 end;
 
-procedure TListFeedsController.ApplyInsertFeed(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.ApplyInsertFeed( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  LLAstId: Integer;
+  LLAstId,
+    LGroupe: Integer;
   LMsg: string;
   LCategorie, LSousCategorie: Integer;
   LToken: TToken;
@@ -212,6 +220,11 @@ begin
         LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
         LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
         LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
+        if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
+        begin
+          LGroupe := 0;
+        end;
+        LDM.qryFeedsGROUPE.Value := LGroupe;
 
         LDM.qryFeeds.Post;
 
@@ -235,14 +248,14 @@ begin
   Handled := True;
 end;
 
-procedure TListFeedsController.CancelAddFeed(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.CancelAddFeed( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 begin
   SendEmptyContent( Response );
 end;
 
-procedure TListFeedsController.CancelFeedEditLine(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.CancelFeedEditLine( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LToken: TToken;
@@ -272,8 +285,8 @@ begin
   end;
 end;
 
-procedure TListFeedsController.DeleteFeeds(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.DeleteFeeds( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LToken: TToken;
@@ -300,8 +313,8 @@ begin
   end;
 end;
 
-procedure TListFeedsController.FeedEditLineMode(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.FeedEditLineMode( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LToken: TToken;
@@ -341,8 +354,8 @@ begin
   end;
 end;
 
-procedure TListFeedsController.FeedsList(Sender: TObject; Request: TWebRequest;
-  Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.FeedsList( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LLinesPerPage: Integer;
@@ -426,8 +439,8 @@ begin
   end;
 end;
 
-procedure TListFeedsController.GetNavigation(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListFeedsController.GetNavigation( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   //  LSession: TUserSession;
   LPagination: TPagination;
@@ -488,8 +501,8 @@ begin
   Handled := True;
 end;
 
-procedure TListFeedsController.InitializeActions(aWebModule: TWebModule;
-  aWebStencil: TWebStencilsEngine);
+procedure TListFeedsController.InitializeActions( aWebModule: TWebModule;
+  aWebStencil: TWebStencilsEngine );
 begin
   inherited;
 
@@ -506,8 +519,8 @@ begin
       ] );
 end;
 
-function TListFeedsController.SaisieOK(aTitre: string; aCategorie,
-  aSousCategorie: Integer): string;
+function TListFeedsController.SaisieOK( aTitre: string; aCategorie,
+  aSousCategorie: Integer ): string;
 begin
   Result := 'OK';
 
@@ -522,3 +535,4 @@ initialization
   TInvokerActions.GetInvokerActions.AddAction( TListFeedsController.Create );
 
 end.
+

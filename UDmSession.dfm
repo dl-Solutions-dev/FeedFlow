@@ -82,6 +82,11 @@ object DmSession: TDmSession
       FieldName = 'DATE_MODIFICATION'
       Origin = 'DATE_MODIFICATION'
     end
+    object QryListeFeedsGROUPE: TSmallintField
+      FieldName = 'GROUPE'
+      Origin = 'GROUPE'
+      Required = True
+    end
   end
   object qryCountFeeds: TFDQuery
     Connection = cnxFeedFlow
@@ -156,6 +161,11 @@ object DmSession: TDmSession
     object qryFeedsDATE_MODIFICATION: TSQLTimeStampField
       FieldName = 'DATE_MODIFICATION'
       Origin = 'DATE_MODIFICATION'
+    end
+    object qryFeedsGROUPE: TSmallintField
+      FieldName = 'GROUPE'
+      Origin = 'GROUPE'
+      Required = True
     end
   end
   object QryListeNews: TFDQuery
@@ -782,6 +792,53 @@ object DmSession: TDmSession
       Origin = 'ID_NEWS'
       ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
       Required = True
+    end
+  end
+  object QryListeGroup: TFDQuery
+    Connection = cnxFeedFlow
+    SQL.Strings = (
+      'select ID_FEED, TITRE from FEED_NEWS'
+      'where GROUPE = :GROUPE'
+      'order by TITRE')
+    Left = 512
+    Top = 392
+    ParamData = <
+      item
+        Name = 'GROUPE'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = 0
+      end>
+    object QryListeGroupID_FEED: TIntegerField
+      FieldName = 'ID_FEED'
+      Origin = 'ID_FEED'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Required = True
+    end
+    object QryListeGroupTITRE: TWideStringField
+      FieldName = 'TITRE'
+      Origin = 'TITRE'
+      Size = 500
+    end
+  end
+  object QryShowGroup: TFDQuery
+    Connection = cnxFeedFlow
+    SQL.Strings = (
+      'select first 1 TEXTE from NEWS'
+      'where ID_FEED = :ID_FEED')
+    Left = 504
+    Top = 960
+    ParamData = <
+      item
+        Name = 'ID_FEED'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end>
+    object QryShowGroupTEXTE: TWideMemoField
+      FieldName = 'TEXTE'
+      Origin = 'TEXTE'
+      BlobType = ftWideMemo
     end
   end
 end
