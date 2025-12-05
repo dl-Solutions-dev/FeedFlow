@@ -133,6 +133,26 @@ type
     QryListeGroupTITRE: TWideStringField;
     QryShowGroup: TFDQuery;
     QryShowGroupTEXTE: TWideMemoField;
+    QryListeFeedsALL_CONTEXTS: TWideStringField;
+    qryFeedsALL_CONTEXTS: TWideStringField;
+    QryFeedCategories: TFDQuery;
+    QryFeedSousCategories: TFDQuery;
+    QryFeedPays: TFDQuery;
+    QryFeedLangue: TFDQuery;
+    QryFeedCategoriesID_CATEGORIE: TIntegerField;
+    QryFeedCategoriesID_FEED: TIntegerField;
+    QryFeedSousCategoriesID_SOUS_CATEGORIE: TIntegerField;
+    QryFeedSousCategoriesID_FEED: TIntegerField;
+    QryFeedPaysCODE_PAYS: TWideStringField;
+    QryFeedPaysID_FEED: TIntegerField;
+    QryFeedLangueCODE_LANGUE: TWideStringField;
+    QryFeedLangueID_FEED: TIntegerField;
+    QryFeedsUser: TFDQuery;
+    QryFeedsUserID_FEED: TIntegerField;
+    QryFeedsUserGROUPE: TSmallintField;
+    QryFeedsUserNOM: TWideStringField;
+    QryFeedsUserTITRE: TWideStringField;
+    QryFeedsUserTEMPLATE_AFFICHAGE: TWideStringField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

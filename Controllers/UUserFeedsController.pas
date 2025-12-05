@@ -18,6 +18,7 @@ type
     procedure Home( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetApps( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetList( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure GetDocuments( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
@@ -45,6 +46,7 @@ uses
 const
   TMP_HOME: string = 'Home.html';
   TMP_APPS: string = 'Apps.html';
+  TMP_HOME_DOCUMENTS: string = 'HomeDocuments.html';
 
   { TUserFeedsController }
 
@@ -71,7 +73,7 @@ begin
 
       LDM.MtUrls.Open;
       LDM.MtUrls.Insert;
-      LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
+      LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2';
       LDM.MtUrlsImageFileName.Value := 'parametre.png';
       LDM.MtUrlsAlt.Value := 'Paramètres';
       LDM.MtUrls.Post;
@@ -93,6 +95,53 @@ begin
     begin
       Response.StatusCode := 401;
       Response.Content := 'Accès non autorisé.';
+    end;
+  end;
+end;
+
+procedure TUserFeedsController.GetDocuments(Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+var
+  LDM: TDMSession;
+  LIdGroup: Integer;
+  LToken: TToken;
+begin
+  //TODO: remettre True
+  if ValidToken( Request, False, True, LToken ) then
+  begin
+    logger.Info( 'ShowNews' );
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        if ( Request.ContentFields.Values[ 'IdGroup' ] <> '' ) then
+        begin
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'IdGroup' ], LIdGroup ) ) then
+          begin
+            LIdGroup := 0;
+          end;
+        end;
+
+        Logger.Info( 'ShowNews, LIdGroup : ' + LIdGroup.ToString );
+
+        LDM.QryFeedsUser.ParamByName( 'ID_GROUPE' ).AsInteger := LIdGroup;
+        LDM.QryFeedsUser.ParamByName( 'CODE_PAYS' ).AsString := LToken.Country;
+        LDM.QryFeedsUser.ParamByName( 'CODE_LANGUE' ).AsString := LToken.Lang;
+        LDM.QryFeedsUser.ParamByName( 'ID_CATEGORIE' ).AsInteger := LToken.Category.ToInteger;
+        LDM.QryFeedsUser.ParamByName( 'ID_SOUS_CATEGORIE' ).AsInteger := LToken.SubCatgegory.ToInteger;
+        LDM.QryFeedsUser.Open;
+
+        FWebStencilsProcessor.AddVar( 'DocumentsList', LDM.QryFeedsUser, False );
+
+        Response.ContentType := 'text/html; charset=UTF-8';
+        Response.Content := RenderTemplate( TMP_HOME_DOCUMENTS, Request );
+
+        LDM.QryFeedsUser.Close;
+      finally
+        LDM.Critical.Release;
+      end;
     end;
   end;
 end;
@@ -186,7 +235,8 @@ begin
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/Home', Self.Home ),
       TRoute.Create( mtPost, '/GetApps', Self.GetApps ),
-      TRoute.Create( mtPost, '/GetList', Self.GetList )
+      TRoute.Create( mtPost, '/GetList', Self.GetList ),
+      TRoute.Create( mtGet, '/GetDocuments', Self.GetDocuments )
       ] );
 end;
 

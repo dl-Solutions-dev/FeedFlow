@@ -26,6 +26,8 @@ type
     procedure AddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure CancelAddFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ApplyInsertFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure GetFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure SaveContextFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
@@ -423,6 +425,10 @@ begin
         LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
         LDM.QryListeFeeds.Open;
 
+        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
         FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
@@ -435,6 +441,114 @@ begin
     else
     begin
       Response.StatusCode := 403;
+    end;
+  end;
+end;
+
+procedure TListFeedsController.GetFeed( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  LToken: TToken;
+  LJson: TJSONObject;
+  LArray: TJSONArray;
+begin
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+  begin
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.qryFeeds.close;
+        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.qryFeeds.Open;
+
+        if not ( LDM.qryFeeds.Eof ) then
+        begin
+          LDM.qryFeeds.Open;
+          LDM.qryFeeds.First;
+
+          LJson := TJSONObject.Create;
+          try
+            LJson.AddPair( 'AllContext', LDM.qryFeedsALL_CONTEXTS.Value );
+
+            // On envoi les catégories
+            LArray := TJSONArray.Create;
+            LDM.QryFeedCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedCategories.Open;
+
+            while not ( LDM.QryFeedCategories.Eof ) do
+            begin
+              LArray.Add( LDM.QryFeedCategoriesID_CATEGORIE.Value );
+
+              LDM.QryFeedCategories.Next;
+            end;
+
+            LDM.QryFeedCategories.Close;
+
+            LJson.AddPair( 'BU', LArray );
+
+            // On envoi les sous-catégories
+            LArray := TJSONArray.Create;
+            LDM.QryFeedSousCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedSousCategories.Open;
+
+            while not ( LDM.QryFeedSousCategories.Eof ) do
+            begin
+              LArray.Add( LDM.QryFeedSousCategoriesID_SOUS_CATEGORIE.Value );
+
+              LDM.QryFeedSousCategories.Next;
+            end;
+
+            LDM.QryFeedSousCategories.Close;
+
+            LJson.AddPair( 'TypePartner', LArray );
+
+            // On envoi les pays
+            LArray := TJSONArray.Create;
+            LDM.QryFeedPays.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedPays.Open;
+
+            while not ( LDM.QryFeedPays.Eof ) do
+            begin
+              LArray.Add( LDM.QryFeedPaysCODE_PAYS.Value );
+
+              LDM.QryFeedPays.Next;
+            end;
+
+            LDM.QryFeedPays.Close;
+
+            LJson.AddPair( 'Country', LArray );
+
+            // On envoi les langues
+            LArray := TJSONArray.Create;
+            LDM.QryFeedLangue.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedLangue.Open;
+
+            while not ( LDM.QryFeedLangue.Eof ) do
+            begin
+              LArray.Add( LDM.QryFeedLangueCODE_LANGUE.Value );
+
+              LDM.QryFeedLangue.Next;
+            end;
+
+            LDM.QryFeedLangue.Close;
+
+            LJson.AddPair( 'Lang', LArray );
+
+            Response.ContentType := 'application/json; charset=utf-8';
+            Response.Content := LJson.ToJSON;
+          finally
+            LJson.Free;
+          end;
+        end;
+
+        LDM.qryFeeds.Close;
+      finally
+        LDM.Critical.Leave;
+      end;
     end;
   end;
 end;
@@ -515,7 +629,9 @@ begin
       TRoute.Create( mtPost, '/ApplyFeedEditLine', Self.ApplyFeedEditLine ),
       TRoute.Create( mtPost, '/AddFeed', Self.AddFeed ),
       TRoute.Create( mtPost, '/CancelAddFeed', Self.CancelAddFeed ),
-      TRoute.Create( mtPost, '/ApplyInsertFeed', Self.ApplyInsertFeed )
+      TRoute.Create( mtPost, '/ApplyInsertFeed', Self.ApplyInsertFeed ),
+      TRoute.Create( mtAny, '/GetFeed', Self.GetFeed ),
+      TRoute.Create( mtAny, '/SaveContext', Self.SaveContextFeed )
       ] );
 end;
 
@@ -528,6 +644,148 @@ begin
   begin
     Result := 'ERR:Il faut renseigner un titre';
   end;
+end;
+
+procedure TListFeedsController.SaveContextFeed( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+var
+  LDM: TDMSession;
+  JSONVal: TJSONValue;
+  LObj: TJSONObject;
+  ContentStr: string;
+  LToken: TToken;
+  LJsonObj: TJSONObject;
+  LAllContext: string;
+  LValue: TJSONValue;
+  LArrayCategorie,
+    LArraySousCategorie,
+    LArrayPays,
+    LArrayLangue: TJSONArray;
+begin
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+  begin
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.Critical.Acquire;
+      try
+        LDM.cnxFeedFlow.StartTransaction;
+        try
+          LJsonObj := TJSONObject.ParseJSONValue( Request.Content ) as TJSONObject;
+          try
+            LAllContext := LJsonObj.GetValue<string>( 'AllContext' );
+
+            LArrayCategorie := LJsonObj.GetValue<TJSONArray>( 'BU' );
+            LArraySousCategorie := LJsonObj.GetValue<TJSONArray>( 'TypePartner' );
+            LArrayPays := LJsonObj.GetValue<TJSONArray>( 'Country' );
+            LArrayLangue := LJsonObj.GetValue<TJSONArray>( 'Lang' );
+
+            LDM.qryFeeds.close;
+            LDM.qryFeeds.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.qryFeeds.Open;
+
+            if not ( LDM.qryFeeds.Eof ) then
+            begin
+              LDM.qryFeeds.Edit;
+              LDM.qryFeedsALL_CONTEXTS.Value := LAllContext;
+
+              LDM.qryFeeds.Post;
+              LDM.qryFeeds.Close;
+            end;
+
+            // On supprime les anciens liens
+            LDM.QryFeedCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedCategories.Open;
+            while not ( LDM.QryFeedCategories.Eof ) do
+            begin
+              LDM.QryFeedCategories.Delete;
+            end;
+
+            LDM.QryFeedSousCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedSousCategories.Open;
+            while not ( LDM.QryFeedSousCategories.Eof ) do
+            begin
+              LDM.QryFeedSousCategories.Delete;
+            end;
+
+            LDM.QryFeedPays.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedPays.Open;
+            while not ( LDM.QryFeedPays.Eof ) do
+            begin
+              LDM.QryFeedPays.Delete;
+            end;
+
+            LDM.QryFeedLangue.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedLangue.Open;
+            while not ( LDM.QryFeedLangue.Eof ) do
+            begin
+              LDM.QryFeedLangue.Delete;
+            end;
+
+            if ( LAllContext = 'N' ) then
+            begin
+              // on Sauvegarde le lien avec les catégories
+              for var i := 0 to LArrayCategorie.Count - 1 do
+              begin
+                LDM.QryFeedCategories.Append;
+                LDM.QryFeedCategoriesID_CATEGORIE.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
+                LDM.qryFeedsID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedCategories.Post;
+              end;
+
+              // on Sauvegarde le lien avec les sous-catégories
+              for var i := 0 to LArraySousCategorie.Count - 1 do
+              begin
+                LDM.QryFeedSousCategories.Append;
+                LDM.QryFeedSousCategoriesID_SOUS_CATEGORIE.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
+                LDM.qryFeedsID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedSousCategories.Post;
+              end;
+
+              // on Sauvegarde le lien avec les pays
+              for var i := 0 to LArrayPays.Count - 1 do
+              begin
+                LDM.QryFeedPays.Append;
+                LDM.QryFeedPaysCODE_PAYS.Value := LArrayPays.Items[ i ].Value;
+                LDM.QryFeedPaysID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedPays.Post;
+              end;
+
+              // on Sauvegarde le lien avec les langues
+              for var i := 0 to LArrayLangue.Count - 1 do
+              begin
+                LDM.QryFeedLangue.Append;
+                LDM.QryFeedLangueCODE_LANGUE.Value := LArrayLangue.Items[ i ].Value;
+                LDM.QryFeedLangueID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedLangue.Post;
+              end;
+            end;
+
+            LDM.QryFeedCategories.Close;
+            LDM.QryFeedSousCategories.Close;
+            LDM.QryFeedPays.Close;
+            LDM.QryFeedLangue.Close;
+          finally
+            FreeAndNil( LJsonObj );
+          end;
+
+          LDM.cnxFeedFlow.Commit;
+        except
+          on e: Exception do
+          begin
+            LDM.cnxFeedFlow.Rollback;
+          end;
+        end;
+      finally
+        LDM.Critical.Leave;
+      end;
+    end;
+
+    Response.StatusCode := 200;
+  end;
+
+  Handled := True;
 end;
 
 initialization

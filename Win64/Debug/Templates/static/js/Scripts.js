@@ -54,50 +54,6 @@ function updateHxPost(elementId, newUrl) {
 
 let quill;
 
-function openPopup_anc(texte1, id) {
-  const btn = document.getElementById("btnSaveContent");
-  btn.dataset.id = id;
-  
-  fetch('./GetNews?id='+id)
-    .then(response => response.text())
-    .then(html => {
-      texte = html;
-    })
-    .catch(err => console.error('Erreur chargement fil d’info:', err));
-	
-  document.getElementById("overlay").style.display = "block";
-  document.getElementById("popup").style.display = "block";
-  document.body.style.overflow = "hidden";
-
-  if (!quill) {
-	const Font = Quill.import('formats/font');
-	Font.whitelist = ['sans-serif', 'serif', 'monospace', 'arial', 'times', 'comic'];
-	Quill.register(Font, true);
-
-    quill = new Quill('#editor-container', {
-      theme: 'snow',
-	  modules: {
-		toolbar: [
-		  [{ font: Font.whitelist }],
-		  ['bold', 'italic', 'underline'],
-		  [{ 'align': [] }],
-		  [{ list: 'ordered' }, { list: 'bullet' }],
-		  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-		  [{ 'color': [] }, { 'background': [] }],
-		  ['link', 'image', 'video'],
-		  ['clean']
-		]
-	  }
-    });	
-  }
-  
-  if (typeof texte != 'undefined' & texte != null) {
-	quill.clipboard.dangerouslyPasteHTML(texte);
-  } else {
-	quill.setText("");
-  }
-}
-
 async function openPopup(id) {
   const btn = document.getElementById("btnSaveContent");
   btn.dataset.id = id;
@@ -175,7 +131,6 @@ async function openPopup(id) {
   }
 }
 
-
 function closePopup() {
   document.getElementById("popup").style.display = "none";
   document.getElementById("overlay").style.display = "none";
@@ -212,7 +167,7 @@ async function SendContent() {
 	
 	// Construction du payload
 	const payload = {
-	  content: html,       // ton texte Quill
+	  content: html,       // texte Quill
 	  BU: BU,  // valeur du select1
 	  TypePartner: TypePartner,          // valeur du select2
 	  Country: Country,      // valeur du select3
