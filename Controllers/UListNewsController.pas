@@ -38,6 +38,7 @@ type
     procedure UploadTemplate( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ShowGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure UploadDocument( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -572,7 +573,8 @@ begin
       TRoute.Create( mtAny, '/GetNews', Self.GetNews ),
       TRoute.Create( mtPost, '/UploadTemplate', Self.UploadTemplate ),
       TRoute.Create( mtPost, '/GetGroup', Self.GetGroup ),
-      TRoute.Create( mtGet, '/ShowGroup', Self.ShowGroup )
+      TRoute.Create( mtGet, '/ShowGroup', Self.ShowGroup ),
+      TRoute.Create( mtPost, '/UploadDocument', Self.UploadDocument )
       ] );
 end;
 
@@ -993,6 +995,64 @@ begin
   end;
 end;
 
+procedure TListENewsController.UploadDocument(Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+var
+  LSavePath: string;
+  LMemoryStream: TMemoryStream;
+  LFile: TAbstractWebRequestFile;
+  LDM: TDMSession;
+  LIdFeed: Integer;
+  LToken: TToken;
+begin
+  if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+  begin
+    Logger.Info( 'UploadDocument' );
+
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      if Request.Files.Count > 0 then
+      begin
+        //TODO: Paramétrer le chemin de sauvegarde
+        LSavePath := TPath.Combine( ExtractFilePath(ParamStr(0)), 'Files', Request.Files[ 0 ].FileName );
+
+        Logger.Info( 'LSavePAth : ' + LSavePath );
+
+        LMemoryStream := TMemoryStream.Create;
+        try
+          LFile := Request.Files[ 0 ];
+          LFile.Stream.Position := 0;
+          Logger.Info( 'Copie du stream' );
+          LMemoryStream.CopyFrom( LFile.Stream, LFile.Stream.Size );
+          Logger.Info( 'Sauvegarde du fichier' );
+          LMemoryStream.SaveToFile( LSavePath );
+          Logger.Info( 'Sauvegardé' );
+          FreeAndNil( LMemoryStream );
+        except
+          on e: Exception do
+          begin
+            Logger.Info( e.Message );
+            FreeAndNil( LMemoryStream );
+          end;
+        end;
+
+        Response.ContentType := 'application/json';
+        //TODO: paramétrer l'url de base
+        Response.Content := '{"status":"success","url":"http://localhost:8080/' + Request.Files[ 0 ].FileName + '"}';
+      end
+      else
+      begin
+        Response.StatusCode := 400;
+        Response.Content := '{"status":"error","message":"No file uploaded"}';
+      end;
+    end;
+  end;
+
+  Handled := True;
+end;
+
 procedure TListENewsController.UploadTemplate( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
@@ -1013,7 +1073,7 @@ begin
     begin
       if Request.Files.Count > 0 then
       begin
-        LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName ); // 🔧 adapte ton chemin
+        LSavePath := TPath.Combine( FWebStencilsEngine.RootDirectory, Request.Files[ 0 ].FileName );
 
         Logger.Info( 'LSavePAth : ' + LSavePath );
 

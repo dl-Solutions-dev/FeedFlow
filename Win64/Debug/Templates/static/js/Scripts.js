@@ -1,3 +1,15 @@
+window.QuillService = {
+  quill: null,
+
+  set(quillInstance) {
+    this.quill = quillInstance;
+  },
+
+  get() {
+    return this.quill;
+  }
+};
+
 function showToast(type = 'info', message = 'Message par défaut') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -84,6 +96,9 @@ async function openPopup(id) {
         ]
       }
     });
+	
+	window.QuillService.set( quill );
+	console.log('quill affecté');
   }
 
   // Récupération du contenu serveur
