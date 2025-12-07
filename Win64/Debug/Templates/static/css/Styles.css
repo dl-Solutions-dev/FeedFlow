@@ -16,6 +16,9 @@ footer {
   color: white;
 }
 
+.asc::after { content: "\25B2"; } /* ▲ */
+.desc::after { content: "\25BC"; } /* ▼ */
+
 .bloc-card {
 	border-radius: 12px;
 	overflow: hidden;

@@ -1,22 +1,92 @@
-		<Table  class="table">
-			<thead class="table-light">
-				<tr>
-				  <th scope="col"></th>
-				  <th scope="col"></th>
-				  <th scope="col"></th>
-				  <th scope="col">ID</th>
-				  <th scope="col">Ordre d'affichage</th>
-				  <th scope="col">Titre</th>
-				  <th scope="col">Actif</th>
-				  <th scope="col">Date publication</th>
-				  <th scope="col">Date péremption</th>
-				  <th scope="col">Date création</th>
-				  <th scope="col">Date dernière modification</th>
-				</tr>
-			</thead>
-			<tbody id="TableNews" hx-target="closest tr" hx-swap="outerHTML">
-				@foreach newsList {
-					@import NewsLine {@News = @loop}
-				}
-			</tbody>
-		</table>
+				<Table  class="table">
+					<thead class="table-light">
+						<tr>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=IDNEWS"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  ID
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=ORDRE_AFFICHAGE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Ordre d'affichage
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=TITRE_NEWS"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Titre
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=HOLD"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Actif
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=DATE_PUBLICATION"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date publication
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=DATE_PEREMPTION"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date péremption
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=DATE_CREATION"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date création
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="/SortNews?col=DATE_MODIFICATION"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date dernière modification
+						  </th>
+						</tr>
+					</thead>
+					<tbody id="TableNews" hx-target="closest tr" hx-swap="outerHTML">
+					@import Newslines
+					</tbody>
+				</table>

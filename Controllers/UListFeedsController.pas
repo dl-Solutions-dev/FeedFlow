@@ -28,6 +28,7 @@ type
     procedure ApplyInsertFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure GetFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure SaveContextFeed( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure TriListeFeeds( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
@@ -60,6 +61,7 @@ const
   TMP_LISTE: string = 'FeedsList.html';
   TMP_TABLE: string = 'FeedsTable.html';
   TMP_LINE: string = 'FeedLine.html';
+  TMP_LINES: string = 'FeedsLines.html';
   TMP_LINE_EDIT: string = 'FeedLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
   TMP_LOGIN: string = 'IndexAdmin.html';
@@ -396,6 +398,12 @@ begin
         begin
           FTitre := 'Fils d''informations';
 
+          if LDM.SessionVariables.Values[ 'SortFeedsField' ] = '' then
+          begin
+            LDM.SessionVariables.Values[ 'SortFeedsField' ] := 'DATE_CREATION';
+            LDM.SessionVariables.Values[ 'SortFeedsOrd' ] := 'desc';
+          end;
+
           LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
 
           LTemplate := TMP_LISTE;
@@ -420,6 +428,8 @@ begin
         FMsg := FMsg + 'FeedsList';
 
         LDM.QryListeFeeds.close;
+        LDM.QryListeFeeds.SQL.Text := QRY_LISTE_FEEDS +
+          ' order by ' + LDM.SessionVariables.Values[ 'SortFeedsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortFeedsOrd' ];
         LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
         LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
         LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
@@ -631,7 +641,8 @@ begin
       TRoute.Create( mtPost, '/CancelAddFeed', Self.CancelAddFeed ),
       TRoute.Create( mtPost, '/ApplyInsertFeed', Self.ApplyInsertFeed ),
       TRoute.Create( mtAny, '/GetFeed', Self.GetFeed ),
-      TRoute.Create( mtAny, '/SaveContext', Self.SaveContextFeed )
+      TRoute.Create( mtAny, '/SaveContext', Self.SaveContextFeed ),
+      TRoute.Create( mtGet, '/TriFeeds', Self.TriListeFeeds )
       ] );
 end;
 
@@ -786,6 +797,62 @@ begin
   end;
 
   Handled := True;
+end;
+
+procedure TListFeedsController.TriListeFeeds( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+var
+  LLinesPerPage: Integer;
+  LToken: TToken;
+  LDM: TDMSession;
+  LPagination: TPagination;
+  LPage: Integer;
+begin
+  if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+  begin
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.SessionVariables.Values[ 'SortFeedsField' ] := Request.QueryFields.Values[ 'col' ];
+      LDM.SessionVariables.Values[ 'SortFeedsOrd' ] := Request.QueryFields.Values[ 'dir' ];
+
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
+      begin
+        LLinesPerPage := 10;
+      end;
+
+      LPagination := LDM.Pagination( NAVIGATION_NAME );
+
+      LPage := LPagination.actualPage;
+      if ( LPage > 0 ) then
+      begin
+        Dec( LPage );
+      end;
+
+      LDM.QryListeFeeds.close;
+      LDM.QryListeFeeds.SQL.Text := QRY_LISTE_FEEDS +
+        ' order by ' + LDM.SessionVariables.Values[ 'SortFeedsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortFeedsOrd' ];
+      LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+      LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+      LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+      LDM.QryListeFeeds.Open;
+
+      FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+      FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+      FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+      FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+      FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
+      FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+      Response.StatusCode := 200;
+      Response.Content := RenderTemplate( TMP_LINES, Request );
+    end;
+  end
+  else
+  begin
+    Response.StatusCode := 403;
+  end;
 end;
 
 initialization

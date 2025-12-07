@@ -245,4 +245,14 @@ function refreshNewsPanel(idFeed) {
     .catch(err => console.error('Erreur chargement fil d’info:', err));
 } 
 
+function toggleDir(th) {
+  let vals = JSON.parse(th.getAttribute("hx-vals"));
+  vals.dir = vals.dir === "asc" ? "desc" : "asc";
+  th.setAttribute("hx-vals", JSON.stringify(vals));
 
+  // enlever les indicateurs des autres colonnes
+  document.querySelectorAll("th").forEach(h => h.classList.remove("asc","desc"));
+
+  // ajouter l’indicateur sur la colonne cliquée
+  th.classList.add(vals.dir);
+}

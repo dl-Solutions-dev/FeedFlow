@@ -39,6 +39,7 @@ type
     procedure GetGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure ShowGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure UploadDocument( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure SortNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -72,6 +73,7 @@ const
   TMP_ADD: string = 'NewsAdd.html';
   TMP_LISTE: string = 'NewsList.html';
   TMP_TABLE: string = 'NewsTable.html';
+  TMP_LINES: string = 'NewsLines.html';
   TMP_LINE: string = 'NewsLine.html';
   TMP_LINE_EDIT: string = 'NewsLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
@@ -574,7 +576,8 @@ begin
       TRoute.Create( mtPost, '/UploadTemplate', Self.UploadTemplate ),
       TRoute.Create( mtPost, '/GetGroup', Self.GetGroup ),
       TRoute.Create( mtGet, '/ShowGroup', Self.ShowGroup ),
-      TRoute.Create( mtPost, '/UploadDocument', Self.UploadDocument )
+      TRoute.Create( mtPost, '/UploadDocument', Self.UploadDocument ),
+      TRoute.Create( mtGet, '/SortNews', Self.SortNews )
       ] );
 end;
 
@@ -671,6 +674,12 @@ begin
 
           LTemplate := TMP_LISTE;
 
+          if LDM.SessionVariables.Values[ 'SortNewsField' ] = '' then
+          begin
+            LDM.SessionVariables.Values[ 'SortNewsField' ] := 'DATE_CREATION';
+            LDM.SessionVariables.Values[ 'SortNewsOrd' ] := 'desc';
+          end;
+
           LDM.QryCountNews.close;
           LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
           LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
@@ -696,6 +705,8 @@ begin
         FMsg := FMsg + 'NewsList';
 
         LDM.QryListeNews.close;
+        LDM.QryListeNews.SQL.Text := QRY_LIST_NEWS +
+          ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
         LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
         LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
         LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
@@ -922,10 +933,10 @@ begin
       LDM.QryShowGroup.ParamByName( 'ID_FEED' ).AsString := Request.ContentFields.Values[ 'contact-choice' ];
       LDM.QryShowGroup.Open;
 
-      Response.ContentType:='text/html';
-      Response.Content := '<div class="slide-content"><p>'+
-       LDM.QryShowGroupTEXTE.Value +
-       '</p></div>';
+      Response.ContentType := 'text/html';
+      Response.Content := '<div class="slide-content"><p>' +
+        LDM.QryShowGroupTEXTE.Value +
+        '</p></div>';
     end;
   end;
 
@@ -995,8 +1006,73 @@ begin
   end;
 end;
 
-procedure TListENewsController.UploadDocument(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TListENewsController.SortNews( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LLinesPerPage: Integer;
+  LToken: TToken;
+  LDM: TDMSession;
+  LPagination: TPagination;
+  LPage: Integer;
+  LDateSearch: TDateTime;
+begin
+  if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
+  begin
+    LDM := GetDMSession( Request );
+
+    if Assigned( LDM ) then
+    begin
+      LDM.SessionVariables.Values[ 'SortNewsField' ] := Request.QueryFields.Values[ 'col' ];
+      LDM.SessionVariables.Values[ 'SortNewsOrd' ] := Request.QueryFields.Values[ 'dir' ];
+
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
+      begin
+        LLinesPerPage := 10;
+      end;
+
+      LPagination := LDM.Pagination( NAVIGATION_NAME );
+
+      LPage := LPagination.actualPage;
+      if ( LPage > 0 ) then
+      begin
+        Dec( LPage );
+      end;
+
+      if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
+      begin
+        LDateSearch := 0;
+      end;
+
+      LDM.QryListeNews.close;
+      LDM.QryListeNews.SQL.Text := QRY_LIST_NEWS +
+        ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
+      LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+      LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+      LDM.QryListeNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
+      LDM.QryListeNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+      LDM.QryListeNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
+      LDM.QryListeNews.ParamByName( 'DATE_PUBLICATION' ).AsDateTime := LDateSearch;
+      LDM.QryListeNews.Open;
+
+      FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListeNews, False );
+      FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
+      FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
+      FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
+      FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+      FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+      Response.StatusCode := 200;
+      Response.Content := RenderTemplate( TMP_LINES, Request );
+    end;
+  end
+  else
+  begin
+    Response.StatusCode := 403;
+  end;
+end;
+
+procedure TListENewsController.UploadDocument( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LSavePath: string;
   LMemoryStream: TMemoryStream;
@@ -1016,7 +1092,7 @@ begin
       if Request.Files.Count > 0 then
       begin
         //TODO: Paramétrer le chemin de sauvegarde
-        LSavePath := TPath.Combine( ExtractFilePath(ParamStr(0)), 'Files', Request.Files[ 0 ].FileName );
+        LSavePath := TPath.Combine( ExtractFilePath( ParamStr( 0 ) ), 'Files', Request.Files[ 0 ].FileName );
 
         Logger.Info( 'LSavePAth : ' + LSavePath );
 
