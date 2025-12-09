@@ -16,6 +16,24 @@ footer {
   color: white;
 }
 
+.page-filters {
+  display: flex;
+  flex-wrap: wrap;   /* permet de passer à la ligne si trop serré */
+  gap: 15px;         /* espace entre les filtres */
+  margin-bottom: 20px;
+}
+
+.page-filters label {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.page-filters select {
+  padding: 5px;
+  font-size: 14px;
+}
+
+
 .asc::after { content: "\25B2"; } /* ▲ */
 .desc::after { content: "\25BC"; } /* ▼ */
 

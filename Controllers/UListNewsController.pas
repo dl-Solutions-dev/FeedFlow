@@ -78,6 +78,10 @@ const
   TMP_LINE_EDIT: string = 'NewsLineEdit.html';
   TMP_NAVIGATION: string = 'ListNavigation.html';
   TMP_GROUP: string = 'ShowGroupe.html';
+  FILTER_CATEGORIES: string = 'FilterCategories';
+  FILTER_SOUS_CATEGORIES: string = 'FilterSousCategories';
+  FILTER_PAYS: string = 'FilterPays';
+  FILTER_LANG: string = 'FilterLang';
 
   { TListENewsController }
 
@@ -388,6 +392,8 @@ var
   LDM: TDMSession;
   LDateSearch: TDateTime;
   LToken: TToken;
+  LWhereClause: string;
+  LSelCategorie, LSelSousCategorie, LSelPays, LSelLangue: string;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -395,6 +401,16 @@ begin
 
     if Assigned( LDM ) then
     begin
+      LSelCategorie := Request.ContentFields.Values[ 'FilterCategorie' ];
+      LSelSousCategorie := Request.ContentFields.Values[ 'FilterSousCategorie' ];
+      LSelPays := Request.ContentFields.Values[ 'FilterPays' ];
+      LSelLangue := Request.ContentFields.Values[ 'FilterLangue' ];
+
+      LDM.SessionVariables.Values[ FILTER_CATEGORIES ] := LSelCategorie;
+      LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ] := LSelSousCategorie;
+      LDM.SessionVariables.Values[ FILTER_PAYS ] := LSelPays;
+      LDM.SessionVariables.Values[ FILTER_LANG ] := LSelLangue;
+
       if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
       begin
         LLinesPerPage := 10;
@@ -422,7 +438,36 @@ begin
 
       LDM.Critical.Acquire;
       try
+        LWhereClause := '';
+
+        if LSelCategorie <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_CATEGORY where ID_CATEGORIE = ' +
+            LSelCategorie + ')';
+        end;
+
+        if LSelSousCategorie <> '' then
+        begin
+          LWhereClause := LWhereClause +
+            ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_SUB_CATEGORY where ID_SOUS_CATEGORIE = ' +
+            LSelSousCategorie + ')';
+        end;
+
+        if LSelPays <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_COUNTRY where CODE_PAYS = ' +
+            LSelPays.QuotedString + ')';
+        end;
+
+        if LSelLangue <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_LANG where CODE_LANGUE = ' +
+            LSelLangue.QuotedString + ')';
+        end;
+
         LDM.QryCountNews.close;
+        LDM.QryCountNews.SQL.Text := QRY_COUNT_NEWS +
+          LWhereClause;
         LDM.QryCountNews.ParamByName( 'ID_FEED' ).AsInteger := FFeedId.ToInteger;
         LDM.QryCountNews.ParamByName( 'TITRE_NEWS' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
         LDM.QryCountNews.ParamByName( 'DATE_CREATION' ).AsDateTime := LDateSearch;
@@ -627,6 +672,8 @@ var
   LDateSearch: TDateTime;
   LTemplate: string;
   LToken: TToken;
+  LSelCategorie, LSelSousCategorie, LSelPays, LSelLangue: string;
+  LWhereClause: string;
 begin
   LDM := GetDMSession( Request );
 
@@ -671,6 +718,10 @@ begin
           FTitre := Request.ContentFields.Values[ 'FeedName' ];
 
           LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
+          LDM.SessionVariables.Values[ FILTER_CATEGORIES ] := '';
+          LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ] := '';
+          LDM.SessionVariables.Values[ FILTER_PAYS ] := '';
+          LDM.SessionVariables.Values[ FILTER_LANG ] := '';
 
           LTemplate := TMP_LISTE;
 
@@ -699,13 +750,46 @@ begin
         end
         else // Sinon, on rafraichit juste la liste
         begin
-          LTemplate := TMP_TABLE
+          LTemplate := TMP_LINES; // TMP_TABLE
         end;
+
+        LSelCategorie := LDM.SessionVariables.Values[ FILTER_CATEGORIES ];
+        LSelSousCategorie := LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ];
+        LSelPays := LDM.SessionVariables.Values[ FILTER_PAYS ];
+        LSelLangue := LDM.SessionVariables.Values[ FILTER_LANG ];
 
         FMsg := FMsg + 'NewsList';
 
+        LWhereClause := '';
+
+        if LSelCategorie <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_CATEGORY where ID_CATEGORIE = ' +
+            LSelCategorie + ')';
+        end;
+
+        if LSelSousCategorie <> '' then
+        begin
+          LWhereClause := LWhereClause +
+            ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_SUB_CATEGORY where ID_SOUS_CATEGORIE = ' +
+            LSelSousCategorie + ')';
+        end;
+
+        if LSelPays <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_COUNTRY where CODE_PAYS = ' +
+            LSelPays.QuotedString + ')';
+        end;
+
+        if LSelLangue <> '' then
+        begin
+          LWhereClause := LWhereClause + ' and IDNEWS in (select ID_NEWS from NEWS_CONTEXT_LANG where CODE_LANGUE = ' +
+            LSelLangue.QuotedString + ')';
+        end;
+
         LDM.QryListeNews.close;
         LDM.QryListeNews.SQL.Text := QRY_LIST_NEWS +
+          LWhereClause +
           ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
         LDM.QryListeNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
         LDM.QryListeNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;

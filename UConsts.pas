@@ -37,6 +37,14 @@ const
     or DATE_PUBLICATION = :DATE_PUBLICATION)
   ''';
 
+  QRY_COUNT_NEWS: string = '''
+    SELECT count(ID_FEED) as "NB_ENR" FROM NEWS
+    where ID_FEED = :ID_FEED
+    and (upper(TITRE_NEWS) like :TITRE_NEWS
+    or DATE_CREATION = :DATE_CREATION
+    or DATE_PUBLICATION = :DATE_PUBLICATION)
+  ''';
+
 implementation
 
 end.

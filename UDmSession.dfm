@@ -487,7 +487,8 @@ object DmSession: TDmSession
   object QryListeCategorie: TFDQuery
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'select * from CATEGORIE')
+      'select * from CATEGORIE'
+      'order by LIBELLE')
     Left = 296
     Top = 960
     object QryListeCategorieID_CATEGORIE: TIntegerField
@@ -505,7 +506,8 @@ object DmSession: TDmSession
   object QryListeSousCategorie: TFDQuery
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'select * from SOUS_CATEGORIE')
+      'select * from SOUS_CATEGORIE'
+      'order by LIBELLE')
     Left = 296
     Top = 1088
     object QryListeSousCategorieID_SOUS_CATEGORIE: TIntegerField
@@ -523,7 +525,8 @@ object DmSession: TDmSession
   object QryListePays: TFDQuery
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'select * from PAYS')
+      'select * from PAYS'
+      'order by LIBELLE')
     Left = 296
     Top = 1216
     object QryListePaysCODE_PAYS: TWideStringField
@@ -542,7 +545,8 @@ object DmSession: TDmSession
   object QryListeLangue: TFDQuery
     Connection = cnxFeedFlow
     SQL.Strings = (
-      'select * from LANGUE')
+      'select * from LANGUE'
+      'order by LIBELLE')
     Left = 296
     Top = 1344
     object QryListeLangueCODE_LANGUE: TWideStringField

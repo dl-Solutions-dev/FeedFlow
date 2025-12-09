@@ -11,7 +11,7 @@
 					hx-post="@env.resource/@pages.ActionPagination?Page=@page.NoPage@if (pages.UrlParameters <> '') {&@pages.UrlParameters} "
 					hx-include=[name="LinesPerPage"]
 					hx-target="closest #Navigation"
-					hx-swap="outerHTML"
+					hx-swap="innerHTML"
 				>
 					@if page.IsActualPage { [@page.text] } @else { @page.text }
 				</a>
