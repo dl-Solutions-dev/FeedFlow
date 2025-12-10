@@ -16,9 +16,12 @@ uses
   UDmSession in 'UDmSession.pas' {DmSession: TDataModule},
   UConsts in 'UConsts.pas',
   Helpers.Messages in 'Helpers.Messages.pas',
-  UListNewsController in 'Controllers\UListNewsController.pas',
   UPagination in 'UPagination.pas',
-  Utils.Config in 'Utils.Config.pas';
+  Utils.Config in 'Utils.Config.pas',
+  UListFeedsController in 'Controllers\UListFeedsController.pas',
+  UListNewsController in 'Controllers\UListNewsController.pas',
+  UUserFeedsController in 'Controllers\UUserFeedsController.pas',
+  Utils.Token in 'Utils.Token.pas';
 
 {$R *.res}
 

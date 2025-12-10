@@ -96,10 +96,9 @@ procedure TListFeedsController.ApplyFeedEditLine( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  LMsg,
-    LSavePAth,
-    LFileName: string;
-  FileData: TStream;
+  LMsg: string;
+//    LFileName: string;
+//  FileData: TStream;
   LCategorie,
     LSousCategorie,
     LGroupe: Integer;
@@ -661,13 +660,13 @@ procedure TListFeedsController.SaveContextFeed( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  JSONVal: TJSONValue;
-  LObj: TJSONObject;
-  ContentStr: string;
+//  JSONVal: TJSONValue;
+//  LObj: TJSONObject;
+//  ContentStr: string;
   LToken: TToken;
   LJsonObj: TJSONObject;
   LAllContext: string;
-  LValue: TJSONValue;
+//  LValue: TJSONValue;
   LArrayCategorie,
     LArraySousCategorie,
     LArrayPays,

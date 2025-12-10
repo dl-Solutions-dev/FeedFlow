@@ -3,7 +3,7 @@
 	<label for="contact-choice">Vous souhaitez :</label>
 	<select id="contact-choice"
           name="contact-choice"
-          hx-get="/ShowGroup"        
+          hx-get="@env.resource/ShowGroup"        
           hx-target="#contact-result"      
           hx-trigger="change"            
 		  hx-swap="innerHTML">

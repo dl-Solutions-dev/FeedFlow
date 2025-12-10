@@ -10,7 +10,7 @@
 		<!-- Colonne 1 -->
 		<div class="col-md-6 col-lg-6 order-2 order-md-2">
 			<div class="card-custom mb-4"
-				hx-post="./GetList?idFeed=10"
+				hx-post="@env.resource/GetList?idFeed=10"
 				hx-trigger="load"
 				hx-sap="innerHTML"
 			>
@@ -20,7 +20,7 @@
 		<!-- Colonne 2 -->
 		<div class="col-md-2 col-lg-2 order-1 order-md-2">
 			<div class="card-custom mb-4"
-				hx-post="./GetApps"
+				hx-post="@env.resource/GetApps"
 				hx-trigger="load"
 				hx-sap="innerHTML"
 			>
@@ -34,7 +34,7 @@
 				<p>Contenu de la partie haute de la colonne 3.</p>
 				<section class="contact-us">
 					<div 
-						hx-post="./GetGroup?idGroupe=1"
+						hx-post="@env.resource/GetGroup?idGroupe=1"
 						hx-trigger="load"
 						hx-sap="innerHTML"
 					>
@@ -50,7 +50,7 @@
 			</div>
 			<!-- Partie basse -->
 			<div class="card-custom order-lg-2 order-1 order-sm-2 mb-4"
-				hx-post="./GetList?idFeed=11"
+				hx-post="@env.resource/GetList?idFeed=11"
 				hx-trigger="load"
 				hx-sap="innerHTML"
 			>

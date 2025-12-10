@@ -367,7 +367,7 @@ begin
       LDM.Critical.Acquire;
       try
         LDM.QryListeGroup.close;
-        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.ContentFields.Values[ 'IdGroupe' ];
+        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
         LDM.QryListeGroup.Open;
 
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
@@ -855,13 +855,13 @@ procedure TListENewsController.SaveContentNews( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  JSONVal: TJSONValue;
-  LObj: TJSONObject;
-  ContentStr: string;
+  //  JSONVal: TJSONValue;
+  //  LObj: TJSONObject;
+  //  ContentStr: string;
   LToken: TToken;
   LJsonObj: TJSONObject;
   LContent: string;
-  LValue: TJSONValue;
+  //  LValue: TJSONValue;
   LArrayCategorie,
     LArraySousCategorie,
     LArrayPays,
@@ -1014,7 +1014,7 @@ begin
     if Assigned( LDM ) then
     begin
       LDM.QryShowGroup.close;
-      LDM.QryShowGroup.ParamByName( 'ID_FEED' ).AsString := Request.ContentFields.Values[ 'contact-choice' ];
+      LDM.QryShowGroup.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'contact-choice' ];
       LDM.QryShowGroup.Open;
 
       Response.ContentType := 'text/html';
@@ -1162,7 +1162,7 @@ var
   LMemoryStream: TMemoryStream;
   LFile: TAbstractWebRequestFile;
   LDM: TDMSession;
-  LIdFeed: Integer;
+  //  LIdFeed: Integer;
   LToken: TToken;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then

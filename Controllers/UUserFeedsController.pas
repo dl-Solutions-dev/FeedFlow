@@ -99,8 +99,8 @@ begin
   end;
 end;
 
-procedure TUserFeedsController.GetDocuments(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+procedure TUserFeedsController.GetDocuments( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
   LIdGroup: Integer;
@@ -116,9 +116,9 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        if ( Request.ContentFields.Values[ 'IdGroup' ] <> '' ) then
+        if ( Request.QueryFields.Values[ 'IdGroup' ] <> '' ) then
         begin
-          if not ( TryStrToInt( Request.ContentFields.Values[ 'IdGroup' ], LIdGroup ) ) then
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'IdGroup' ], LIdGroup ) ) then
           begin
             LIdGroup := 0;
           end;
@@ -163,9 +163,12 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        if ( Request.ContentFields.Values[ 'IdFeed' ] <> '' ) then
+        logger.Info( 'ContentField -> ' + Request.QueryFields.Text );
+        logger.Info( 'QueryField -> ' + Request.QueryFields.Text );
+
+        if ( Request.QueryFields.Values[ 'IdFeed' ] <> '' ) then
         begin
-          if not ( TryStrToInt( Request.ContentFields.Values[ 'IdFeed' ], LIdFeed ) ) then
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'IdFeed' ], LIdFeed ) ) then
           begin
             LIdFeed := 0;
           end;
@@ -174,6 +177,13 @@ begin
         LDM.qryFeeds.close;
         LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
         LDM.qryFeeds.Open;
+
+        logger.Info( 'LIdFeed -> ' + LIdFeed.ToString );
+        logger.Info( 'qry eof : ' + if ( LDM.qryFeeds.Eof ) then
+            'Oui'
+          else
+            'Non' );
+        logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) );
 
         if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
         begin

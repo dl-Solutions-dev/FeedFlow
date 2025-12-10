@@ -207,7 +207,7 @@
 			class="col-auto bg-white border-start p-3" 
 			style="width: 400px;" 
 			id="sidePanel"
-			hx-post="/Show?idFeed=@Form.FeedId&Template=ShowNews.html"
+			hx-post="@env.resource/Show?idFeed=@Form.FeedId&Template=ShowNews.html"
 			hx-trigger="load"
 			hx-sap="innerHTML"
 			>
