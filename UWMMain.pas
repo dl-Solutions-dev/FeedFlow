@@ -16,6 +16,7 @@ type
     wsEngineApplication: TWebStencilsEngine;
     WebFileDispatcher: TWebFileDispatcher;
     WebSessionManager: TWebSessionManager;
+    WebStencilsProcessor1: TWebStencilsProcessor;
     procedure WebModuleCreate( Sender: TObject );
     procedure WebModule1DefaultHandlerAction( Sender: TObject;
       Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );

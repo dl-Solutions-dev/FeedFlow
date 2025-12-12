@@ -106,7 +106,7 @@ begin
       LToken := LJwt.CreateToken(
         Request.ContentFields.Values[ 'username' ],
         'FR',
-        'fr',
+        'en',
         '1',
         '1',
         'ADMIN' );

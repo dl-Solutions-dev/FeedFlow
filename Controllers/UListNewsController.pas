@@ -366,14 +366,23 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        LDM.QryListeGroup.close;
-        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
-        LDM.QryListeGroup.Open;
+//        LDM.QryListeGroup.close;
+//        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
+//        LDM.QryListeGroup.Open;
+
+        LDM.QryFeedsUser.ParamByName( 'ID_GROUPE' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
+        LDM.QryFeedsUser.ParamByName( 'CODE_PAYS' ).AsString := LToken.Country;
+        LDM.QryFeedsUser.ParamByName( 'CODE_LANGUE' ).AsString := LToken.Lang;
+        LDM.QryFeedsUser.ParamByName( 'ID_CATEGORIE' ).AsInteger := LToken.Category.ToInteger;
+        LDM.QryFeedsUser.ParamByName( 'ID_SOUS_CATEGORIE' ).AsInteger := LToken.SubCatgegory.ToInteger;
+        LDM.QryFeedsUser.Open;
 
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
-        FWebStencilsProcessor.AddVar( 'Group', LDM.QryListeGroup, False );
+        FWebStencilsProcessor.AddVar( 'Group', LDM.QryFeedsUser, False );
 
         Response.Content := RenderTemplate( TMP_GROUP, Request );
+
+        LDM.QryFeedsUser.Close;
       finally
         LDM.Critical.Release;
       end;

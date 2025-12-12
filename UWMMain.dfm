@@ -55,6 +55,10 @@ object wmMain: TwmMain
       item
         MimeType = 'image/x-icon'
         Extensions = 'ico'
+      end
+      item
+        MimeType = 'application/json'
+        Extensions = 'json'
       end>
     WebDirectories = <
       item
@@ -73,6 +77,10 @@ object wmMain: TwmMain
   object WebSessionManager: TWebSessionManager
     OnCreated = WebSessionManagerCreated
     Left = 112
+    Top = 224
+  end
+  object WebStencilsProcessor1: TWebStencilsProcessor
+    Left = 376
     Top = 224
   end
 end

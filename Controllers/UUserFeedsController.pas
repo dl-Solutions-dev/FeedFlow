@@ -75,7 +75,7 @@ begin
       LDM.MtUrls.Insert;
       LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2';
       LDM.MtUrlsImageFileName.Value := 'parametre.png';
-      LDM.MtUrlsAlt.Value := 'Paramètres';
+      LDM.MtUrlsAlt.Value := 'Documents';
       LDM.MtUrls.Post;
 
       LDM.MtUrls.Open;

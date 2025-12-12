@@ -39,6 +39,21 @@ document.body.addEventListener('htmx:configRequest', function(evt) {
   }
 });
 	
+	// Fonction pour traduire un élément ou un conteneur
+function translateElement(element) {
+  // Si l'élément a un attribut data-i18n, le traduire
+  if (element.hasAttribute('data-i18n')) {
+    const key = element.getAttribute('data-i18n');
+    element.textContent = i18next.t(key);
+  }
+
+  // Parcourir les enfants pour traduire les éléments imbriqués
+  element.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = i18next.t(key);
+  });
+}
+
 document.body.addEventListener('htmx:beforeSwap', function (evt) {
 	const xhr = evt.detail.xhr;
 
@@ -51,6 +66,12 @@ document.body.addEventListener('htmx:beforeSwap', function (evt) {
 		evt.preventDefault(); // annule la suite de l'évennement
 		showToast('success', text.substr(5));
 	}
+});
+
+// Écouter l'événement HTMX après insertion de contenu
+document.addEventListener('htmx:afterSwap', function(evt) {
+  // Traduire le nouvel élément inséré par HTMX
+  translateElement(evt.detail.elt);
 });
 
 function updateHxPost(elementId, newUrl) {
