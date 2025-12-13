@@ -153,6 +153,7 @@ type
     QryFeedsUserNOM: TWideStringField;
     QryFeedsUserTITRE: TWideStringField;
     QryFeedsUserTEMPLATE_AFFICHAGE: TWideStringField;
+    MtUrlsOrdre: TIntegerField;
 
     procedure DataModuleDestroy( Sender: TObject );
     procedure DataModuleCreate( Sender: TObject );

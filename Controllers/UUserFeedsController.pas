@@ -65,14 +65,23 @@ begin
       begin
         LDM.MtUrls.Open;
         LDM.MtUrls.Insert;
+        LDM.MtUrlsOrdre.Value := 1;
         LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
         LDM.MtUrlsImageFileName.Value := 'parametre.png';
-        LDM.MtUrlsAlt.Value := 'Paramètres';
+        if LToken.Lang = 'fr' then
+        begin
+          LDM.MtUrlsAlt.Value := 'Paramètres';
+        end
+        else
+        begin
+          LDM.MtUrlsAlt.Value := 'Setup';
+        end;
         LDM.MtUrls.Post;
       end;
 
       LDM.MtUrls.Open;
       LDM.MtUrls.Insert;
+      LDM.MtUrlsOrdre.Value := 2;
       LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2';
       LDM.MtUrlsImageFileName.Value := 'parametre.png';
       LDM.MtUrlsAlt.Value := 'Documents';
@@ -80,10 +89,13 @@ begin
 
       LDM.MtUrls.Open;
       LDM.MtUrls.Insert;
+      LDM.MtUrlsOrdre.Value := 3;
       LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
       LDM.MtUrlsImageFileName.Value := 'parametre.png';
       LDM.MtUrlsAlt.Value := 'Paramètres';
       LDM.MtUrls.Post;
+
+      LDM.MtUrls.IndexFieldNames := 'Ordre';
 
       FWebStencilsProcessor.AddVar( 'Urls', LDM.MtUrls, False );
 

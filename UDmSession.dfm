@@ -590,6 +590,9 @@ object DmSession: TDmSession
       FieldName = 'Alt'
       Size = 500
     end
+    object MtUrlsOrdre: TIntegerField
+      FieldName = 'Ordre'
+    end
   end
   object QryShowNewsUser: TFDQuery
     OnCalcFields = QryShowNewsCalcFields
