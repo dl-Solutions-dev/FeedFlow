@@ -1,11 +1,11 @@
-		<tr hx-trigger='cancel' class='editing' hx-get="/CancelNewsEditLine?Session=@App.SessionNo&id=@News.IDNEWS">
+		<tr hx-trigger='cancel' class='editing' hx-get="/CancelNewsEditLine?Session=@App.SessionNo&id=@News.NEWS_ID">
 			  <td>
 			  </td>
 			  <td>
 					<a href="#"
-						hx-post="@env.resource/ApplyNewsEditLine?Session=@App.SessionNo&id=@News.IDNews&col=2"
+						hx-post="@env.resource/ApplyNewsEditLine?Session=@App.SessionNo&id=@News.News_id&col=2"
 						hx-include="closest tr"
-						data-Feedid="@News.ID_FEED"
+						data-Feedid="@News.FEED_ID"
 						onclick="setLastEditedFeed(this)"
 					>
 						<span class="material-icons">
@@ -15,7 +15,7 @@
 			  </td>
 			  <td>
 					<a href="#"
-						hx-post="@env.resource/CancelNewsEditLine?Session=@App.SessionNo&id=@News.IDNews&col=2"
+						hx-post="@env.resource/CancelNewsEditLine?Session=@App.SessionNo&id=@News.News_id&col=2"
 					>
 						<span class="material-icons">
 						cancel
@@ -23,13 +23,13 @@
 					</a>
 			  </td>
 			  <td>
-				@News.IDNews
+				@News.News_id
 			  </td>
 			  <td>
-				<input type="number" id="edtOrdreAffichage" name="ordreaffichage" value="@News.ORDRE_AFFICHAGE">
+				<input type="number" id="edtOrdreAffichage" name="ordreaffichage" value="@News.DISPLAY_ORDER">
 			  </td>
 			  <td>
-				<input autofocus id="edtTitre" name="titre" value="@News.TITRE_NEWS">
+				<input autofocus id="edtTitre" name="titre" value="@News.NEWS_TITLE">
 			  </td>
 			  <td>
 				<select id="Status" name="status">	
@@ -38,15 +38,15 @@
 				</select>
 			  </td>
 			  <td>
-				<input type="date" id="datePublication" name="datepublication" value="@NEWS.DATE_PUBLICATION_FMT">
+				<input type="date" id="datePublication" name="datepublication" value="@NEWS.PUBLICATION_DATE_FMT">
 			  </td>
 			  <td>
-				<input type="date" id="datePeremption" name="dateperemption" value="@NEWS.DATE_PEREMPTION_FMT">
+				<input type="date" id="datePeremption" name="dateperemption" value="@NEWS.EXPIRY_DATE_FMT">
 			  </td>
 			  <td>
-				@NEWS.DATE_CREATION
+				@NEWS.CREATION_DATE
 			  </td>
 			  <td>
-				@NEWS.DATE_MODIFICATION
+				@NEWS.MODIFICATION_DATE
 			  </td>
 			</tr>

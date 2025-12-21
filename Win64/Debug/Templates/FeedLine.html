@@ -1,14 +1,14 @@
 		<tr id="Row@Feed.ID_FEED">
 			  <td>
 			  
-					<a href="#" hx-delete="@env.resource/DeleteFeed?id=@Feed.ID_FEED" hx-confirm="Etes-vous certains de vouloir supprimer cette liste ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+					<a href="#" hx-delete="@env.resource/DeleteFeed?id=@Feed.FEED_ID" hx-confirm="Etes-vous certains de vouloir supprimer cette liste ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
 						<span class="material-icons">
 						delete
 						</span>
 					</a>
 			  </td>
 			  <td>
-					<a href="@env.resource/NewsList?FeedId=@Feed.ID_FEED&FeedName=@Feed.TITRE&Scope=Page">
+					<a href="@env.resource/NewsList?FeedId=@Feed.FEED_ID&FeedName=@Feed.TITRE&Scope=Page">
 						<span class="material-icons">
 						visibility
 						</span>
@@ -16,7 +16,7 @@
 			  </td>
 			  <td>
 					<a href="#"
-						hx-post="@env.resource/FeedEditLineMode?id=@Feed.ID_FEED&col=1"
+						hx-post="@env.resource/FeedEditLineMode?id=@Feed.FEED_ID&col=1"
 						hx-trigger="edit"
 						hx-swap="outerHTML"
 						onClick="let editing = document.querySelector('.editing')
@@ -40,25 +40,25 @@
 						</span>
 					</a>
 			  </td>
-			  <td id="col1@Feed.ID_FEED">
-				@Feed.ID_FEED
+			  <td id="col1@Feed.FEED_ID">
+				@Feed.FEED_ID
 			  </td>
-			  <td id="col1@Feed.ID_FEED">
-				@Feed.NOM
+			  <td id="col1@Feed.FEED_ID">
+				@Feed.FEED_NAME
 			  </td>
-			  <td  id="col2@Feed.ID_FEED">
-				@Feed.TITRE
+			  <td  id="col2@Feed.FEED_ID">
+				@Feed.TITLE
 			  </td>
-			  <td  id="col2@Feed.ID_FEED">
-				@Feed.GROUPE
+			  <td  id="col2@Feed.FEED_ID">
+				@Feed.FEED_GROUP
 			  </td>
-			  <td  id="col3@Feed.ID_FEED">
-				@Feed.STATUT
+			  <td  id="col3@Feed.FEED_ID">
+				@Feed.STATUS
 			  </td>
-			  <td  id="col4@Feed.ID_FEED">
-				@Feed.DATE_CREATION
+			  <td  id="col4@Feed.FEED_ID">
+				@Feed.CREATION_DATE
 			  </td>
-			  <td  id="col4@Feed.ID_FEED">
-				@Feed.DATE_MODIFICATION
+			  <td  id="col4@Feed.FEED_ID">
+				@Feed.MODIFICATION_DATE
 			  </td>
 			</tr>

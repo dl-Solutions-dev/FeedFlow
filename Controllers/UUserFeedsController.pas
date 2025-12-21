@@ -95,7 +95,7 @@ begin
       LDM.MtUrlsAlt.Value := 'Paramètres';
       LDM.MtUrls.Post;
 
-      LDM.MtUrls.IndexFieldNames := 'Ordre';
+      LDM.MtUrls.IndexFieldNames := 'Order';
 
       FWebStencilsProcessor.AddVar( 'Urls', LDM.MtUrls, False );
 
@@ -138,11 +138,11 @@ begin
 
         Logger.Info( 'ShowNews, LIdGroup : ' + LIdGroup.ToString );
 
-        LDM.QryFeedsUser.ParamByName( 'ID_GROUPE' ).AsInteger := LIdGroup;
-        LDM.QryFeedsUser.ParamByName( 'CODE_PAYS' ).AsString := LToken.Country;
-        LDM.QryFeedsUser.ParamByName( 'CODE_LANGUE' ).AsString := LToken.Lang;
-        LDM.QryFeedsUser.ParamByName( 'ID_CATEGORIE' ).AsInteger := LToken.Category.ToInteger;
-        LDM.QryFeedsUser.ParamByName( 'ID_SOUS_CATEGORIE' ).AsInteger := LToken.SubCatgegory.ToInteger;
+        LDM.QryFeedsUser.ParamByName( 'FEED_GROUP' ).AsInteger := LIdGroup;
+        LDM.QryFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
+        LDM.QryFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
+        LDM.QryFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
+        LDM.QryFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
         LDM.QryFeedsUser.Open;
 
         FWebStencilsProcessor.AddVar( 'DocumentsList', LDM.QryFeedsUser, False );
@@ -187,7 +187,7 @@ begin
         end;
 
         LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
+        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
         LDM.qryFeeds.Open;
 
         logger.Info( 'LIdFeed -> ' + LIdFeed.ToString );
@@ -195,29 +195,29 @@ begin
             'Oui'
           else
             'Non' );
-        logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) );
+        logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsDISPLAY_TEMPLATE.Value ) );
 
-        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsTEMPLATE_AFFICHAGE.Value ) ) then
+        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsDISPLAY_TEMPLATE.Value ) ) then
         begin
           Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-          LDM.QryShowNewsUser.ParamByName( 'ID_FEED' ).AsInteger := LIdFeed;
-          LDM.QryShowNewsUser.ParamByName( 'CODE_PAYS' ).AsString := LToken.Country;
-          LDM.QryShowNewsUser.ParamByName( 'CODE_LANGUE' ).AsString := LToken.Lang;
-          LDM.QryShowNewsUser.ParamByName( 'ID_CATEGORIE' ).AsInteger := LToken.Category.ToInteger;
-          LDM.QryShowNewsUser.ParamByName( 'ID_SOUS_CATEGORIE' ).AsInteger := LToken.SubCatgegory.ToInteger;
+          LDM.QryShowNewsUser.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+          LDM.QryShowNewsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
+          LDM.QryShowNewsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
+          LDM.QryShowNewsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
+          LDM.QryShowNewsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
           LDM.QryShowNewsUser.Open;
 
           FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNewsUser, False );
 
           Response.ContentType := 'text/html; charset=UTF-8';
-          Response.Content := RenderTemplate( LDM.qryFeedsTEMPLATE_AFFICHAGE.Value, Request );
+          Response.Content := RenderTemplate( LDM.qryFeedsDISPLAY_TEMPLATE.Value, Request );
 
           LDM.QryShowNewsUser.Close;
         end
         else
         begin
-          response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsTEMPLATE_AFFICHAGE.Value;
+          response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsDISPLAY_TEMPLATE.Value;
         end;
 
         LDM.qryFeeds.close;

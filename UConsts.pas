@@ -26,23 +26,23 @@ const
   // SQL
   QRY_LISTE_FEEDS: string = '''
     SELECT first :FIRST skip :SKIP f.* FROM FEED_NEWS f
-    where upper(f.TITRE) like :TITRE
+    where upper(f.TITLE) like :TITLE
   ''';
 
   QRY_LIST_NEWS: string = '''
     SELECT first :FIRST skip :SKIP n.* FROM NEWS n
-    where ID_FEED = :ID_FEED
-    and (upper(TITRE_NEWS) like :TITRE_NEWS
-    or DATE_CREATION = :DATE_CREATION
-    or DATE_PUBLICATION = :DATE_PUBLICATION)
+    where FEED_ID = :FEED_ID
+    and (upper(NEWS_TITLE) like :NEWS_TITLE
+    or CREATION_DATE = :CREATION_DATE
+    or PUBLICATION_DATE = :PUBLICATION_DATE)
   ''';
 
   QRY_COUNT_NEWS: string = '''
-    SELECT count(ID_FEED) as "NB_ENR" FROM NEWS
-    where ID_FEED = :ID_FEED
-    and (upper(TITRE_NEWS) like :TITRE_NEWS
-    or DATE_CREATION = :DATE_CREATION
-    or DATE_PUBLICATION = :DATE_PUBLICATION)
+    SELECT count(FEED_ID) as "NB_ENR" FROM NEWS
+    where FEED_ID = :FEED_ID
+    and (upper(NEWS_TITLE) like :NEWS_TITLE
+    or CREATION_DATE = :CREATION_DATE
+    or PUBLICATION_DATE = :PUBLICATION_DATE)
   ''';
 
 implementation

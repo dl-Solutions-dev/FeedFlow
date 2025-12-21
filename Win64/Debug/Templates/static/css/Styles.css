@@ -134,6 +134,12 @@ footer {
   color: #333;
 }
 
+.col2 img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
 .contact-us {
   background: #f9f9f9;
   border: 1px solid #ddd;

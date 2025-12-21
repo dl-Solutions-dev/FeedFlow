@@ -17,31 +17,31 @@
 			<label for="categories">B.U</label>
 			<select id="categories" name="categories[]" multiple class="form-control">
 			   @foreach Categories {
-					<option value="@Categories.ID_CATEGORIE">@LOOP.LIBELLE</Option>
+					<option value="@Categories.CATEGORY_ID">@LOOP.CATEGORY_NAME</Option>
 				}
 			</select>
 		  </div>
 		  <div class="form-group">
 			<label for="sousCategories">Type Partenaire</label>
 			<select id="sousCategories" name="sousCategories[]" multiple class="form-control">
-				@foreach SousCategories {
-					<option value="@SousCategories.ID_SOUS_CATEGORIE">@LOOP.LIBELLE</Option>
+				@foreach SubCategories {
+					<option value="@SubCategories.SUBCATEGORy_ID">@LOOP.SUBCATEGORY_NAME</Option>
 				}
 			</select>
 		  </div>
 		  <div class="form-group">
 			<label for="pays">Pays</label>
 			<select id="pays" name="pays[]" multiple class="form-control">
-				@foreach Pays {
-					<option value="@Pays.CODE_PAYS">@LOOP.LIBELLE</Option>
+				@foreach Country {
+					<option value="@Country.COUNTRY_CODE">@LOOP.COUNTRY_NAME</Option>
 				}
 			</select>
 		  </div>
 		  <div class="form-group">
 			<label for="langues">Langue</label>
 			<select id="langues" name="langues[]" multiple class="form-control">
-				@foreach Langues {
-					<option value="@Langues.CODE_LANGUE">@LOOP.LIBELLE</Option>
+				@foreach Languages {
+					<option value="@Languages.LANGUAGE_CODE">@LOOP.LANGUAGE_NAME</Option>
 				}
 			</select>
 		  </div>

@@ -2,11 +2,11 @@
 			  <td>
 					<a 
 						href="#" 
-						hx-delete="@env.resource/DeleteNews?id=@News.IDNEWS" 
+						hx-delete="@env.resource/DeleteNews?id=@News.NEWS_ID" 
 						hx-confirm="Etes-vous certains de vouloir supprimer cette news ?" 
 						hx-target="closest tr" 
 						hx-swap="outerHTML swap:1s"
-						data-Feedid="@News.ID_FEED"
+						data-Feedid="@News.FEED_ID"
 						onClick="setLastEditedFeed(this) "
 						>
 						<span class="material-icons">
@@ -17,14 +17,14 @@
 			  <td>
 					<a href="#"
 					   class="btnViewNews"
-					   data-idnews="@News.IDNEWS"
+					   data-idnews="@News.NEWS_ID"
 					   onclick="openPopup(this.dataset.idnews)">
 					  <span class="material-icons">visibility</span>
 					</a>
 			  </td>
 			  <td>
 					<a href="#"
-						hx-post="@env.resource/NewsEditLineMode?id=@News.IDNEWS&col=1"
+						hx-post="@env.resource/NewsEditLineMode?id=@News.NEWS_ID&col=1"
 						hx-trigger="edit"
 						onClick="let editing = document.querySelector('.editing')
 								 if(editing) {
@@ -47,28 +47,28 @@
 						</span>
 					</a>
 			  </td>
-			  <td id="col1@News.IDNEWS">
-				@News.IDNEWS
+			  <td id="col1@News.NEWS_ID">
+				@News.NEWS_ID
 			  </td>
-			  <td  id="col3@News.IDNEWS">
-				@News.ORDRE_AFFICHAGE
+			  <td  id="col3@News.NEWS_ID">
+				@News.DISPLAY_ORDER
 			  </td>
-			  <td  id="col2@News.IDNEWS">
-				@News.TITRE_NEWS
+			  <td  id="col2@News.NEWS_ID">
+				@News.NEWS_TITLE
 			  </td>
-			  <td  id="col3@News.IDNEWS">
+			  <td  id="col3@News.NEWS_ID">
 				@News.HOLD
 			  </td>
-			  <td  id="col4@News.IDNEWS">
-				@News.DATE_PUBLICATION
+			  <td  id="col4@News.NEWS_ID">
+				@News.PUBLICATION_DATE
 			  </td>
-			  <td  id="col5@News.IDNEWS">
-				@News.DATE_PEREMPTION
+			  <td  id="col5@News.NEWS_ID">
+				@News.EXPIRY_DATE
 			  </td>
-			  <td  id="col6@News.IDNEWS">
-				@News.DATE_CREATION
+			  <td  id="col6@News.NEWS_ID">
+				@News.CREATION_DATE
 			  </td>
-			  <td  id="col7@News.IDNEWS">
-				@News.DATE_MODIFICATION
+			  <td  id="col7@News.NEWS_ID">
+				@News.MODIFICATION_DATE
 			  </td>
 			</tr>

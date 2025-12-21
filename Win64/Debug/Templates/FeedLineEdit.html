@@ -1,10 +1,10 @@
 		
-		<tr hx-trigger='cancel' class='editing' hx-get="/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED">
+		<tr hx-trigger='cancel' class='editing' hx-get="/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.FEED_ID">
 			  <td>
 			  </td>
 			  <td>				
 				  <a href="#"
-						hx-post="@env.resource/ApplyFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
+						hx-post="@env.resource/ApplyFeedEditLine?Session=@App.SessionNo&id=@Feed.FEED_ID&col=2"
 						hx-include="closest tr"
 					>	
 						<span class="material-icons">
@@ -15,7 +15,7 @@
 			  <td>
 
 					<a href="#"
-						hx-post="@env.resource/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.ID_FEED&col=2"
+						hx-post="@env.resource/CancelFeedEditLine?Session=@App.SessionNo&id=@Feed.FEED_ID&col=2"
 						hx-swap="outerHTML"
 					>
 						<span class="material-icons">
@@ -24,28 +24,28 @@
 					</a>
 			  </td>
 			  <td>
-				@Feed.ID_FEED
+				@Feed.FEED_ID
 			  </td>
 			  <td>
-				<input autofocus id="edtNom" name="Nom" value="@Feed.NOM">
+				<input autofocus id="edtNom" name="Nom" value="@Feed.FEED_NAME">
 			  </td>		  
 			  <td>
-				<input id="edtTitre" name="titre" value="@Feed.TITRE">
+				<input id="edtTitre" name="titre" value="@Feed.TITLE">
 			  </td>
 			  <td>
-				<input id="edtGroupe" name="Groupe" value="@Feed.GROUPE">
+				<input id="edtGroupe" name="Groupe" value="@Feed.FEED_GROUP">
 			  </td>
 			  <td>
 			    <select id="Statut" name="statut">	
-					<option value="O" @if (Feed.STATUT = 'O'){selected}>Actif</option>
-					<option value="N" @if (Feed.STATUT <> 'O'){selected}>Désactivé</option>
+					<option value="O" @if (Feed.STATUS = 'O'){selected}>Actif</option>
+					<option value="N" @if (Feed.STATUS <> 'O'){selected}>Désactivé</option>
 				</select>
 			  </td>
 			  <td>
-				@Feed.DATE_CREATION
+				@Feed.CREATION_DATE
 			  </td>
 			  <td>
-				@Feed.DATE_MODIFICATION
+				@Feed.MODIFICATION_DATE
 			  </td>
 			</tr>
 			

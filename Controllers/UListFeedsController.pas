@@ -116,7 +116,7 @@ begin
         LDM.cnxFeedFlow.StartTransaction;
 
         LDM.QryFeeds.close;
-        LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.QryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.QryFeeds.Open;
 
         if not ( LDM.QryFeeds.Eof ) then
@@ -138,14 +138,14 @@ begin
           begin
             LDM.QryFeeds.Edit;
 
-            LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
-            LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-            LDM.QryFeedsSTATUT.Value := Request.ContentFields.Values[ 'statut' ];
+            LDM.qryFeedsFEED_NAME.Value := Request.ContentFields.Values[ 'nom' ];
+            LDM.qryFeedsTITLE.Value := Request.ContentFields.Values[ 'titre' ];
+            LDM.qryFeedsSTATUS.Value := Request.ContentFields.Values[ 'statut' ];
             if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
             begin
               LGroupe := 0;
             end;
-            LDM.qryFeedsGROUPE.Value := LGroupe;
+            LDM.qryFeedsFEED_GROUP.Value := LGroupe;
             //          LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := LFileName;
             try
               LDM.QryFeeds.Post;
@@ -159,7 +159,7 @@ begin
             end;
 
             LDM.QryFeeds.close;
-            LDM.QryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
             LDM.QryFeeds.Open;
 
             FWebStencilsProcessor.AddVar( 'Feed', LDM.QryFeeds, False );
@@ -218,23 +218,23 @@ begin
       begin
         LDM.qryFeeds.Open;
         LDM.qryFeeds.Append;
-        LDM.qryFeedsID_FEED.Value := -1;
-        LDM.qryFeedsNOM.Value := Request.ContentFields.Values[ 'nom' ];
-        LDM.QryFeedsTITRE.Value := Request.ContentFields.Values[ 'titre' ];
-        LDM.qryFeedsSTATUT.Value := Request.ContentFields.Values[ 'status' ];
-        LDM.qryFeedsTEMPLATE_AFFICHAGE.Value := Request.ContentFields.Values[ 'template' ];
+        LDM.qryFeedsFEED_ID.Value := -1;
+        LDM.qryFeedsFEED_NAME.Value := Request.ContentFields.Values[ 'nom' ];
+        LDM.qryFeedsTITLE.Value := Request.ContentFields.Values[ 'titre' ];
+        LDM.qryFeedsSTATUS.Value := Request.ContentFields.Values[ 'status' ];
+        LDM.qryFeedsDISPLAY_TEMPLATE.Value := Request.ContentFields.Values[ 'template' ];
         if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
         begin
           LGroupe := 0;
         end;
-        LDM.qryFeedsGROUPE.Value := LGroupe;
+        LDM.qryFeedsFEED_GROUP.Value := LGroupe;
 
         LDM.qryFeeds.Post;
 
         LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_FEED' );
 
         LDM.qryFeeds.Close;
-        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsInteger := LLAstId;
+        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LLAstId;
         LDM.qryFeeds.Open;
 
         FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
@@ -271,7 +271,7 @@ begin
       LDM.Critical.Acquire;
       try
         LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.qryFeeds.Open;
 
         if not ( LDM.qryFeeds.Eof ) then
@@ -300,7 +300,7 @@ begin
     if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
       LDM.qryFeeds.close;
-      LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
       LDM.qryFeeds.Open;
 
       if not ( LDM.qryFeeds.Eof ) then
@@ -331,7 +331,7 @@ begin
       LDM.Critical.Acquire;
       try
         LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.qryFeeds.Open;
 
         if not ( LDM.qryFeeds.Eof ) then
@@ -340,10 +340,10 @@ begin
           LDM.qryFeeds.First;
 
           FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
-          FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
-          FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
-          FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
-          FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+          FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
+          FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListSubCategories, False );
+          FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListCountries, False );
+          FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListLanguages, False );
           FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
           Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
@@ -399,7 +399,7 @@ begin
 
           if LDM.SessionVariables.Values[ 'SortFeedsField' ] = '' then
           begin
-            LDM.SessionVariables.Values[ 'SortFeedsField' ] := 'DATE_CREATION';
+            LDM.SessionVariables.Values[ 'SortFeedsField' ] := 'CREATION_DATE';
             LDM.SessionVariables.Values[ 'SortFeedsOrd' ] := 'desc';
           end;
 
@@ -407,7 +407,7 @@ begin
 
           LTemplate := TMP_LISTE;
           LDM.qryCountFeeds.close;
-          LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+          LDM.qryCountFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
           LDM.qryCountFeeds.Open;
 
           if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
@@ -431,13 +431,13 @@ begin
           ' order by ' + LDM.SessionVariables.Values[ 'SortFeedsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortFeedsOrd' ];
         LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
         LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-        LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.QryListeFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
         LDM.QryListeFeeds.Open;
 
-        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
-        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
-        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
-        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
+        FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListSubCategories, False );
+        FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListCountries, False );
+        FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListLanguages, False );
         FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
@@ -471,7 +471,7 @@ begin
       LDM.Critical.Acquire;
       try
         LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
         LDM.qryFeeds.Open;
 
         if not ( LDM.qryFeeds.Eof ) then
@@ -485,12 +485,12 @@ begin
 
             // On envoi les catégories
             LArray := TJSONArray.Create;
-            LDM.QryFeedCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedCategories.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
             LDM.QryFeedCategories.Open;
 
             while not ( LDM.QryFeedCategories.Eof ) do
             begin
-              LArray.Add( LDM.QryFeedCategoriesID_CATEGORIE.Value );
+              LArray.Add( LDM.QryFeedCategoriesCATEGORY_ID.Value );
 
               LDM.QryFeedCategories.Next;
             end;
@@ -501,49 +501,49 @@ begin
 
             // On envoi les sous-catégories
             LArray := TJSONArray.Create;
-            LDM.QryFeedSousCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryFeedSousCategories.Open;
+            LDM.QryFeedSubCategories.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedSubCategories.Open;
 
-            while not ( LDM.QryFeedSousCategories.Eof ) do
+            while not ( LDM.QryFeedSubCategories.Eof ) do
             begin
-              LArray.Add( LDM.QryFeedSousCategoriesID_SOUS_CATEGORIE.Value );
+              LArray.Add( LDM.QryFeedSubCategoriesSUBCATEGORY_ID.Value );
 
-              LDM.QryFeedSousCategories.Next;
+              LDM.QryFeedSubCategories.Next;
             end;
 
-            LDM.QryFeedSousCategories.Close;
+            LDM.QryFeedSubCategories.Close;
 
             LJson.AddPair( 'TypePartner', LArray );
 
             // On envoi les pays
             LArray := TJSONArray.Create;
-            LDM.QryFeedPays.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryFeedPays.Open;
+            LDM.QryFeedCountry.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedCountry.Open;
 
-            while not ( LDM.QryFeedPays.Eof ) do
+            while not ( LDM.QryFeedCountry.Eof ) do
             begin
-              LArray.Add( LDM.QryFeedPaysCODE_PAYS.Value );
+              LArray.Add( LDM.QryFeedCountryCOUNTRY_CODE.Value );
 
-              LDM.QryFeedPays.Next;
+              LDM.QryFeedCountry.Next;
             end;
 
-            LDM.QryFeedPays.Close;
+            LDM.QryFeedCountry.Close;
 
             LJson.AddPair( 'Country', LArray );
 
             // On envoi les langues
             LArray := TJSONArray.Create;
-            LDM.QryFeedLangue.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryFeedLangue.Open;
+            LDM.QryFeedLanguage.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+            LDM.QryFeedLanguage.Open;
 
-            while not ( LDM.QryFeedLangue.Eof ) do
+            while not ( LDM.QryFeedLanguage.Eof ) do
             begin
-              LArray.Add( LDM.QryFeedLangueCODE_LANGUE.Value );
+              LArray.Add( LDM.QryFeedLanguageLANGUAGE_CODE.Value );
 
-              LDM.QryFeedLangue.Next;
+              LDM.QryFeedLanguage.Next;
             end;
 
-            LDM.QryFeedLangue.Close;
+            LDM.QryFeedLanguage.Close;
 
             LJson.AddPair( 'Lang', LArray );
 
@@ -601,7 +601,7 @@ begin
       LDM.Critical.Acquire;
       try
         LDM.qryCountFeeds.close;
-        LDM.qryCountFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        LDM.qryCountFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
         LDM.qryCountFeeds.Open;
 
         FMsg := 'GetPagination';
@@ -660,13 +660,9 @@ procedure TListFeedsController.SaveContextFeed( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-//  JSONVal: TJSONValue;
-//  LObj: TJSONObject;
-//  ContentStr: string;
   LToken: TToken;
   LJsonObj: TJSONObject;
   LAllContext: string;
-//  LValue: TJSONValue;
   LArrayCategorie,
     LArraySousCategorie,
     LArrayPays,
@@ -692,7 +688,7 @@ begin
             LArrayLangue := LJsonObj.GetValue<TJSONArray>( 'Lang' );
 
             LDM.qryFeeds.close;
-            LDM.qryFeeds.ParamByName( 'IDNEWS' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
             LDM.qryFeeds.Open;
 
             if not ( LDM.qryFeeds.Eof ) then
@@ -705,32 +701,32 @@ begin
             end;
 
             // On supprime les anciens liens
-            LDM.QryFeedCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedCategories.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
             LDM.QryFeedCategories.Open;
             while not ( LDM.QryFeedCategories.Eof ) do
             begin
               LDM.QryFeedCategories.Delete;
             end;
 
-            LDM.QryFeedSousCategories.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
-            LDM.QryFeedSousCategories.Open;
-            while not ( LDM.QryFeedSousCategories.Eof ) do
+            LDM.QryFeedSubCategories.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedSubCategories.Open;
+            while not ( LDM.QryFeedSubCategories.Eof ) do
             begin
-              LDM.QryFeedSousCategories.Delete;
+              LDM.QryFeedSubCategories.Delete;
             end;
 
-            LDM.QryFeedPays.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
-            LDM.QryFeedPays.Open;
-            while not ( LDM.QryFeedPays.Eof ) do
+            LDM.QryFeedCountry.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedCountry.Open;
+            while not ( LDM.QryFeedCountry.Eof ) do
             begin
-              LDM.QryFeedPays.Delete;
+              LDM.QryFeedCountry.Delete;
             end;
 
-            LDM.QryFeedLangue.ParamByName( 'ID_FEED' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
-            LDM.QryFeedLangue.Open;
-            while not ( LDM.QryFeedLangue.Eof ) do
+            LDM.QryFeedLanguage.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'IdFeed' ];
+            LDM.QryFeedLanguage.Open;
+            while not ( LDM.QryFeedLanguage.Eof ) do
             begin
-              LDM.QryFeedLangue.Delete;
+              LDM.QryFeedLanguage.Delete;
             end;
 
             if ( LAllContext = 'N' ) then
@@ -739,43 +735,43 @@ begin
               for var i := 0 to LArrayCategorie.Count - 1 do
               begin
                 LDM.QryFeedCategories.Append;
-                LDM.QryFeedCategoriesID_CATEGORIE.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
-                LDM.qryFeedsID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedCategoriesCATEGORY_ID.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
+                LDM.QryFeedCategoriesFEED_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
                 LDM.QryFeedCategories.Post;
               end;
 
               // on Sauvegarde le lien avec les sous-catégories
               for var i := 0 to LArraySousCategorie.Count - 1 do
               begin
-                LDM.QryFeedSousCategories.Append;
-                LDM.QryFeedSousCategoriesID_SOUS_CATEGORIE.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
-                LDM.qryFeedsID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
-                LDM.QryFeedSousCategories.Post;
+                LDM.QryFeedSubCategories.Append;
+                LDM.QryFeedSubCategoriesSUBCATEGORY_ID.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
+                LDM.QryFeedSubCategoriesFEED_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedSubCategories.Post;
               end;
 
               // on Sauvegarde le lien avec les pays
               for var i := 0 to LArrayPays.Count - 1 do
               begin
-                LDM.QryFeedPays.Append;
-                LDM.QryFeedPaysCODE_PAYS.Value := LArrayPays.Items[ i ].Value;
-                LDM.QryFeedPaysID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
-                LDM.QryFeedPays.Post;
+                LDM.QryFeedCountry.Append;
+                LDM.QryFeedCountryCOUNTRY_CODE.Value := LArrayPays.Items[ i ].Value;
+                LDM.QryFeedCountryFEED_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedCountry.Post;
               end;
 
               // on Sauvegarde le lien avec les langues
               for var i := 0 to LArrayLangue.Count - 1 do
               begin
-                LDM.QryFeedLangue.Append;
-                LDM.QryFeedLangueCODE_LANGUE.Value := LArrayLangue.Items[ i ].Value;
-                LDM.QryFeedLangueID_FEED.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
-                LDM.QryFeedLangue.Post;
+                LDM.QryFeedLanguage.Append;
+                LDM.QryFeedLanguageLANGUAGE_CODE.Value := LArrayLangue.Items[ i ].Value;
+                LDM.QryFeedLanguageFEED_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdFeed' ] );
+                LDM.QryFeedLanguage.Post;
               end;
             end;
 
             LDM.QryFeedCategories.Close;
-            LDM.QryFeedSousCategories.Close;
-            LDM.QryFeedPays.Close;
-            LDM.QryFeedLangue.Close;
+            LDM.QryFeedSubCategories.Close;
+            LDM.QryFeedCountry.Close;
+            LDM.QryFeedLanguage.Close;
           finally
             FreeAndNil( LJsonObj );
           end;
@@ -834,13 +830,13 @@ begin
         ' order by ' + LDM.SessionVariables.Values[ 'SortFeedsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortFeedsOrd' ];
       LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
       LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      LDM.QryListeFeeds.ParamByName( 'TITRE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+      LDM.QryListeFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
       LDM.QryListeFeeds.Open;
 
-      FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListeCategorie, False );
-      FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListeSousCategorie, False );
-      FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListePays, False );
-      FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListeLangue, False );
+      FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
+      FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListSubCategories, False );
+      FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListCountries, False );
+      FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListLanguages, False );
       FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
