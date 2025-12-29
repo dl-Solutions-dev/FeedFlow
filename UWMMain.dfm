@@ -1,5 +1,6 @@
 object wmMain: TwmMain
   OnCreate = WebModuleCreate
+  OnDestroy = WebModuleDestroy
   Actions = <
     item
       Default = True

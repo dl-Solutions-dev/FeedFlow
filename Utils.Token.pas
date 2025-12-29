@@ -58,13 +58,14 @@ var
   LToken: TJWT;
 begin
   // Définir l'en-tête du JWT
-  Header := TJSONObject.Create;
+  LToken := TJWT.Create;
+  Header := LToken.Header.JSON;
   try
     Header.AddPair( 'alg', 'HS256' );
     Header.AddPair( 'typ', 'JWT' );
 
     // Définir le payload (contenu) du JWT
-    Payload := TJSONObject.Create;
+    Payload := LToken.Claims.JSON;
     try
       Payload.AddPair( 'sub', aUserName );
       ExpirationTime := IncMinute( NOw, 60 ); // Temps d'expiration en secondes
@@ -77,16 +78,11 @@ begin
       Payload.AddPair( 'SubCategory', aSubCategory );
 
       // Générer le JWT
-      LToken := TJWT.Create;
-      LToken.Header.JSON := Header;
-      LToken.Claims.JSON := Payload;
-
       Result := TJOSE.SerializeCompact( SECRETKEY, TJOSEAlgorithmId.HS256, LToken );
     finally
-      Payload.Free;
     end;
   finally
-    Header.Free;
+    FreeAndNil( LToken );
   end;
 end;
 

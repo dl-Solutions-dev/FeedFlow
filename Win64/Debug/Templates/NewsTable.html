@@ -9,7 +9,7 @@
 							hx-get="@env.resource/SortNews?col=NEWS_ID"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  ID
@@ -19,7 +19,7 @@
 							hx-get="@env.resource/SortNews?col=DISPLAY_ORDER"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Ordre d'affichage
@@ -29,7 +29,7 @@
 							hx-get="@env.resource/SortNews?col=NEWS_TITLE"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Titre
@@ -39,7 +39,7 @@
 							hx-get="@env.resource/SortNews?col=HOLD"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Actif
@@ -49,7 +49,7 @@
 							hx-get="@env.resource/SortNews?col=PUBLICATION_DATE"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Date publication
@@ -59,7 +59,7 @@
 							hx-get="@env.resource/SortNews?col=EXPIRY_DATE"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Date péremption
@@ -69,7 +69,7 @@
 							hx-get="@env.resource/SortNews?col=CREATION_DATE"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Date création
@@ -79,7 +79,7 @@
 							hx-get="@env.resource/SortNews?col=MODIFICATION_DATE"
 							hx-target="#TableNews"
 							hx-swap="innerHTML"
-							hx-vals='{"dir":"asc"}'
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
 							onclick="toggleDir(this)"
 						  >
 						  Date dernière modification

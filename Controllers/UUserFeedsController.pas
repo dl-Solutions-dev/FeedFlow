@@ -36,12 +36,14 @@ uses
   FireDAC.Stan.Param,
   utils.ClassHelpers,
   UConsts,
-  uInvokerActions,
   UWMMain,
   Utils.Logger,
   UPagination,
   Helpers.Messages,
-  Utils.Token;
+  Utils.Token,
+  UFeeds,
+  UControllersList,
+  UNews;
 
 const
   TMP_HOME: string = 'Home.html';
@@ -102,6 +104,8 @@ begin
       Response.Content := RenderTemplate( TMP_APPS, Request );
 
       LDM.MtUrls.Close;
+
+      FreeAndNil( LToken );
     end
     else
     begin
@@ -117,6 +121,7 @@ var
   LDM: TDMSession;
   LIdGroup: Integer;
   LToken: TToken;
+  LFeedsUser: TFeedsUser;
 begin
   //TODO: remettre True
   if ValidToken( Request, False, True, LToken ) then
@@ -136,25 +141,37 @@ begin
           end;
         end;
 
+        LFeedsUser := TFeedsUser( GetSessionObject( Request, 'QryFeedsUser' ) );
+        if not ( Assigned( LFeedsUser ) ) then
+        begin
+          LFeedsUser := TFeedsUser.Create;
+          AddSessionObject( Request, 'QryFeedsUser', LFeedsUser );
+        end;
+
         Logger.Info( 'ShowNews, LIdGroup : ' + LIdGroup.ToString );
 
-        LDM.QryFeedsUser.ParamByName( 'FEED_GROUP' ).AsInteger := LIdGroup;
-        LDM.QryFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
-        LDM.QryFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
-        LDM.QryFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
-        LDM.QryFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
-        LDM.QryFeedsUser.Open;
+        //        LDM.QryFeedsUser.ParamByName( 'FEED_GROUP' ).AsInteger := LIdGroup;
+        //        LDM.QryFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
+        //        LDM.QryFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
+        //        LDM.QryFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
+        //        LDM.QryFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
+        //        LDM.QryFeedsUser.Open;
 
-        FWebStencilsProcessor.AddVar( 'DocumentsList', LDM.QryFeedsUser, False );
+        FWebStencilsProcessor.AddVar( 'DocumentsList',
+          LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LIdGroup, LToken.Category.ToInteger, LToken.SubCatgegory.ToInteger,
+          LToken.Country, LToken.Lang ),
+          False );
 
         Response.ContentType := 'text/html; charset=UTF-8';
         Response.Content := RenderTemplate( TMP_HOME_DOCUMENTS, Request );
 
-        LDM.QryFeedsUser.Close;
+        //        LDM.QryFeedsUser.Close;
       finally
         LDM.Critical.Release;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -164,6 +181,9 @@ var
   LDM: TDMSession;
   LIdFeed: Integer;
   LToken: TToken;
+  LFeed: TFeed;
+  LShowNews: TShowNewsUser;
+  LTemplateName: string;
 begin
   //TODO: remettre True
   if ValidToken( Request, False, True, LToken ) then
@@ -186,45 +206,67 @@ begin
           end;
         end;
 
-        LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-        LDM.qryFeeds.Open;
+        LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+        if not ( Assigned( LFeed ) ) then
+        begin
+          LFeed := TFeed.Create;
+          AddSessionObject( Request, 'qryFeed', LFeed );
+        end;
+
+        LShowNews := TShowNewsUser( GetSessionObject( Request, 'QryShowNewsUser' ) );
+        if not ( Assigned( LShowNews ) ) then
+        begin
+          LShowNews := TShowNewsUser.Create;
+          AddSessionObject( Request, 'QryShowNewsUser', LShowNews );
+        end;
+
+        LTemplateName := LFeed.GetTemplateName( LDM.cnxFeedFlow, LIdFeed );
+
+        //        LDM.qryFeeds.close;
+        //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+        //        LDM.qryFeeds.Open;
 
         logger.Info( 'LIdFeed -> ' + LIdFeed.ToString );
-        logger.Info( 'qry eof : ' + if ( LDM.qryFeeds.Eof ) then
-            'Oui'
-          else
-            'Non' );
-        logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsDISPLAY_TEMPLATE.Value ) );
+        //        logger.Info( 'qry eof : ' + if ( LDM.qryFeeds.Eof ) then
+        //            'Oui'
+        //          else
+        //            'Non' );
+        logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) );
 
-        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsDISPLAY_TEMPLATE.Value ) ) then
+        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) ) then
         begin
           Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-          LDM.QryShowNewsUser.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-          LDM.QryShowNewsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
-          LDM.QryShowNewsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
-          LDM.QryShowNewsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
-          LDM.QryShowNewsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
-          LDM.QryShowNewsUser.Open;
+          //          LDM.QryShowNewsUser.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+          //          LDM.QryShowNewsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
+          //          LDM.QryShowNewsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
+          //          LDM.QryShowNewsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
+          //          LDM.QryShowNewsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
+          //          LDM.QryShowNewsUser.Open;
 
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNewsUser, False );
+          FWebStencilsProcessor.AddVar(
+            'News',
+            LShowNews.GetNews( LDM.cnxFeedFlow, LIdFeed, LToken.Category.ToInteger, LToken.SubCatgegory.ToInteger,
+            LToken.Country, LToken.Lang ),
+            False );
 
           Response.ContentType := 'text/html; charset=UTF-8';
-          Response.Content := RenderTemplate( LDM.qryFeedsDISPLAY_TEMPLATE.Value, Request );
+          Response.Content := RenderTemplate( LTemplateName, Request );
 
-          LDM.QryShowNewsUser.Close;
+          //          LDM.QryShowNewsUser.Close;
         end
         else
         begin
-          response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsDISPLAY_TEMPLATE.Value;
+          response.Content := 'Erreur : Template non trouvé ' + LTemplateName;
         end;
 
-        LDM.qryFeeds.close;
+        //        LDM.qryFeeds.close;
       finally
         LDM.Critical.Release;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -240,6 +282,8 @@ begin
     if ValidToken( Request, False, True, LToken ) then
     begin
       Response.Content := RenderTemplate( TMP_HOME, Request );
+
+      FreeAndNil( LToken );
     end
     else
     begin
@@ -264,7 +308,7 @@ end;
 
 initialization
 
-  TInvokerActions.GetInvokerActions.AddAction( TUserFeedsController.Create );
+  TControllersList.GetControllersList.AddClass( TUserFeedsController );
 
 end.
 

@@ -7,8 +7,8 @@ uses
   System.Classes,
   Web.HTTPApp,
   Web.Stencils,
-  uInvokerActions,
-  Helpers.Messages, System.JSON,
+  Helpers.Messages,
+  System.JSON,
   UDmSession;
 
 type
@@ -17,6 +17,7 @@ type
     WebFileDispatcher: TWebFileDispatcher;
     WebSessionManager: TWebSessionManager;
     WebStencilsProcessor1: TWebStencilsProcessor;
+    procedure WebModuleDestroy( Sender: TObject );
     procedure WebModuleCreate( Sender: TObject );
     procedure WebModule1DefaultHandlerAction( Sender: TObject;
       Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
@@ -28,13 +29,14 @@ type
       TWebRequest; Session: TWebSession );
   private
     { Private declarations }
+    FActionsList: TInterfaceList;
     FResourcesPath: string;
     FDM: TDMSession;
 
     procedure InitRequiredData;
   public
     { Public declarations }
-    function TokenValid(aRequest:TWebRequest; out Payload:TJSONObject):Boolean;
+    function TokenValid( aRequest: TWebRequest; out Payload: TJSONObject ): Boolean;
   end;
 
 var
@@ -45,17 +47,35 @@ implementation
 uses
   System.IOUtils,
   Utils.Logger,
-  Utils.Config;
+  Utils.Config,
+  uBaseController,
+  uInterfaces, UControllersList;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
 {$R *.dfm}
 
+procedure TwmMain.WebModuleDestroy( Sender: TObject );
+begin
+  FActionsList.Free;
+end;
+
 procedure TwmMain.WebModuleCreate( Sender: TObject );
+var
+  LController: TBaseControllerRef;
+  LInstance: IAction;
 begin
   InitRequiredData;
 
-  TInvokerActions.GetInvokerActions.InitializeActions( Self, wsEngineApplication );
+  FActionsList := TInterfaceList.Create;
+
+  for LController in TControllersList.GetControllersList.List do
+  begin
+    LInstance := LController.Create;
+    LInstance.InitializeActions( Self, wsEngineApplication );
+
+    FActionsList.Add( LInstance );
+  end;
 
   FormatSettings.ShortDateFormat := 'dd/mm/YYYY';
 end;
@@ -96,10 +116,10 @@ begin
     end );
 end;
 
-function TwmMain.TokenValid(aRequest: TWebRequest;
-  out Payload: TJSONObject): Boolean;
+function TwmMain.TokenValid( aRequest: TWebRequest;
+  out Payload: TJSONObject ): Boolean;
 begin
-  Result:=True;
+  Result := True;
 end;
 
 procedure TwmMain.WebModule1DefaultHandlerAction( Sender: TObject;

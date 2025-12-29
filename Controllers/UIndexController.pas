@@ -36,12 +36,11 @@ uses
   FireDAC.Stan.Param,
   utils.ClassHelpers,
   UConsts,
-  uInvokerActions,
   UWMMain,
   Utils.Logger,
   UPagination,
   Helpers.Messages,
-  Utils.Token;
+  Utils.Token, UControllersList;
 
 const
   TMP_LOGIN: string = 'IndexAdmin.html';
@@ -67,6 +66,8 @@ begin
       begin
         Response.SendRedirect( './FeedsList?scope=Page' );
       end;
+
+      FreeAndNil(LToken);
     end
     else
     begin
@@ -106,7 +107,7 @@ begin
       LToken := LJwt.CreateToken(
         Request.ContentFields.Values[ 'username' ],
         'FR',
-        'en',
+        'fr',
         '1',
         '1',
         'ADMIN' );
@@ -119,6 +120,8 @@ begin
       FreeAndNil( LCookie );
 
       Response.Content := Format( '{"token": "%s"}', [ LToken ] );
+
+      lJwt.Free;
     end
     else if Request.ContentFields.Values[ 'username' ] = 'User' then
     begin
@@ -139,6 +142,8 @@ begin
       FreeAndNil( LCookie );
 
       Response.Content := Format( '{"token": "%s"}', [ LToken ] );
+
+      lJwt.Free;
     end
     else
     begin
@@ -156,7 +161,7 @@ end;
 
 initialization
 
-  TInvokerActions.GetInvokerActions.AddAction( TIndexController.Create );
+  TControllersList.GetControllersList.AddClass(TIndexController);
 
 end.
 

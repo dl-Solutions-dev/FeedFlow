@@ -128,22 +128,18 @@
         </DelphiCompile>
         <DCCReference Include="UFrmMainTest.pas">
             <Form>FrmMainTest</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UWMMain.pas">
             <Form>wmMain</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>
         <DCCReference Include="uInterfaces.pas"/>
-        <DCCReference Include="uInvokerActions.pas"/>
         <DCCReference Include="utils.ClassHelpers.pas"/>
         <DCCReference Include="Utils.Logger.pas"/>
         <DCCReference Include="Controllers\UIndexController.pas"/>
         <DCCReference Include="Controllers\uBaseController.pas"/>
         <DCCReference Include="UDmSession.pas">
             <Form>DmSession</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
         <DCCReference Include="UConsts.pas"/>
@@ -153,6 +149,13 @@
         <DCCReference Include="Utils.Token.pas"/>
         <DCCReference Include="Controllers\UListFeedsController.pas"/>
         <DCCReference Include="Controllers\UUserFeedsController.pas"/>
+        <DCCReference Include="Models\UFeeds.pas"/>
+        <DCCReference Include="Models\UNews.pas"/>
+        <DCCReference Include="Models\UCategories.pas"/>
+        <DCCReference Include="Models\USubcategories.pas"/>
+        <DCCReference Include="Models\UCountries.pas"/>
+        <DCCReference Include="Models\ULanguages.pas"/>
+        <DCCReference Include="UControllersList.pas"/>
         <None Include="ReadMe.md"/>
         <None Include="Win64\Debug\Templates\FeelsTable.html"/>
         <BuildConfiguration Include="Base">

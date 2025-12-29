@@ -81,9 +81,12 @@ type
     function HtmlTemplate( aTemplateName: string ): string; inline;
     function RenderTemplate( const ATemplatePath: string; ARequest: TWebRequest ): string;
     function GetDMSession( Request: TWebRequest ): TDMSession;
+    function GetSessionObject( Request: TWebRequest; aObjectName: string ): TObject;
     function ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean;
       out Token: TToken ): Boolean;
 
+    procedure AddSessionObject( Request: TWebRequest; aSessionObjectName: string;
+      aSessionObject: TObject );
     procedure SendEmptyContent( aResponse: TWebResponse );
     procedure ClearValidationErrors;
 
@@ -105,6 +108,8 @@ type
     property Titre: string read FTitre write SetTitre;
   end;
 
+  TBaseControllerRef = class of TBaseController;
+
 implementation
 
 uses
@@ -115,6 +120,12 @@ uses
   Utils.Config;
 
 { TBaseController }
+
+procedure TBaseController.AddSessionObject( Request: TWebRequest;
+  aSessionObjectName: string; aSessionObject: TObject );
+begin
+  Request.Session.DataVars.AddObject( aSessionObjectName, aSessionObject );
+end;
 
 procedure TBaseController.AddValidationError( const AFieldName,
   AMessage: string );
@@ -158,6 +169,19 @@ end;
 function TBaseController.GetFieldError( const AFieldName: string ): string;
 begin
   Result := FFieldErrorManager.GetError( AFieldName );
+end;
+
+function TBaseController.GetSessionObject( Request: TWebRequest;
+  aObjectName: string ): TObject;
+begin
+  if ( Request.Session.DataVars.IndexOf( aObjectName ) <> -1 ) then
+  begin
+    Result := Request.Session.DataVars.Objects[ Request.Session.DataVars.IndexOf( aObjectName ) ];
+  end
+  else
+  begin
+    Result := nil;
+  end;
 end;
 
 function TBaseController.HasFieldError( const AFieldName: string ): Boolean;
@@ -285,12 +309,12 @@ begin
   if aHeader then
   begin
     // Récupérer le LReqToken depuis l'en-tête "Authorization"
-    Request.AllHeaders.NameValueSeparator:=':';
+    Request.AllHeaders.NameValueSeparator := ':';
     LReqToken := Request.AllHeaders.Values[ 'jwt' ].Trim;
   end
   else
   begin
-    LReqToken := Request.CookieFields.Values['jwt'];
+    LReqToken := Request.CookieFields.Values[ 'jwt' ];
   end;
 
   if ( LReqToken <> '' ) then

@@ -60,11 +60,17 @@ uses
   FireDAC.Stan.Param,
   utils.ClassHelpers,
   UConsts,
-  uInvokerActions,
   UWMMain,
   Utils.Logger,
   UPagination,
-  Utils.Token;
+  Utils.Token,
+  UFeeds,
+  UNews,
+  UCategories,
+  USubcategories,
+  UCountries,
+  ULanguages,
+  UControllersList;
 
 const
   NAVIGATION_NAME: string = 'NewsList';
@@ -90,6 +96,8 @@ procedure TListENewsController.AddNews( Sender: TObject; Request: TWebRequest;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LNews: TNews;
+  LFeedId: Integer;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -97,8 +105,21 @@ begin
 
     if Assigned( LDM ) then
     begin
-      //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
-      FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+      LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+      if not ( Assigned( LNews ) ) then
+      begin
+        LNews := TNews.Create;
+        AddSessionObject( Request, 'qryNews', LNews );
+      end;
+
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'FeedId' ], LFeedId ) ) then
+      begin
+        LFeedId := -1;
+      end;
+
+      FFeedId := LFeedId.ToString;
+      FWebStencilsProcessor.AddVar( 'Form', Self, False );
+      FWebStencilsProcessor.AddVar( 'News', LNews.GetNews( LDM.cnxFeedFlow, -1 ), False );
 
       Response.Content := RenderTemplate( TMP_ADD, Request );
     end
@@ -106,6 +127,8 @@ begin
     begin
       Response.Content := 'Invalid session';
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -119,6 +142,8 @@ var
   LMsg: string;
   LOrdre: Integer;
   LToken: TToken;
+  LNews: TNews;
+  LFeedId: Integer;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -126,6 +151,13 @@ begin
 
     if Assigned( LDM ) then
     begin
+      LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+      if not ( Assigned( LNews ) ) then
+      begin
+        LNews := TNews.Create;
+        AddSessionObject( Request, 'qryNews', LNews );
+      end;
+
       LFs := TFormatSettings.Create;
       LFs.DateSeparator := '-';
       LFs.ShortDateFormat := 'yyyy-MM-dd';
@@ -143,6 +175,11 @@ begin
         lDatePeremption := 0;
       end;
 
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'FeedId' ], LFeedId ) ) then
+      begin
+        LFeedId := -1;
+      end;
+
       LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
         LDatePublication, lDatePeremption );
 
@@ -153,36 +190,54 @@ begin
           LOrdre := 0;
         end;
 
-        LDM.QryNews.Open;
-        LDM.QryNews.Append;
-        LDM.QryNewsNEWS_ID.Value := -1;
-        LDM.QryNewsNEWS_TITLE.Value := Request.ContentFields.Values[ 'titre' ];
-        LDM.QryNewsDISPLAY_ORDER.Value := LOrdre;
-        LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-        LDM.QryNewsPUBLICATION_DATE.Value := LDatePublication;
-        LDM.QryNewsEXPIRY_DATE.Value := lDatePeremption;
-        LDM.QryNewsTEXT.Value := '';
-        LDM.QryNewsFEED_ID.Value := FFeedId.ToInteger;
-        LDM.QryNews.Post;
+        LNews.NewsId := -1;
+        LNews.NewsTitle := Request.ContentFields.Values[ 'titre' ];
+        LNews.DisplayOrder := LOrdre;
+        LNews.Hold := Request.ContentFields.Values[ 'status' ];
+        LNews.PublicationDate := LDatePublication;
+        LNews.ExpiryDate := lDatePeremption;
+        LNews.Text := '';
+        LNews.FeedId := LFeedId;
 
-        LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
+        LLAstId := LNews.CreateNews( LDM.cnxFeedFlow, LMsg );
 
-        LDM.QryNews.Close;
-        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsInteger := LLAstId;
-        LDM.QryNews.Open;
+        //        LDM.QryNews.Open;
+        //        LDM.QryNews.Append;
+        //        LDM.QryNewsNEWS_ID.Value := -1;
+        //        LDM.QryNewsNEWS_TITLE.Value := Request.ContentFields.Values[ 'titre' ];
+        //        LDM.QryNewsDISPLAY_ORDER.Value := LOrdre;
+        //        LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+        //        LDM.QryNewsPUBLICATION_DATE.Value := LDatePublication;
+        //        LDM.QryNewsEXPIRY_DATE.Value := lDatePeremption;
+        //        LDM.QryNewsTEXT.Value := '';
+        //        LDM.QryNewsFEED_ID.Value := FFeedId.ToInteger;
+        //        LDM.QryNews.Post;
+        //
+        //        LLAstId := LDM.cnxFeedFlow.GetLastAutoGenValue( 'GEN_NEWS' );
+        //
+        //        LDM.QryNews.Close;
+        //        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsInteger := LLAstId;
+        //        LDM.QryNews.Open;
 
-        FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-      end;
-
-      if ( LMsg = 'OK' ) then
-      begin
-        Response.Content := RenderTemplate( TMP_LINE, Request );
+        if ( LLastId <> -1 ) then
+        begin
+          FFeedId := LFeedId.ToString;
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
+          FWebStencilsProcessor.AddVar( 'News', LNews.GetNews( LDM.cnxFeedFlow, LLAstId ), False );
+          Response.Content := RenderTemplate( TMP_LINE, Request );
+        end
+        else
+        begin
+          Response.Content := LMsg;
+        end;
       end
       else
       begin
         Response.Content := LMsg;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -195,8 +250,9 @@ var
   LMsg: string;
   LDatePublication, lDatePeremption: TDateTime;
   LFs: TFormatSettings;
-  LOrdre: Integer;
+  LOrdre, LIdNews: Integer;
   LToken: TToken;
+  LNews: TNews;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -209,67 +265,84 @@ begin
       begin
         LDM.cnxFeedFlow.StartTransaction;
 
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryNews.Open;
-
-        if not ( LDM.QryNews.Eof ) then
+        LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+        if not ( Assigned( LNews ) ) then
         begin
-          LFs := TFormatSettings.Create;
-          LFs.DateSeparator := '-';
-          LFs.ShortDateFormat := 'yyyy-MM-dd';
-          LFs.TimeSeparator := ':';
-          LFs.ShortTimeFormat := 'hh:mm';
-          LFs.LongTimeFormat := 'hh:mm:ss';
+          LNews := TNews.Create;
+          AddSessionObject( Request, 'qryNews', LNews );
+        end;
 
-          if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
+        //        LDM.QryNews.close;
+        //        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        //        LDM.QryNews.Open;
+        //
+        //        if not ( LDM.QryNews.Eof ) then
+        //        begin
+        LFs := TFormatSettings.Create;
+        LFs.DateSeparator := '-';
+        LFs.ShortDateFormat := 'yyyy-MM-dd';
+        LFs.TimeSeparator := ':';
+        LFs.ShortTimeFormat := 'hh:mm';
+        LFs.LongTimeFormat := 'hh:mm:ss';
+
+        if not ( TryStrToDate( Request.ContentFields.Values[ 'datepublication' ], LDatePublication, LFs ) ) then
+        begin
+          LDatePublication := 0;
+        end;
+
+        if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
+        begin
+          lDatePeremption := 0;
+        end;
+
+        LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
+          LDatePublication, lDatePeremption );
+        if ( LMsg = 'OK' ) then
+        begin
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
           begin
-            LDatePublication := 0;
+            LOrdre := 0;
           end;
 
-          if not ( TryStrToDate( Request.ContentFields.Values[ 'dateperemption' ], lDatePeremption, LFs ) ) then
-          begin
-            lDatePeremption := 0;
-          end;
+          LIdNEws := StrToInt( Request.QueryFields.Values[ 'Id' ] );
 
-          LMsg := SaisieOK( Request.ContentFields.Values[ 'titre' ], Request.ContentFields.Values[ 'ordreaffichage' ],
-            LDatePublication, lDatePeremption );
-          if ( LMsg = 'OK' ) then
-          begin
-            if not ( TryStrToInt( Request.ContentFields.Values[ 'ordreaffichage' ], LOrdre ) ) then
-            begin
-              LOrdre := 0;
-            end;
+          LNews.NewsId := LIdNews;
+          LNews.NewsTitle := Request.ContentFields.Values[ 'titre' ];
+          LNews.DisplayOrder := LOrdre;
+          LNews.Hold := Request.ContentFields.Values[ 'status' ];
+          LNews.PublicationDate := LDatePublication;
+          LNews.ExpiryDate := lDatePeremption;
+          LMsg := LNews.UpdateNews( LDM.cnxFeedFlow );
 
-            LDM.QryNews.Edit;
+          FFeedId := LNews.FeedId.ToString;
 
-            //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
-            LDM.QryNewsNEWS_TITLE.Value := Request.ContentFields.Values[ 'titre' ];
-            LDM.QryNewsDISPLAY_ORDER.Value := LOrdre;
-            LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
-            LDM.QryNewsPUBLICATION_DATE.Value := LDatePublication;
-            LDM.QryNewsEXPIRY_DATE.Value := lDatePeremption;
-            try
-              LDM.QryNews.Post;
-              LDM.cnxFeedFlow.Commit;
-            except
-              on e: Exception do
-              begin
-                LMsg := 'ERR:' + Request.QueryFields.Text;
-                LDM.cnxFeedFlow.Rollback;
-              end;
-            end;
-
-            LDM.QryNews.close;
-            LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryNews.Open;
-
-            FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-            FWebStencilsProcessor.AddVar( 'Form', Self, False );
-          end;
+          //            LDM.QryNews.Edit;
+          //
+          //            //        LDM.QryFeedsID_FEED.Value := Request.ContentFields.Values[ 'idFeed' ].ToInteger;
+          //            LDM.QryNewsNEWS_TITLE.Value := Request.ContentFields.Values[ 'titre' ];
+          //            LDM.QryNewsDISPLAY_ORDER.Value := LOrdre;
+          //            LDM.QryNewsHOLD.Value := Request.ContentFields.Values[ 'status' ];
+          //            LDM.QryNewsPUBLICATION_DATE.Value := LDatePublication;
+          //            LDM.QryNewsEXPIRY_DATE.Value := lDatePeremption;
+          //            try
+          //              LDM.QryNews.Post;
+          //              LDM.cnxFeedFlow.Commit;
+          //            except
+          //              on e: Exception do
+          //              begin
+          //                LMsg := 'ERR:' + Request.QueryFields.Text;
+          //                LDM.cnxFeedFlow.Rollback;
+          //              end;
+          //            end;
+          //
+          //            LDM.QryNews.close;
+          //            LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+          //            LDM.QryNews.Open;
 
           if LMsg = 'OK' then
           begin
+            FWebStencilsProcessor.AddVar( 'News', LNews.GetNews( LDM.cnxFeedFlow, LIdNews ), False );
+            FWebStencilsProcessor.AddVar( 'Form', Self, False );
             Response.Content := RenderTemplate( TMP_LINE, Request );
           end
           else
@@ -279,10 +352,12 @@ begin
         end
         else
         begin
-          Response.Content := Request.QueryFields.Values[ 'Id' ] + ' non trouvé.';
+          Response.Content := LMsg;
         end;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -299,6 +374,7 @@ procedure TListENewsController.CancelNewsEditLine( Sender: TObject;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LNews: TNews;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -307,21 +383,32 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryNews.Open;
-
-        if not ( LDM.QryNews.Eof ) then
+        LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+        if not ( Assigned( LNews ) ) then
         begin
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-          FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-          Response.Content := RenderTemplate( TMP_LINE, Request );
+          LNews := TNews.Create;
+          AddSessionObject( Request, 'qryNews', LNews );
         end;
+
+        //        LDM.QryNews.close;
+        //        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        //        LDM.QryNews.Open;
+        //
+        //        if not ( LDM.QryNews.Eof ) then
+        //        begin
+        FWebStencilsProcessor.AddVar( 'News', LNews.GetNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'Id' ].ToInteger ),
+          False );
+        FFeedId := LNews.FeedId.ToString;
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.Content := RenderTemplate( TMP_LINE, Request );
+        //        end;
       finally
         LDM.Critical.Leave;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -330,26 +417,48 @@ procedure TListENewsController.DeleteNews( Sender: TObject; Request: TWebRequest
 var
   LDM: TDMSession;
   LToken: TToken;
+  LNews: TNews;
+  LMsg: string;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
     LDM := GetDMSession( Request );
     if Assigned( LDM ) then
     begin
-      LDM.QryNews.close;
-      LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      LDM.QryNews.Open;
-
-      if not ( LDM.QryNews.Eof ) then
+      LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+      if not ( Assigned( LNews ) ) then
       begin
-        LDM.QryNews.Delete;
+        LNews := TNews.Create;
+        AddSessionObject( Request, 'qryNews', LNews );
+      end;
+
+      LMsg := LNews.DeleteNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'Id' ].ToInteger );
+
+      if ( LMsg = 'OK' ) then
+      begin
         SendEmptyContent( Response );
       end
       else
       begin
-        Response.Content := 'liste non trouvée.';
+        Response.Content := 'ERR:' + LMsg;
       end;
+
+      //      LDM.QryNews.close;
+      //      LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+      //      LDM.QryNews.Open;
+      //
+      //      if not ( LDM.QryNews.Eof ) then
+      //      begin
+      //        LDM.QryNews.Delete;
+      //        SendEmptyContent( Response );
+      //      end
+      //      else
+      //      begin
+      //        Response.Content := 'liste non trouvée.';
+      //      end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -358,6 +467,8 @@ procedure TListENewsController.GetGroup( Sender: TObject; Request: TWebRequest;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LFeedsUser: TFeedsUser;
+  LFeedGroup: Integer;
 begin
   if ValidToken( Request, True, True, LToken ) then
   begin
@@ -366,27 +477,31 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-//        LDM.QryListeGroup.close;
-//        LDM.QryListeGroup.ParamByName( 'GROUPE' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
-//        LDM.QryListeGroup.Open;
+        LFeedsUser := TFeedsUser( GetSessionObject( Request, 'QryFeedsUser' ) );
+        if not ( Assigned( LFeedsUser ) ) then
+        begin
+          LFeedsUser := TFeedsUser.Create;
+          AddSessionObject( Request, 'QryFeedsUser', LFeedsUser );
+        end;
 
-        LDM.QryFeedsUser.ParamByName( 'FEED_GROUP' ).AsString := Request.QueryFields.Values[ 'IdGroupe' ];
-        LDM.QryFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := LToken.Country;
-        LDM.QryFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := LToken.Lang;
-        LDM.QryFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := LToken.Category.ToInteger;
-        LDM.QryFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := LToken.SubCatgegory.ToInteger;
-        LDM.QryFeedsUser.Open;
+        if not ( TryStrToInt( Request.QueryFields.Values[ 'IdGroupe' ], LFeedGroup ) ) then
+        begin
+          LFeedGroup := -1;
+        end;
 
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
-        FWebStencilsProcessor.AddVar( 'Group', LDM.QryFeedsUser, False );
+        FWebStencilsProcessor.AddVar(
+          'Group',
+          LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LFeedGroup, LToken.Category.ToInteger, LToken.SubCatgegory.ToInteger,
+            LToken.Country, LToken.Lang ),
+          False );
 
         Response.Content := RenderTemplate( TMP_GROUP, Request );
-
-        LDM.QryFeedsUser.Close;
       finally
         LDM.Critical.Release;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -403,6 +518,9 @@ var
   LToken: TToken;
   LWhereClause: string;
   LSelCategorie, LSelSousCategorie, LSelPays, LSelLangue: string;
+  LListNews: TListNews;
+  LNbEnr: Integer;
+  LFeedId: Integer;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -410,6 +528,13 @@ begin
 
     if Assigned( LDM ) then
     begin
+      LListNews := TListNews( GetSessionObject( Request, 'QryListNews' ) );
+      if not ( Assigned( LListNews ) ) then
+      begin
+        LListNews := TListNews.Create;
+        AddSessionObject( Request, 'QryListNews', LListNews );
+      end;
+
       LSelCategorie := Request.ContentFields.Values[ 'FilterCategorie' ];
       LSelSousCategorie := Request.ContentFields.Values[ 'FilterSousCategorie' ];
       LSelPays := Request.ContentFields.Values[ 'FilterPays' ];
@@ -439,6 +564,12 @@ begin
           LInt := 1;
         end;
       end;
+
+      if not ( TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LFeedId ) ) then
+      begin
+        LFeedId := -1;
+      end;
+      FFeedId := LFeedId.ToString;
 
       if not ( TryStrToDate( LDM.SessionVariables.Values[ SEARCH_VARIABLE ], LDateSearch ) ) then
       begin
@@ -474,20 +605,28 @@ begin
             LSelLangue.QuotedString + ')';
         end;
 
-        LDM.QryCountNews.close;
-        LDM.QryCountNews.SQL.Text := QRY_COUNT_NEWS +
-          LWhereClause;
-        LDM.QryCountNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
-        LDM.QryCountNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-        LDM.QryCountNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
-        LDM.QryCountNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
-        LDM.QryCountNews.Open;
+        LNbEnr := LListNews.GetNewsCount(
+          LDM.cnxFeedFlow,
+          LFeedId,
+          '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%',
+          LWhereClause,
+          LDateSearch,
+          LDateSearch );
+
+        //        LDM.QryCountNews.close;
+        //        LDM.QryCountNews.SQL.Text := QRY_COUNT_NEWS +
+        //          LWhereClause;
+        //        LDM.QryCountNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
+        //        LDM.QryCountNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        //        LDM.QryCountNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
+        //        LDM.QryCountNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
+        //        LDM.QryCountNews.Open;
 
         FMsg := 'GetPagination';
 
         LPagination := LDM.Pagination( NAVIGATION_NAME );
 
-        LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', Request.ContentFields.Values[
+        LPagination.GeneratePagesList( LNbEnr, LLinesPerPage, LInt, 'FeedId=' + FFeedId, Request.ContentFields.Values[
           'Search' ], 'FeedsList', 'GetNewsNavigation' );
 
         FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
@@ -498,6 +637,8 @@ begin
         LDM.Critical.Release;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -509,7 +650,7 @@ var
   LDM: TDMSession;
   LToken: TToken;
   LJson: TJSONObject;
-  LArray: TJSONArray;
+  LNews: TNews;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -519,93 +660,25 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryNews.Open;
-
-        if not ( LDM.QryNews.Eof ) then
+        LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+        if not ( Assigned( LNews ) ) then
         begin
-          LDM.QryNews.Open;
-          LDM.QryNews.First;
-
-          LJson := TJSONObject.Create;
-          try
-            LJson.AddPair( 'content', LDM.QryNewsTEXT.Value );
-
-            // On envoi les catégories
-            LArray := TJSONArray.Create;
-            LDM.QryNewsCategories.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryNewsCategories.Open;
-
-            while not ( LDM.QryNewsCategories.Eof ) do
-            begin
-              LArray.Add( LDM.QryNewsCategoriesCATEGORY_ID.Value );
-
-              LDM.QryNewsCategories.Next;
-            end;
-
-            LDM.QryNewsCategories.Close;
-
-            LJson.AddPair( 'BU', LArray );
-
-            // On envoi les sous-catégories
-            LArray := TJSONArray.Create;
-            LDM.QryNewsSubCategory.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryNewsSubCategory.Open;
-
-            while not ( LDM.QryNewsSubCategory.Eof ) do
-            begin
-              LArray.Add( LDM.QryNewsSubCategorySUBCATEGORY_ID.Value );
-
-              LDM.QryNewsSubCategory.Next;
-            end;
-
-            LDM.QryNewsSubCategory.Close;
-
-            LJson.AddPair( 'TypePartner', LArray );
-
-            // On envoi les pays
-            LArray := TJSONArray.Create;
-            LDM.QryNewsCountry.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryNewsCountry.Open;
-
-            while not ( LDM.QryNewsCountry.Eof ) do
-            begin
-              LArray.Add( LDM.QryNewsCountryCOUNTRY_CODE.Value );
-
-              LDM.QryNewsCountry.Next;
-            end;
-
-            LDM.QryNewsCountry.Close;
-
-            LJson.AddPair( 'Country', LArray );
-
-            // On envoi les langues
-            LArray := TJSONArray.Create;
-            LDM.QryNewsLanguage.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-            LDM.QryNewsLanguage.Open;
-
-            while not ( LDM.QryNewsLanguage.Eof ) do
-            begin
-              LArray.Add( LDM.QryNewsLanguageLANGUAGE_CODE.Value );
-
-              LDM.QryNewsLanguage.Next;
-            end;
-
-            LDM.QryNewsLanguage.Close;
-
-            LJson.AddPair( 'Lang', LArray );
-
-            Response.ContentType := 'application/json; charset=utf-8';
-            Response.Content := LJson.ToJSON;
-          finally
-            LJson.Free;
-          end;
+          LNews := TNews.Create;
+          AddSessionObject( Request, 'qryNews', LNews );
         end;
+
+        LJSon := LNews.GetNewsDetails( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'Id' ].ToInteger );
+
+        Response.ContentType := 'application/json; charset=utf-8';
+        Response.Content := LJson.ToJSON;
+
+        FreeAndNil( LJson );
       finally
         LDM.Critical.Leave;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -640,6 +713,7 @@ procedure TListENewsController.NewsEditLineMode( Sender: TObject;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LNews: TNews;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -649,24 +723,40 @@ begin
     begin
       LDM.Critical.Acquire;
       try
-        LDM.QryNews.close;
-        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-        LDM.QryNews.Open;
-
-        if not ( LDM.QryNews.Eof ) then
+        LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+        if not ( Assigned( LNews ) ) then
         begin
-          LDM.QryNews.Open;
-          LDM.QryNews.First;
-
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
-          FWebStencilsProcessor.AddVar( 'Form', Self, False );
-
-          Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+          LNews := TNews.Create;
+          AddSessionObject( Request, 'qryNews', LNews );
         end;
+
+        FWebStencilsProcessor.AddVar( 'News', LNews.GetNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'Id' ].ToInteger ),
+          False );
+        FFeedId := LNews.FeedId.ToString;
+        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
+        Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+
+        //        LDM.QryNews.close;
+        //        LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
+        //        LDM.QryNews.Open;
+        //
+        //        if not ( LDM.QryNews.Eof ) then
+        //        begin
+        //          LDM.QryNews.Open;
+        //          LDM.QryNews.First;
+        //
+        //          FWebStencilsProcessor.AddVar( 'News', LDM.QryNews, False );
+        //          FWebStencilsProcessor.AddVar( 'Form', Self, False );
+        //
+        //          Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
+        //        end;
       finally
         LDM.Critical.Leave;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -683,6 +773,14 @@ var
   LToken: TToken;
   LSelCategorie, LSelSousCategorie, LSelPays, LSelLangue: string;
   LWhereClause: string;
+  LFeed: TFeed;
+  LCategories: TCategories;
+  LSubcategories: TSubcategories;
+  LCountries: TCountries;
+  LLanguages: TLanguages;
+  LListNews: TListNews;
+  LNbEnr: Integer;
+  LTitle: string;
 begin
   LDM := GetDMSession( Request );
 
@@ -691,6 +789,41 @@ begin
     if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
     begin
       LDM.cnxFeedFlow.Rollback;
+
+      LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+      if not ( Assigned( LFeed ) ) then
+      begin
+        LFeed := TFeed.Create;
+        AddSessionObject( Request, 'qryFeed', LFeed );
+      end;
+
+      LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
+      if not ( Assigned( LCategories ) ) then
+      begin
+        LCategories := TCategories.Create;
+        AddSessionObject( Request, 'qryListCategories', LCategories );
+      end;
+
+      LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
+      if not ( Assigned( LSubcategories ) ) then
+      begin
+        LSubcategories := TSubcategories.Create;
+        AddSessionObject( Request, 'qryListSubcategories', LSubcategories );
+      end;
+
+      LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
+      if not ( Assigned( LCountries ) ) then
+      begin
+        LCountries := TCountries.Create;
+        AddSessionObject( Request, 'qryListCountries', LCountries );
+      end;
+
+      LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
+      if not ( Assigned( LLanguages ) ) then
+      begin
+        LLanguages := TLanguages.Create;
+        AddSessionObject( Request, 'qryListLanguages', LLanguages );
+      end;
 
       if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
       begin
@@ -717,10 +850,19 @@ begin
         FFeedId := Request.QueryFields.Values[ 'FeedId' ];
       end;
 
+      LTitle := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+
       Logger.Info( 'Newslist, FeedId : ' + FFeedId );
 
       LDM.Critical.Acquire;
       try
+        LListNews := TListNews( GetSessionObject( Request, 'QryListNews' ) );
+        if not ( Assigned( LListNews ) ) then
+        begin
+          LListNews := TListNews.Create;
+          AddSessionObject( Request, 'QryListNews', LListNews );
+        end;
+
         // Est-ce qu'on rafraichit également la barre de pagination
         if ( Request.QueryFields.Values[ 'Scope' ] = 'Page' ) then
         begin
@@ -740,19 +882,27 @@ begin
             LDM.SessionVariables.Values[ 'SortNewsOrd' ] := 'desc';
           end;
 
-          LDM.QryCountNews.close;
-          LDM.QryCountNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
-          LDM.QryCountNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-          LDM.QryCountNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
-          LDM.QryCountNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
-          LDM.QryCountNews.Open;
+          LNbEnr := LListNews.GetNewsCount(
+            LDM.cnxFeedFlow,
+            FFeedId.ToInteger,
+            LTitle,
+            '',
+            LDateSearch,
+            LDateSearch );
+
+          //          LDM.QryCountNews.close;
+          //          LDM.QryCountNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
+          //          LDM.QryCountNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+          //          LDM.QryCountNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
+          //          LDM.QryCountNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
+          //          LDM.QryCountNews.Open;
 
           if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
           begin
             LInt := 1;
           end;
 
-          LPagination.GeneratePagesList( LDM.QryCountNewsNB_ENR.Value, LLinesPerPage, LInt, '', '', 'NewsList',
+          LPagination.GeneratePagesList( LNbEnr, LLinesPerPage, LInt, 'FeedId=' + FFeedId, '', 'NewsList',
             'GetNewsNavigation' );
 
           FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
@@ -796,35 +946,41 @@ begin
             LSelLangue.QuotedString + ')';
         end;
 
-        LDM.QryListNews.close;
-        LDM.QryListNews.SQL.Text := QRY_LIST_NEWS +
-          LWhereClause +
-          ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
-        LDM.QryListNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
-        LDM.QryListNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-        LDM.QryListNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
-        LDM.QryListNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-        LDM.QryListNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
-        LDM.QryListNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
-        LDM.QryListNews.Open;
+        //        LDM.QryListNews.close;
+        //        LDM.QryListNews.SQL.Text := QRY_LIST_NEWS +
+        //          LWhereClause +
+        //          ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
+        //        LDM.QryListNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+        //        LDM.QryListNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+        //        LDM.QryListNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
+        //        LDM.QryListNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+        //        LDM.QryListNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
+        //        LDM.QryListNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
+        //        LDM.QryListNews.Open;
 
-        LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
-        LDM.qryFeeds.Open;
+                //        LDM.qryFeeds.close;
+                //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
+                //        LDM.qryFeeds.Open;
 
-        FTemplateName := LDM.qryFeedsDISPLAY_TEMPLATE.Value;
+        FTemplateName := LFeed.GetTemplateName( LDM.cnxFeedFlow, FFeedId.ToInteger ); // LDM.qryFeedsDISPLAY_TEMPLATE.Value;
 
-        FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListNews, False );
-        FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
-        FWebStencilsProcessor.AddVar( 'SubCategories', LDM.QryListSubCategories, False );
-        FWebStencilsProcessor.AddVar( 'Country', LDM.QryListCountries, False );
-        FWebStencilsProcessor.AddVar( 'Languages', LDM.QryListLanguages, False );
+        FWebStencilsProcessor.AddVar( 'newsList',
+          LListNews.GetNewslist( LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage, FFeedId.ToInteger, LTitle, LWhereClause,
+          LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
+          ),
+          False );
+        FWebStencilsProcessor.AddVar( 'Categories', LCategories.GetListOfCategories( LDM.cnxFeedFlow ), False );
+        FWebStencilsProcessor.AddVar( 'SubCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
+        FWebStencilsProcessor.AddVar( 'Country', LCountries.GetListOfCountries( LDM.cnxFeedFlow ), False );
+        FWebStencilsProcessor.AddVar( 'Languages', LLanguages.GetListOfLanguages( LDM.cnxFeedFlow ), False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         Response.Content := RenderTemplate( LTemplate, Request );
       finally
         LDM.Critical.Release;
       end;
+
+      FreeAndNil( LToken );
     end;
   end;
 end;
@@ -864,17 +1020,18 @@ procedure TListENewsController.SaveContentNews( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  //  JSONVal: TJSONValue;
-  //  LObj: TJSONObject;
-  //  ContentStr: string;
   LToken: TToken;
   LJsonObj: TJSONObject;
   LContent: string;
-  //  LValue: TJSONValue;
   LArrayCategorie,
     LArraySousCategorie,
     LArrayPays,
     LArrayLangue: TJSONArray;
+  LNews: TNews;
+  LCategories: TNewsCategory;
+  LSubcategories: TNewsSubCategory;
+  LCountries: TNewsCountry;
+  LLanguages: TNewsLanguage;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -895,90 +1052,159 @@ begin
             LArrayPays := LJsonObj.GetValue<TJSONArray>( 'Country' );
             LArrayLangue := LJsonObj.GetValue<TJSONArray>( 'Lang' );
 
-            LDM.QryNews.close;
-            LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-            LDM.QryNews.Open;
-
-            if not ( LDM.QryNews.Eof ) then
+            LNews := TNews( GetSessionObject( Request, 'qryNews' ) );
+            if not ( Assigned( LNews ) ) then
             begin
-              LDM.QryNews.Edit;
-              LDM.QryNewsTEXT.Value := LContent;
-
-              LDM.QryNews.Post;
-              LDM.QryNews.Close;
+              LNews := TNews.Create;
+              AddSessionObject( Request, 'qryNews', LNews );
             end;
 
-            // on Sauvegarde le lien avec les catégories
-            LDM.QryNewsCategories.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-            LDM.QryNewsCategories.Open;
-            while not ( LDM.QryNewsCategories.Eof ) do
+            LCategories := TNewsCategory( GetSessionObject( Request, 'QryNewsCategories' ) );
+            if not ( Assigned( LCategories ) ) then
             begin
-              LDM.QryNewsCategories.Delete;
+              LCategories := TNewsCategory.Create;
+              AddSessionObject( Request, 'QryNewsCategories', LCategories );
             end;
+
+            LSubcategories := TNewsSubCategory( GetSessionObject( Request, 'QryNewsSubCategories' ) );
+            if not ( Assigned( LSubcategories ) ) then
+            begin
+              LSubcategories := TNewsSubCategory.Create;
+              AddSessionObject( Request, 'QryNewsSubCategories', LSubcategories );
+            end;
+
+            LCountries := TNewsCountry( GetSessionObject( Request, 'QryNewsCountry' ) );
+            if not ( Assigned( LCountries ) ) then
+            begin
+              LCountries := TNewsCountry.Create;
+              AddSessionObject( Request, 'QryNewsCountry', LCountries );
+            end;
+
+            LLanguages := TNewsLanguage( GetSessionObject( Request, 'QryNewsLanguage' ) );
+            if not ( Assigned( LLanguages ) ) then
+            begin
+              LLanguages := TNewsLanguage.Create;
+              AddSessionObject( Request, 'QryNewsLanguage', LLanguages );
+            end;
+
+            LNews.SetContentNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'IdNews' ].ToInteger, LContent );
+
+            //            LDM.QryNews.close;
+            //            LDM.QryNews.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            //            LDM.QryNews.Open;
+            //
+            //            if not ( LDM.QryNews.Eof ) then
+            //            begin
+            //              LDM.QryNews.Edit;
+            //              LDM.QryNewsTEXT.Value := LContent;
+            //
+            //              LDM.QryNews.Post;
+            //              LDM.QryNews.Close;
+            //            end;
+
+                        // on Sauvegarde le lien avec les catégories
+            LCategories.DeleteCategories( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'IdNews' ] ) );
+
+            //            LDM.QryNewsCategories.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            //            LDM.QryNewsCategories.Open;
+            //            while not ( LDM.QryNewsCategories.Eof ) do
+            //            begin
+            //              LDM.QryNewsCategories.Delete;
+            //            end;
 
             for var i := 0 to LArrayCategorie.Count - 1 do
             begin
-              LDM.QryNewsCategories.Append;
-              LDM.QryNewsCategoriesCATEGORY_ID.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
-              LDM.QryNewsCategoriesNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
-              LDM.QryNewsCategories.Post;
+              LCategories.AddCategory(
+                LDM.cnxFeedFlow,
+                StrToInt( Request.QueryFields.Values[ 'IdNews' ] ),
+                StrToInt( LArrayCategorie.Items[ i ].Value )
+                );
+
+              //              LDM.QryNewsCategories.Append;
+              //              LDM.QryNewsCategoriesCATEGORY_ID.Value := StrToInt( LArrayCategorie.Items[ i ].Value );
+              //              LDM.QryNewsCategoriesNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              //              LDM.QryNewsCategories.Post;
             end;
 
-            LDM.QryNewsCategories.Close;
+            //            LDM.QryNewsCategories.Close;
 
-            // on Sauvegarde le lien avec les sous-catégories
-            LDM.QryNewsSubCategory.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-            LDM.QryNewsSubCategory.Open;
-            while not ( LDM.QryNewsSubCategory.Eof ) do
-            begin
-              LDM.QryNewsSubCategory.Delete;
-            end;
+                        // on Sauvegarde le lien avec les sous-catégories
+            LSubcategories.DeleteSubcategories( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'IdNews' ] ) );
+
+            //            LDM.QryNewsSubCategory.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            //            LDM.QryNewsSubCategory.Open;
+            //            while not ( LDM.QryNewsSubCategory.Eof ) do
+            //            begin
+            //              LDM.QryNewsSubCategory.Delete;
+            //            end;
 
             for var i := 0 to LArraySousCategorie.Count - 1 do
             begin
-              LDM.QryNewsSubCategory.Append;
-              LDM.QryNewsSubCategorySUBCATEGORY_ID.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
-              LDM.QryNewsSubCategoryNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
-              LDM.QryNewsSubCategory.Post;
+              LSubcategories.AddSubcategory(
+                LDM.cnxFeedFlow,
+                StrToInt( Request.QueryFields.Values[ 'IdNews' ] ),
+                StrToInt( LArraySousCategorie.Items[ i ].Value )
+                );
+
+              //              LDM.QryNewsSubCategory.Append;
+              //              LDM.QryNewsSubCategorySUBCATEGORY_ID.Value := StrToInt( LArraySousCategorie.Items[ i ].Value );
+              //              LDM.QryNewsSubCategoryNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              //              LDM.QryNewsSubCategory.Post;
             end;
 
-            LDM.QryNewsSubCategory.Close;
+            //            LDM.QryNewsSubCategory.Close;
 
-            // on Sauvegarde le lien avec les pays
-            LDM.QryNewsCountry.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-            LDM.QryNewsCountry.Open;
-            while not ( LDM.QryNewsCountry.Eof ) do
-            begin
-              LDM.QryNewsCountry.Delete;
-            end;
+                        // on Sauvegarde le lien avec les pays
+            LCountries.DeleteCountries( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'IdNews' ] ) );
+
+            //            LDM.QryNewsCountry.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            //            LDM.QryNewsCountry.Open;
+            //            while not ( LDM.QryNewsCountry.Eof ) do
+            //            begin
+            //              LDM.QryNewsCountry.Delete;
+            //            end;
 
             for var i := 0 to LArrayPays.Count - 1 do
             begin
-              LDM.QryNewsCountry.Append;
-              LDM.QryNewsCountryCOUNTRY_CODE.Value := LArrayPays.Items[ i ].Value;
-              LDM.QryNewsCountryNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
-              LDM.QryNewsCountry.Post;
+              LCountries.AddCountry(
+                LDM.cnxFeedFlow,
+                LArrayPays.Items[ i ].Value,
+                StrToInt( Request.QueryFields.Values[ 'IdNews' ] )
+                );
+
+              //              LDM.QryNewsCountry.Append;
+              //              LDM.QryNewsCountryCOUNTRY_CODE.Value := LArrayPays.Items[ i ].Value;
+              //              LDM.QryNewsCountryNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              //              LDM.QryNewsCountry.Post;
             end;
 
-            LDM.QryNewsCountry.Close;
+            //            LDM.QryNewsCountry.Close;
 
-            // on Sauvegarde le lien avec les langues
-            LDM.QryNewsLanguage.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
-            LDM.QryNewsLanguage.Open;
-            while not ( LDM.QryNewsLanguage.Eof ) do
-            begin
-              LDM.QryNewsLanguage.Delete;
-            end;
+                        // on Sauvegarde le lien avec les langues
+            LLanguages.DeleteLanguages( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'IdNews' ] ) );
+
+            //            LDM.QryNewsLanguage.ParamByName( 'NEWS_ID' ).AsString := Request.QueryFields.Values[ 'IdNews' ];
+            //            LDM.QryNewsLanguage.Open;
+            //            while not ( LDM.QryNewsLanguage.Eof ) do
+            //            begin
+            //              LDM.QryNewsLanguage.Delete;
+            //            end;
 
             for var i := 0 to LArrayLangue.Count - 1 do
             begin
-              LDM.QryNewsLanguage.Append;
-              LDM.QryNewsLanguageLANGUAGE_CODE.Value := LArrayLangue.Items[ i ].Value;
-              LDM.QryNewsLanguageNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
-              LDM.QryNewsLanguage.Post;
+              LLanguages.AddLanguage(
+                LDM.cnxFeedFlow,
+                LArrayLangue.Items[ i ].Value,
+                StrToInt( Request.QueryFields.Values[ 'IdNews' ] )
+                );
+
+              //              LDM.QryNewsLanguage.Append;
+              //              LDM.QryNewsLanguageLANGUAGE_CODE.Value := LArrayLangue.Items[ i ].Value;
+              //              LDM.QryNewsLanguageNEWS_ID.Value := StrToInt( Request.QueryFields.Values[ 'IdNews' ] );
+              //              LDM.QryNewsLanguage.Post;
             end;
 
-            LDM.QryNewsLanguage.Close;
+            //            LDM.QryNewsLanguage.Close;
           finally
             FreeAndNil( LJsonObj );
           end;
@@ -994,6 +1220,8 @@ begin
         LDM.Critical.Leave;
       end;
     end;
+
+    FreeAndNil( LToken );
 
     Response.StatusCode := 200;
   end;
@@ -1016,21 +1244,37 @@ procedure TListENewsController.ShowGroup( Sender: TObject; Request: TWebRequest;
 var
   LDM: TDMSession;
   LToken: TToken;
+  LShowGroup: TShowGroup;
+  LIdFeed: Integer;
 begin
   if ValidToken( Request, True, True, LToken ) then
   begin
     LDM := GetDMSession( Request );
     if Assigned( LDM ) then
     begin
-      LDM.QryShowGroup.close;
-      LDM.QryShowGroup.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'contact-choice' ];
-      LDM.QryShowGroup.Open;
+      LShowGroup := TShowGroup( GetSessionObject( Request, 'QryShowGroup' ) );
+      if not ( Assigned( LShowGroup ) ) then
+      begin
+        LShowGroup := TShowGroup.Create;
+        AddSessionObject( Request, 'QryShowGroup', LShowGroup );
+      end;
+
+      if not ( TryStrToInt( Request.QueryFields.Values[ 'contact-choice' ], LIdFeed ) ) then
+      begin
+        LIdFeed := -1;
+      end;
+
+      //      LDM.QryShowGroup.close;
+      //      LDM.QryShowGroup.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'contact-choice' ];
+      //      LDM.QryShowGroup.Open;
 
       Response.ContentType := 'text/html';
       Response.Content := '<div class="slide-content"><p>' +
-        LDM.QryShowGroupTEXT.Value +
+        LShowGroup.GetGroup( LDM.cnxFeedFlow, LIdFeed ).FieldByName( 'TEXT' ).AsString +
         '</p></div>';
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -1042,6 +1286,9 @@ var
   LDM: TDMSession;
   LIdFeed: Integer;
   LToken: TToken;
+  LFeed: TFeed;
+  LShowNews: TShowNews;
+  LTemplateName: string;
 begin
   //TODO: remettre True
   if ValidToken( Request, False, True, LToken ) then
@@ -1068,34 +1315,50 @@ begin
           end;
         end;
 
-        LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-        LDM.qryFeeds.Open;
+        LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+        if not ( Assigned( LFeed ) ) then
+        begin
+          LFeed := TFeed.Create;
+          AddSessionObject( Request, 'qryFeed', LFeed );
+        end;
 
-        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LDM.qryFeedsDISPLAY_TEMPLATE.Value ) ) then
+        LShowNews := TShowNews( GetSessionObject( Request, 'QryShowNews' ) );
+        if not ( Assigned( LShowNews ) ) then
+        begin
+          LShowNews := TShowNews.Create;
+          AddSessionObject( Request, 'QryShowNews', LShowNews );
+        end;
+
+        LTemplateName := LFeed.GetTemplateName( LDM.cnxFeedFlow, LIdFeed );
+
+        //        LDM.qryFeeds.close;
+        //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+        //        LDM.qryFeeds.Open;
+
+        if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) ) then
         begin
           Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-          LDM.QryShowNews.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-          LDM.QryShowNews.Open;
+          //          LDM.QryShowNews.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+          //          LDM.QryShowNews.Open;
 
-          FWebStencilsProcessor.AddVar( 'News', LDM.QryShowNews, False );
+          FWebStencilsProcessor.AddVar( 'News', LShowNews.GetNews( LDM.cnxFeedFlow, LIdFeed ), False );
 
           Response.ContentType := 'text/html; charset=UTF-8';
-          Response.Content := RenderTemplate( LDM.qryFeedsDISPLAY_TEMPLATE.Value, Request );
+          Response.Content := RenderTemplate( LTemplateName, Request );
 
-          LDM.QryShowNews.Close;
+          //          LDM.QryShowNews.Close;
         end
         else
         begin
-          response.Content := 'Erreur : Template non trouvé ' + LDM.qryFeedsDISPLAY_TEMPLATE.Value;
+          response.Content := 'Erreur : Template non trouvé ' + LTemplateName;
         end;
-
-        LDM.qryFeeds.close;
       finally
         LDM.Critical.Release;
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 end;
 
@@ -1108,6 +1371,13 @@ var
   LPagination: TPagination;
   LPage: Integer;
   LDateSearch: TDateTime;
+  LListNews: TListNews;
+  LTitle: string;
+  LFeedId: Integer;
+  LCategories: TCategories;
+  LSubcategories: TSubcategories;
+  LCountries: TCountries;
+  LLanguages: TLanguages;
 begin
   if ValidToken( Request, False, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -1117,6 +1387,11 @@ begin
     begin
       LDM.SessionVariables.Values[ 'SortNewsField' ] := Request.QueryFields.Values[ 'col' ];
       LDM.SessionVariables.Values[ 'SortNewsOrd' ] := Request.QueryFields.Values[ 'dir' ];
+      if not ( TryStrToInt( Request.QueryFields.Values[ 'FeedId' ], LFeedId ) ) then
+      begin
+        LFeedId := -1;
+      end;
+      FFeedId := LFeedId.ToString;
 
       if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
       begin
@@ -1136,27 +1411,70 @@ begin
         LDateSearch := 0;
       end;
 
-      LDM.QryListNews.close;
-      LDM.QryListNews.SQL.Text := QRY_LIST_NEWS +
-        ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
-      LDM.QryListNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
-      LDM.QryListNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      LDM.QryListNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
-      LDM.QryListNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      LDM.QryListNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
-      LDM.QryListNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
-      LDM.QryListNews.Open;
+      LListNews := TListNews( GetSessionObject( Request, 'QryListNews' ) );
+      if not ( Assigned( LListNews ) ) then
+      begin
+        LListNews := TListNews.Create;
+        AddSessionObject( Request, 'QryListNews', LListNews );
+      end;
 
-      FWebStencilsProcessor.AddVar( 'newsList', LDM.QryListNews, False );
-      FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
-      FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListSubCategories, False );
-      FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListCountries, False );
-      FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListLanguages, False );
+      LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
+      if not ( Assigned( LCategories ) ) then
+      begin
+        LCategories := TCategories.Create;
+        AddSessionObject( Request, 'qryListCategories', LCategories );
+      end;
+
+      LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
+      if not ( Assigned( LSubcategories ) ) then
+      begin
+        LSubcategories := TSubcategories.Create;
+        AddSessionObject( Request, 'qryListSubcategories', LSubcategories );
+      end;
+
+      LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
+      if not ( Assigned( LCountries ) ) then
+      begin
+        LCountries := TCountries.Create;
+        AddSessionObject( Request, 'qryListCountries', LCountries );
+      end;
+
+      LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
+      if not ( Assigned( LLanguages ) ) then
+      begin
+        LLanguages := TLanguages.Create;
+        AddSessionObject( Request, 'qryListLanguages', LLanguages );
+      end;
+
+      LTitle := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+
+      //      LDM.QryListNews.close;
+      //      LDM.QryListNews.SQL.Text := QRY_LIST_NEWS +
+      //        ' order by ' + LDM.SessionVariables.Values[ 'SortNewsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortNewsOrd' ];
+      //      LDM.QryListNews.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
+      //      LDM.QryListNews.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
+      //      LDM.QryListNews.ParamByName( 'FEED_ID' ).AsInteger := FFeedId.ToInteger;
+      //      LDM.QryListNews.ParamByName( 'NEWS_TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
+      //      LDM.QryListNews.ParamByName( 'CREATION_DATE' ).AsDateTime := LDateSearch;
+      //      LDM.QryListNews.ParamByName( 'PUBLICATION_DATE' ).AsDateTime := LDateSearch;
+      //      LDM.QryListNews.Open;
+
+      FWebStencilsProcessor.AddVar( 'newsList',
+        LListNews.GetNewslist( LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage, LFeedId, LTitle, '',
+        LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
+        ),
+        False );
+      FWebStencilsProcessor.AddVar( 'Categories', LCategories.GetListOfCategories( LDM.cnxFeedFlow ), False );
+      FWebStencilsProcessor.AddVar( 'SousCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
+      FWebStencilsProcessor.AddVar( 'Pays', LCountries.GetListOfCountries( LDM.cnxFeedFlow ), False );
+      FWebStencilsProcessor.AddVar( 'Langues', LLanguages.GetListOfLanguages( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
       Response.StatusCode := 200;
       Response.Content := RenderTemplate( TMP_LINES, Request );
     end;
+
+    FreeAndNil( LToken );
   end
   else
   begin
@@ -1217,6 +1535,8 @@ begin
         Response.Content := '{"status":"error","message":"No file uploaded"}';
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -1231,6 +1551,7 @@ var
   LDM: TDMSession;
   LIdFeed: Integer;
   LToken: TToken;
+  LFeed: TFeed;
 begin
   if ValidToken( Request, True, True, LToken ) and ( LToken.Role = 'ADMIN' ) then
   begin
@@ -1264,15 +1585,24 @@ begin
           end;
         end;
 
-        LDM.qryFeeds.close;
-        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-        LDM.qryFeeds.Open;
+        LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+        if not ( Assigned( LFeed ) ) then
+        begin
+          LFeed := TFeed.Create;
+          AddSessionObject( Request, 'qryFeed', LFeed );
+        end;
 
-        LDM.qryFeeds.Edit;
-        LDM.qryFeedsDISPLAY_TEMPLATE.Value := Request.Files[ 0 ].FileName;
-        LDM.qryFeeds.Post;
+        LFeed.SetTemplateName( LDM.cnxFeedFlow, LIdFeed, Request.Files[ 0 ].FileName );
 
-        LDM.qryFeeds.Close;
+        //        LDM.qryFeeds.close;
+        //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
+        //        LDM.qryFeeds.Open;
+        //
+        //        LDM.qryFeeds.Edit;
+        //        LDM.qryFeedsDISPLAY_TEMPLATE.Value := Request.Files[ 0 ].FileName;
+        //        LDM.qryFeeds.Post;
+        //
+        //        LDM.qryFeeds.Close;
 
         Response.ContentType := 'application/json';
         Response.Content := '{"status":"success","file":"' + Request.Files[ 0 ].FileName + '"}';
@@ -1283,6 +1613,8 @@ begin
         Response.Content := '{"status":"error","message":"No file uploaded"}';
       end;
     end;
+
+    FreeAndNil( LToken );
   end;
 
   Handled := True;
@@ -1290,7 +1622,7 @@ end;
 
 initialization
 
-  TInvokerActions.GetInvokerActions.AddAction( TListENewsController.Create );
+  TControllersList.GetControllersList.AddClass( TListENewsController );
 
 end.
 
