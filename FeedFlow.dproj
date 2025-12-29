@@ -173,7 +173,6 @@
         </DCCReference>
         <DCCReference Include="Utils.Logger.pas"/>
         <DCCReference Include="utils.ClassHelpers.pas"/>
-        <DCCReference Include="uInvokerActions.pas"/>
         <DCCReference Include="uInterfaces.pas"/>
         <DCCReference Include="Controllers\UIndexController.pas"/>
         <DCCReference Include="Controllers\uBaseController.pas"/>
@@ -190,6 +189,13 @@
         <DCCReference Include="Controllers\UListNewsController.pas"/>
         <DCCReference Include="Controllers\UUserFeedsController.pas"/>
         <DCCReference Include="Utils.Token.pas"/>
+        <DCCReference Include="Models\ULanguages.pas"/>
+        <DCCReference Include="Models\UCountries.pas"/>
+        <DCCReference Include="Models\USubcategories.pas"/>
+        <DCCReference Include="Models\UCategories.pas"/>
+        <DCCReference Include="Models\UFeeds.pas"/>
+        <DCCReference Include="Models\UNews.pas"/>
+        <DCCReference Include="UControllersList.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -9,7 +9,6 @@ uses
   UWMMain in 'UWMMain.pas' {wmMain: TWebModule},
   Utils.Logger in 'Utils.Logger.pas',
   utils.ClassHelpers in 'utils.ClassHelpers.pas',
-  uInvokerActions in 'uInvokerActions.pas',
   uInterfaces in 'uInterfaces.pas',
   UIndexController in 'Controllers\UIndexController.pas',
   uBaseController in 'Controllers\uBaseController.pas',
@@ -21,7 +20,14 @@ uses
   UListFeedsController in 'Controllers\UListFeedsController.pas',
   UListNewsController in 'Controllers\UListNewsController.pas',
   UUserFeedsController in 'Controllers\UUserFeedsController.pas',
-  Utils.Token in 'Utils.Token.pas';
+  Utils.Token in 'Utils.Token.pas',
+  ULanguages in 'Models\ULanguages.pas',
+  UCountries in 'Models\UCountries.pas',
+  USubcategories in 'Models\USubcategories.pas',
+  UCategories in 'Models\UCategories.pas',
+  UFeeds in 'Models\UFeeds.pas',
+  UNews in 'Models\UNews.pas',
+  UControllersList in 'UControllersList.pas';
 
 {$R *.res}
 

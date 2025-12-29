@@ -61,6 +61,10 @@ implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
+uses
+  utils.ClassHelpers,
+  Utils.Config;
+
 {$R *.dfm}
 
 procedure TDmSession.DataModuleDestroy( Sender: TObject );
@@ -98,6 +102,7 @@ begin
   FSessionVariables := TStringList.Create;
   FPaginations := TObjectDictionary<string, TPagination>.Create;
 
+  cnxFeedFlow.Params.Database := TConfig.GetInstance.DatabaseName;
   cnxFeedFlow.Connected := True;
 end;
 

@@ -689,7 +689,7 @@ begin
   ''');
 
   FQryCategories.UpdateOptions.UpdateTableName := 'NEWS_CONTEXT_CATEGORY';
-  FQryCategories.UpdateOptions.KeyFields := 'NEWS_ID';
+  FQryCategories.UpdateOptions.KeyFields := 'CATEGORY_ID;NEWS_ID';
   FQryCategories.UpdateOptions.RequestLive := True;
 end;
 
@@ -784,7 +784,7 @@ begin
   ''');
 
   FQrySubcategories.UpdateOptions.UpdateTableName := 'NEWS_CONTEXT_SUBCATEGORY';
-  FQrySubcategories.UpdateOptions.KeyFields := 'NEWS_ID';
+  FQrySubcategories.UpdateOptions.KeyFields := 'SUBCATEGORY_ID;NEWS_ID';
   FQrySubcategories.UpdateOptions.RequestLive := True;
 end;
 
@@ -879,7 +879,7 @@ begin
   ''');
 
   FQryCountries.UpdateOptions.UpdateTableName := 'NEWS_CONTEXT_COUNTRY';
-  FQryCountries.UpdateOptions.KeyFields := 'NEWS_ID';
+  FQryCountries.UpdateOptions.KeyFields := 'COUNTRY_CODE;NEWS_ID';
   FQryCountries.UpdateOptions.RequestLive := True;
 end;
 
@@ -974,7 +974,7 @@ begin
   ''');
 
   FQryLanguage.UpdateOptions.UpdateTableName := 'NEWS_CONTEXT_LANG';
-  FQryLanguage.UpdateOptions.KeyFields := 'NEWS_ID';
+  FQryLanguage.UpdateOptions.KeyFields := 'LANGUAGE_CODE;NEWS_ID';
   FQryLanguage.UpdateOptions.RequestLive := True;
 end;
 
@@ -1119,6 +1119,7 @@ begin
   with TWideStringField.Create( FQryShowNews ) do
   begin
     FieldName := 'NEWS_TITLE';
+    Size := 500;
     ProviderFlags := [ ];
     Required := True;
     DataSet := FQryShowNews;
@@ -1294,6 +1295,7 @@ begin
   with TWideStringField.Create( FQryShowNewsUser ) do
   begin
     FieldName := 'NEWS_TITLE';
+    Size := 500;
     ProviderFlags := [ ];
     Required := True;
     DataSet := FQryShowNewsUser;

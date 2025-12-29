@@ -19,11 +19,13 @@ type
     FApp_Name: string;
     FDatabaseName: string;
     FResourcePath: string;
+    FFilesFolder: string;
 
     class var FInstance: TConfig;
     class var FSynchro: TMultiReadExclusiveWriteSynchronizer;
 
     procedure Initialisation;
+    procedure SetFilesFolder(const Value: string);
   public
     destructor Destroy; override;
 
@@ -41,6 +43,7 @@ type
     property TemplateFolder: string read FTemplateFolder;
     property Location: string read FLocation;
     property ResourcePath:string read FResourcePath;
+    property FilesFolder:string read FFilesFolder write SetFilesFolder;
   end;
 
 implementation
@@ -109,6 +112,12 @@ begin
   FResource := ReadString( 'Parametres', 'Resource', '' );
   FApp_Name := ReadString( 'Parametres', 'AppName', '' );
   FResourcePath := ReadString( 'Parametres', 'ResourcePath', '' );
+  FFilesFolder  := ReadString( 'Parametres', 'FilesFolder', '' );
+end;
+
+procedure TConfig.SetFilesFolder(const Value: string);
+begin
+  FFilesFolder := Value;
 end;
 
 end.

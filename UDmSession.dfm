@@ -1,8 +1,8 @@
 object DmSession: TDmSession
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
-  Height = 1920
-  Width = 2560
+  Height = 754
+  Width = 875
   PixelsPerInch = 192
   object cnxFeedFlow: TFDConnection
     Params.Strings = (

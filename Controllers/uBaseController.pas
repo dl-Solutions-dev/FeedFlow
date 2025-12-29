@@ -1,4 +1,7 @@
-﻿unit uBaseController;
+﻿/// <summary>
+///   Unité comprenant la classe de base pour toute les class controller
+/// </summary>
+unit uBaseController;
 
 interface
 
@@ -14,62 +17,18 @@ uses
   Utils.Token;
 
 type
-  TActions = class
-  private
-    FCancelEditLine: string;
-    FApplyEditLine: string;
-    FNavigation: string;
-    FListe: string;
-    FCancelAddLine: string;
-    FApplyAddLine: string;
-    FDeleteLine: string;
-    FEditLine: string;
-    FAddLine: string;
-  public
-    constructor Create( aListe, aNavigation, aEditLine, aCancelEditLine,
-      aApplyEditLine, aDeleteLine, aAddLine, aCancelAddLine,
-      aApplyAddLine: string );
-
-    property Liste: string read FListe;
-    property Navigation: string read FNavigation;
-    property EditLine: string read FEditLine;
-    property CancelEditLine: string read FCancelEditLine;
-    property ApplyEditLine: string read FApplyEditLine;
-    property DeleteLine: string read FDeleteLine;
-    property AddLine: string read FAddLine;
-    property CancelAddLine: string read FCancelAddLine;
-    property ApplyAddLine: string read FApplyAddLine;
-  end;
-
-  // Field error manager for WebStencils compatibility
-{$M+}
-  TFieldErrorManager = class
-  private
-    FErrors: TDictionary<string, string>;
-    function GetErrorCount: integer;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure AddError( const AFieldName, AMessage: string );
-    procedure Clear;
-  published
-    function GetError( const AFieldName: string ): string;
-    function HasError( const AFieldName: string ): Boolean;
-    property ErrorCount: integer read GetErrorCount;
-  end;
-{$M-}
-
+  /// <summary>
+  ///   Class ancètre de toute les classes controller
+  /// </summary>
   TBaseController = class( TInterfacedObject, IAction )
   private
-    FLayoutTemplate: string;
-    FLocation: string;
+//    FLocation: string;
 
     procedure SetTitre( const Value: string );
   protected
     // FWebStencilsProcessor: TWebStencilsProcessor;
     FWebStencilsEngine: TWebStencilsEngine;
     FWebStencilsProcessor: TWebStencilsProcessor;
-    FFieldErrorManager: TFieldErrorManager;
     FControllerName: string;
     FMsg: string;
     FTitre: string;
@@ -88,14 +47,6 @@ type
     procedure AddSessionObject( Request: TWebRequest; aSessionObjectName: string;
       aSessionObject: TObject );
     procedure SendEmptyContent( aResponse: TWebResponse );
-    procedure ClearValidationErrors;
-
-    // Validation error management
-    procedure InitializeValidationErrors;
-    procedure AddValidationError( const AFieldName, AMessage: string );
-
-    function GetFieldError( const AFieldName: string ): string;
-    function HasFieldError( const AFieldName: string ): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -103,11 +54,15 @@ type
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); virtual;
     procedure CheckSession( Request: TWebRequest );
 
-    property LayoutTemplate: string read FLayoutTemplate;
-    property Location: string read FLocation;
+//    property LayoutTemplate: string read FLayoutTemplate;
+//    property Location: string read FLocation;
     property Titre: string read FTitre write SetTitre;
   end;
 
+  /// <summary>
+  ///   Référence de class permettant d'instancier les classes de type
+  ///   TBAseController
+  /// </summary>
   TBaseControllerRef = class of TBaseController;
 
 implementation
@@ -127,12 +82,6 @@ begin
   Request.Session.DataVars.AddObject( aSessionObjectName, aSessionObject );
 end;
 
-procedure TBaseController.AddValidationError( const AFieldName,
-  AMessage: string );
-begin
-  FFieldErrorManager.AddError( AFieldName, AMessage );
-end;
-
 procedure TBaseController.CheckSession( Request: TWebRequest );
 begin
   if ( Request.QueryFields.Values[ 'sesid' ] <> '' ) then
@@ -141,20 +90,14 @@ begin
   end;
 end;
 
-procedure TBaseController.ClearValidationErrors;
-begin
-  //  FFieldErrorManager.Clear;
-end;
-
 constructor TBaseController.Create;
 begin
-  FLocation := TConfig.GetInstance.Location; // LOCAT;
+//  FLocation := TConfig.GetInstance.Location; // LOCAT;
 end;
 
 destructor TBaseController.Destroy;
 begin
   FreeAndNil( FWebStencilsProcessor );
-  FreeAndNil( FFieldErrorManager );
 
   inherited;
 end;
@@ -162,13 +105,6 @@ end;
 function TBaseController.GetDMSession( Request: TWebRequest ): TDMSession;
 begin
   Result := TDMSession( Request.Session.DataVars.Objects[ Request.Session.DataVars.IndexOf( 'DM' ) ] );
-
-  //  FWebStencilsProcessor.AddVar( 'Menus', Result.Menus, False );
-end;
-
-function TBaseController.GetFieldError( const AFieldName: string ): string;
-begin
-  Result := FFieldErrorManager.GetError( AFieldName );
 end;
 
 function TBaseController.GetSessionObject( Request: TWebRequest;
@@ -184,11 +120,6 @@ begin
   end;
 end;
 
-function TBaseController.HasFieldError( const AFieldName: string ): Boolean;
-begin
-  Result := FFieldErrorManager.HasError( AFieldName );
-end;
-
 function TBaseController.HtmlTemplate( aTemplateName: string ): string;
 begin
   Result := TConfig.GetInstance.TemplateFolder + aTemplateName; // TEMPLATE_FOLDER + aTemplateName;
@@ -197,7 +128,7 @@ end;
 procedure TBaseController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
 begin
-  FLayoutTemplate := TConfig.GetInstance.TemplateFolder + LAYOUT_TEMPLATE; // TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
+//  FLayoutTemplate := TConfig.GetInstance.TemplateFolder + LAYOUT_TEMPLATE; // TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
 
   try
     FWebStencilsEngine := aWebStencil;
@@ -207,23 +138,11 @@ begin
 
     //    FControllerName := AControllerName;
 
-        // Initialize field error manager
-    FFieldErrorManager := TFieldErrorManager.Create;
-
-    // Initialize validation errors in template processor
-    InitializeValidationErrors;
-
     //    Logger.Debug(Format('Created base controller: %s', [FControllerName]));
   except
     on E: Exception do
       Logger.Error( Format( 'TBaseController constructor error: %s', [ E.Message ] ) );
   end;
-end;
-
-procedure TBaseController.InitializeValidationErrors;
-begin
-  // Always add field error manager to template processor (empty by default)
-  FWebStencilsProcessor.AddVar( 'fieldErrors', FFieldErrorManager, False );
 end;
 
 function TBaseController.LoginUser: string;
@@ -275,9 +194,6 @@ begin
       FWebStencilsProcessor.WebRequest := ARequest;
     end;
     Result := FWebStencilsProcessor.Content;
-
-    // Clear validation errors after template processing
-    ClearValidationErrors;
   except
     on E: Exception do
     begin
@@ -343,65 +259,6 @@ end;
 function TBaseController.WebModule( aWebActionitem: TObject ): TWebModule;
 begin
   Result := TWebModule( TWebActionItem( aWebActionitem ).Collection.Owner )
-end;
-
-{ TActions }
-
-constructor TActions.Create( aListe, aNavigation, aEditLine, aCancelEditLine,
-  aApplyEditLine, aDeleteLine, aAddLine, aCancelAddLine, aApplyAddLine: string
-  );
-begin
-  FListe := aListe;
-  FNavigation := aNavigation;
-  FEditLine := aEditLine;
-  FCancelEditLine := aCancelEditLine;
-  FApplyEditLine := aApplyEditLine;
-  FDeleteLine := aDeleteLine;
-  FAddLine := aAddLine;
-  FCancelAddLine := aCancelAddLine;
-  FApplyAddLine := aApplyAddLine;
-end;
-
-{ TFieldErrorManager }
-
-procedure TFieldErrorManager.AddError( const AFieldName, AMessage: string );
-begin
-  FErrors.AddOrSetValue( AFieldName.ToUpper, AMessage );
-end;
-
-procedure TFieldErrorManager.Clear;
-begin
-  FErrors.Clear;
-end;
-
-constructor TFieldErrorManager.Create;
-begin
-  inherited Create;
-  FErrors := TDictionary<string, string>.Create;
-end;
-
-destructor TFieldErrorManager.Destroy;
-begin
-  FErrors.Free;
-  inherited;
-end;
-
-function TFieldErrorManager.GetError( const AFieldName: string ): string;
-begin
-  if FErrors.ContainsKey( AFieldName.ToUpper ) then
-    Result := FErrors[ AFieldName.ToUpper ]
-  else
-    Result := '';
-end;
-
-function TFieldErrorManager.GetErrorCount: integer;
-begin
-  Result := FErrors.Count;
-end;
-
-function TFieldErrorManager.HasError( const AFieldName: string ): Boolean;
-begin
-  Result := FErrors.ContainsKey( AFieldName.ToUpper );
 end;
 
 end.

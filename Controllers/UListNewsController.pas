@@ -64,6 +64,7 @@ uses
   Utils.Logger,
   UPagination,
   Utils.Token,
+  Utils.Config,
   UFeeds,
   UNews,
   UCategories,
@@ -492,7 +493,7 @@ begin
         FWebStencilsProcessor.AddVar(
           'Group',
           LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LFeedGroup, LToken.Category.ToInteger, LToken.SubCatgegory.ToInteger,
-            LToken.Country, LToken.Lang ),
+          LToken.Country, LToken.Lang ),
           False );
 
         Response.Content := RenderTemplate( TMP_GROUP, Request );
@@ -1503,7 +1504,7 @@ begin
       if Request.Files.Count > 0 then
       begin
         //TODO: Paramétrer le chemin de sauvegarde
-        LSavePath := TPath.Combine( ExtractFilePath( ParamStr( 0 ) ), 'Files', Request.Files[ 0 ].FileName );
+        LSavePath := TPath.Combine( TConfig.GetInstance.FilesFolder, Request.Files[ 0 ].FileName );
 
         Logger.Info( 'LSavePAth : ' + LSavePath );
 

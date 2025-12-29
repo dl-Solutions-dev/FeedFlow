@@ -1,3 +1,6 @@
+/// <summary>
+///   Application de tests pour FeedFlow
+/// </summary>
 program FeedFlow_Tests;
 {$APPTYPE GUI}
 
