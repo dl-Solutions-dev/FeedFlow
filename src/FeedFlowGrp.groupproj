@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{972CBFE9-EFD0-4624-8759-AF70A5CCEE02}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FeedFlow_Tests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FeedFlow.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FeedFlow_Tests">
+        <MSBuild Projects="FeedFlow_Tests.dproj"/>
+    </Target>
+    <Target Name="FeedFlow_Tests:Clean">
+        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FeedFlow_Tests:Make">
+        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FeedFlow">
+        <MSBuild Projects="FeedFlow.dproj"/>
+    </Target>
+    <Target Name="FeedFlow:Clean">
+        <MSBuild Projects="FeedFlow.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FeedFlow:Make">
+        <MSBuild Projects="FeedFlow.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FeedFlow_Tests;FeedFlow"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -1,0 +1,10 @@
+<div class="col2">
+@foreach Urls {
+	<a href="@Loop.URL" >
+		<figure>
+			<img src="@env.resource/static/img/@Loop.ImageFileName" alt="@Loop.Alt" title="@Loop.Alt">
+			<figcaption>@Loop.Alt</figcaption>
+		</figure>
+	</a>
+}
+</div>

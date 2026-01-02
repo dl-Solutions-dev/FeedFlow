@@ -1,2 +1,0 @@
-@echo off
-powershell -ExecutionPolicy Bypass -File "C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\Deploy.ps1" -AppPoolName "UserManagement" -SourceDll "C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\Win64\Release\FeedFlow.dll" -TargetDll "C:\inetpub\wwwroot\scripts\FeedFlow.dll"

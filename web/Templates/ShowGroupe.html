@@ -1,0 +1,14 @@
+	<h2 data-i18n="ContactUs">Contactez-nous</h2>
+
+	<label for="contact-choice" data-i18n="YourChoice">Vous souhaitez :</label>
+	<select id="contact-choice"
+          name="contact-choice"
+          hx-get="@env.resource/ShowGroup"        
+          hx-target="#contact-result"      
+          hx-trigger="change"            
+		  hx-swap="innerHTML">
+		<option value="-1" data-i18n="Choose">Sélectionnez...</Option>
+		@foreach Group {
+		<option value="@LOOP.FEED_ID">@LOOP.TITLE</Option>
+		} 
+	</select>

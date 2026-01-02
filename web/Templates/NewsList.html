@@ -1,0 +1,231 @@
+@LayoutPage layouts/mainLayout
+
+<div class="container-fluid h-100">
+<h1 class="text-center">@Form.TITRE</h1>
+<br/>
+	<div class="row h-100 flex-nowrap">
+		<div class="col flex-grow-1 bg-light p-3">
+			<!-- Popup éditeur -->
+			<div id="overlay" class="overlay"></div>
+			<div id="popup" class="popup">
+			  <div class="popup-content">
+				<span class="close" onclick="closePopup()">&times;</span>
+				
+				<div id="editor-container" style="height: 400px;"></div>
+				<br/>
+				<!-- Zone permettant d'uploader un document -->
+				<div class="upload-container">
+			
+					<h3 class="upload-title">Uploader un document</h3>
+					
+					<div class="upload-zone" id="uploadDocumentZone">
+						Glissez-déposez un fichier ou cliquez pour sélectionner 📂
+						<input type="file" id="documentInput" hidden>
+					</div>
+
+					<div class="progress">
+						<div class="progress-bar" id="progressDocumentBar"></div>
+					</div>
+				</div>
+				
+				<!-- Zone des listes déroulantes avec labels -->
+				<div class="dropdown-grid">
+				  <div class="form-group">
+					<label for="categories">Categorie</label>
+					<select id="categories" name="categories[]" multiple class="form-control">
+					   @foreach Categories {
+							<option value="@LOOP.CATEGORY_ID">@LOOP.CATEGORY_NAME</Option>
+						}
+				    </select>
+				  </div>
+				  <div class="form-group">
+					<label for="sousCategories">Sous-categorie</label>
+					<select id="sousCategories" name="sousCategories[]" multiple class="form-control">
+						@foreach SubCategories {
+							<option value="@LOOP.SUBCATEGORY_ID">@LOOP.SUBCATEGORY_NAME</Option>
+						}
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="pays">Pays</label>
+					<select id="pays" name="pays[]" multiple class="form-control">
+						@foreach Country {
+							<option value="@LOOP.COUNTRY_CODE">@LOOP.COUNTRY_NAME</Option>
+						}
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="langues">Langue</label>
+					<select id="langues" name="langues[]" multiple class="form-control">
+						@foreach Languages {
+							<option value="@LOOP.LANGUAGE_CODE">@LOOP.LANGUAGE_NAME</Option>
+						}
+					</select>
+				  </div>
+				</div>
+
+				<br/>
+				<button type="button"
+						id="btnSaveContent"
+						class="btn btn-primary"
+						data-id="2"
+						data-Feedid="@Form.FeedId"
+						onclick="setLastEditedFeed(this); SendContent();">
+				  Enregistrer
+				</button>
+			  </div>
+			</div>
+
+			<div style="display:none" id="FeedId">@Form.FEEDID</div>
+			
+			<div class="upload-container">
+			
+				<h3 class="upload-title">Uploader un template d'affichage</h3>
+				
+				<div class="upload-zone" id="uploadZone">
+					Glissez-déposez un fichier ou cliquez pour sélectionner 📂
+					<input type="file" id="fileInput" hidden>
+				</div>
+
+				<!-- Affichage du fichier sélectionné -->
+				<div class="file-info" id="file-info" style="display:none;">
+					<span class="material-icons">description</span>
+					<span class="file-name" id="file-name"></span>
+					<span class="file-size" id="file-size"></span>
+					<button type="button" class="remove-file" id="remove-file">✕</button>
+				</div>
+				  
+				<div id="preview">
+					Fichier template : <span id="TemplateName">@Form.TemplateName</span>
+				</div>
+				<div class="progress">
+					<div class="progress-bar" id="progressBar"></div>
+				</div>
+			</div>
+			
+			<!-- Zone de filtres spécifiques à la page -->
+			<div class="page-filters d-flex justify-content-center flex-wrap mb-3">
+				
+			  <form id="filtersForm"
+				  hx-Post="@env.resource/@pages.ActionPagination"
+				  hx-target="#ListNavigation"
+				  hx-trigger="change"
+				  class="d-flex justify-content-center flex-wrap mb-3">
+
+				  <!-- sans ce pavé la génération s'arrêt là...-->  
+				  <div class="mx-2" style="display:none">
+					<label for="filter0" class="form-label">Categorie</label>
+					<select id="filter0" class="form-select">
+					  <option>Tous</option>
+					  
+					</select>
+				  </div>
+				  
+				  <div class="mx-2">
+					<label for="filter1" class="form-label">Categorie</label>
+					<select id="filter1" class="form-select" name="FilterCategorie">
+					  <option value="">Tous</option>
+					  @foreach Categories {
+						<option value="@Categories.CATEGORY_ID">@LOOP.CATEGORY_NAME</Option>
+					  }
+					</select>
+				  </div>
+
+				  
+				  <div class="mx-2">
+					<label for="filter2" class="form-label">Sous-categorie</label>
+					<select id="filter2" class="form-select" name="FilterSousCategorie">
+					  <option value="">Tous</option>
+					  @foreach SubCategories {
+						<option value="@LOOP.SUBCATEGORY_ID">@LOOP.SUBCATEGORY_NAME</Option>
+					  }
+					</select>
+				  </div>
+
+				  <div class="mx-2">
+					<label for="filter3" class="form-label">Pays</label>
+					<select id="filter3" class="form-select" name="FilterPays">
+					  <option value="">Tous</option>
+					  @foreach Country {
+						<option value="@LOOP.COUNTRY_CODE">@LOOP.COUNTRY_NAME</Option>
+					  }
+					</select>
+				  </div>
+
+				  <div class="mx-2">
+					<label for="filter4" class="form-label">Langue</label>
+					<select id="filter4" class="form-select" name="FilterLangue">
+					  <option value="">Toutes</option>
+					  @foreach Languages {
+						<option value="@LOOP.LANGUAGE_CODE">@LOOP.LANGUAGE_NAME</Option>
+					  }
+					</select>
+				  </div>
+				</div>
+			</form>
+			
+			<div id="ListNavigation">
+				@import ListNavigation
+			</div>
+			
+			<br/>
+			
+			<div id="TargetTable">
+				@import NewsTable
+			</div>
+			<button type="button" 
+					id="btnAddLine"
+					class="btn btn-primary" 
+					hx-trigger="AddLine"
+					hx-post="@env.resource/AddNews?FeedId=@Form.FEEDID" 
+					hx-target="#TableNews" 
+					hx-swap="beforeend"
+					onClick="let addingLine = document.querySelector('.addingLine')
+							if(!addingLine) {
+								htmx.trigger(this, 'AddLine')
+							}">
+			Ajouter une news
+			</button>
+
+			<script>
+				document.body.addEventListener('htmx:afterRequest', function(evt) {
+					if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
+						// Une fois la première requête terminée, déclencher la deuxième requête
+						htmx.ajax("GET", "@env.resource/@pages.ActionList?FeedId=@Form.FeedId&Page=1@if (pages.UrlParameters <> '') {&@pages.UrlParameters}", "#TableNews");
+					}
+				});
+				
+				document.addEventListener("keydown", function(event) {
+				  if (event.key === "Escape") {
+					closePopup();
+				  }
+				});
+
+			</script>
+
+		</div>
+
+		<div 
+			class="col-auto bg-white border-start p-3" 
+			style="width: 400px;" 
+			id="sidePanel"
+			hx-post="@env.resource/Show?idFeed=@Form.FeedId&Template=ShowNews.html"
+			hx-trigger="load"
+			hx-sap="innerHTML"
+			>
+		
+		</div>
+		<!--</div>-->
+	</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="@env.resource/static/js/ScriptUpload.js"></script>
+<script src="@env.resource/static/js/ScriptUploadDocument.js"></script>
+
+<script>
+  new TomSelect("#categories",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#sousCategories",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#pays",   { plugins: ['remove_button'], maxItems: null });
+  new TomSelect("#langues",   { plugins: ['remove_button'], maxItems: null });
+</script>

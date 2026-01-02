@@ -1,0 +1,30 @@
+@LayoutPage layouts/mainLayout
+
+<header class="text-white text-center p-5 mb-4">
+	<h1 class="fw-bold">Bienvenue sur mon site</h1>
+	<p class="lead">Mise en page moderne et responsive</p>
+</header>
+
+<div class="container my-4">
+	<!-- ✅ Le centrage se fait ici -->
+	<div class="row g-4 justify-content-center">
+		@foreach DocumentsList {
+		<div class="col-12 col-sm-6 col-lg-4">
+			<div class="card bloc-card shadow-sm h-100">
+				<div class="card-header text-center">
+					<h2 class="card-title">@Loop.title</h2>
+				</div>
+				<div class="card-body">
+					<div 
+						hx-post="./GetList?idFeed=@Loop.FEED_ID"
+						hx-trigger="load"
+						hx-sap="innerHTML"
+					>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		}
+	</div>
+</div>

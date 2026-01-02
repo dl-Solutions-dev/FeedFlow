@@ -1,0 +1,92 @@
+				<Table  class="table">
+					<thead class="table-light">
+						<tr>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=NEWS_ID"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  ID
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=DISPLAY_ORDER"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Ordre d'affichage
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=NEWS_TITLE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Titre
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=HOLD"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Actif
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=PUBLICATION_DATE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date publication
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=EXPIRY_DATE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date péremption
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=CREATION_DATE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date création
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/SortNews?col=MODIFICATION_DATE"
+							hx-target="#TableNews"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc", "FeedId":"@Form.FeedId"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date dernière modification
+						  </th>
+						</tr>
+					</thead>
+					<tbody id="TableNews" hx-target="closest tr" hx-swap="outerHTML">
+					@import Newslines
+					</tbody>
+				</table>

@@ -1,0 +1,82 @@
+				<Table  class="table">
+					<thead class="table-light">
+						<tr>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th scope="col"></th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=FEED_ID"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  ID
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=FEED_NAME"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Nom
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=TITLE"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Titre
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=FEED_GROUP"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Groupe
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=STATUS"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Actif
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=CREATION_DATE"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date création
+						  </th>
+						  <th 
+							scope="col"
+							hx-get="@env.resource/TriFeeds?col=MODIFICATION_DATE"
+							hx-target="#TableFeeds"
+							hx-swap="innerHTML"
+							hx-vals='{"dir":"asc"}'
+							onclick="toggleDir(this)"
+						  >
+						  Date dernière modification
+						  </th>
+						</tr>
+					</thead>
+					<tbody id="TableFeeds" hx-target="closest tr" hx-swap="outerHTML">
+					@import FeedsLines
+					</tbody>
+				</table>	

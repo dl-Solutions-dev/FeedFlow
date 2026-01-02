@@ -83,3 +83,4 @@ modules/
 /Win64/Debug/logs
 Win64/Release/checkacl.ls1
 /Win64/Debug/Files
+/src/Win64

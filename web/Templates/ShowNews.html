@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Informations</title>
+	<link rel="icon" type="image/x-icon" href="@env.resource/static/img/favicon.ico">
+	<link rel="stylesheet" href="@env.resource/static/css/Styles.css">
+</head>
+
+<body>
+	<div class="news-grid">
+	  <!-- Début de la boucle WebStencils -->
+	  @foreach News {
+	  <div class="news-card">
+		<div class="news-content">
+		  <div class="news-title">@Loop.NEWS_TITLE</div>
+		  <div class="news-date"><i>date : @Loop.DISPLAY_DATE</i></div>
+		  <div class="news-body">@\Loop.TEXT</div>
+		</div>
+	  </div>
+	  }
+	</div>
+</body>
+
+</html>

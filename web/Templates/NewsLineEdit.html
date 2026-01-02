@@ -1,0 +1,52 @@
+		<tr hx-trigger='cancel' class='editing' hx-get="/CancelNewsEditLine?Session=@App.SessionNo&id=@News.NEWS_ID">
+			  <td>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/ApplyNewsEditLine?Session=@App.SessionNo&id=@News.News_id&col=2"
+						hx-include="closest tr"
+						data-Feedid="@News.FEED_ID"
+						onclick="setLastEditedFeed(this)"
+					>
+						<span class="material-icons">
+						save
+						</span>
+					</a>
+			  </td>
+			  <td>
+					<a href="#"
+						hx-post="@env.resource/CancelNewsEditLine?Session=@App.SessionNo&id=@News.News_id&col=2"
+					>
+						<span class="material-icons">
+						cancel
+						</span>
+					</a>
+			  </td>
+			  <td>
+				@News.News_id
+			  </td>
+			  <td>
+				<input type="number" id="edtOrdreAffichage" name="ordreaffichage" value="@News.DISPLAY_ORDER">
+			  </td>
+			  <td>
+				<input autofocus id="edtTitre" name="titre" value="@News.NEWS_TITLE">
+			  </td>
+			  <td>
+				<select id="Status" name="status">	
+					<option value="O" @if (NEWS.HOLD = 'O') {selected}>Affichée</option>
+					<option value="N" @if (NEWS.HOLD = 'N') {selected}>Non affichée</option>
+				</select>
+			  </td>
+			  <td>
+				<input type="date" id="datePublication" name="datepublication" value="@NEWS.PUBLICATION_DATE_FMT">
+			  </td>
+			  <td>
+				<input type="date" id="datePeremption" name="dateperemption" value="@NEWS.EXPIRY_DATE_FMT">
+			  </td>
+			  <td>
+				@NEWS.CREATION_DATE
+			  </td>
+			  <td>
+				@NEWS.MODIFICATION_DATE
+			  </td>
+			</tr>
