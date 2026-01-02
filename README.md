@@ -1,7 +1,7 @@
 ﻿# FeedFlow
 Gestion de fils d'information avec Delphi webstencilv et htmx
 
-##TODO
+## TODO
 
 ☑ Rennomer BU / Type partner en catégory / Subcategorie<br/>
 ☑ Supprimer le franglais<br/>
