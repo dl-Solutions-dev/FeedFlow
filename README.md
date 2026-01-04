@@ -1,11 +1,7 @@
 ﻿# FeedFlow
 Gestion de fils d'information avec Delphi webstencilv et htmx
 
-## TODO
+## Présentation
 
-☑ Rennomer BU / Type partner en catégory / Subcategorie<br/>
-☑ Supprimer le franglais<br/>
-☑ Documentation<br/>
-☐ Gestion utilisateurs<br/>
-☐ Remplir la bdd avec des données factices<br/>
+Ce programme est une démo des possibilités combinées du nouveau farmework [Embarcadero Delphi Webstencils](www.embarcadero.com) et de la librairie Javascript [HTMX](https://htmx.org)
 

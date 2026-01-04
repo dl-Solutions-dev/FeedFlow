@@ -151,7 +151,7 @@ type
     /// </summary>
     procedure GeneratePagesList( NbRecords, NbPerPage, aActualPage: SmallInt; aUrlParameters, aSearch, aActionList, aActionPagination: string );
 
-//    property ActionList: string read FActionList write SetActionList;
+    property ActionList: string read FActionList write SetActionList;
     /// <summary>
     ///   Indique l'action à appeler lors du clic sur un n° de page
     /// </summary>

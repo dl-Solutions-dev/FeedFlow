@@ -138,7 +138,7 @@ begin
     Payload := LToken.Claims.JSON;
     try
       Payload.AddPair( 'sub', aUserName );
-      ExpirationTime := IncMinute( NOw, 60 ); // Temps d'expiration en secondes
+      ExpirationTime := IncMinute( Now, 600 ); // Temps d'expiration en minutes
       Payload.AddPair( 'exp', ExpirationTime );
       Payload.AddPair( 'Country', aCountry );
       Payload.AddPair( 'Lang', aLang );
