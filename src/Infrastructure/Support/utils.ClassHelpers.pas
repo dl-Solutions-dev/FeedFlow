@@ -1,5 +1,5 @@
 ﻿(*
-  this ocde is from https://github.com/Embarcadero/WebStencilsDemos/blob/main/WebBrokerProject/Delphi/Helpers.WebModule.pas
+  this code is from https://github.com/Embarcadero/WebStencilsDemos/blob/main/WebBrokerProject/Delphi/Helpers.WebModule.pas
 *)
 
 /// <summary>
