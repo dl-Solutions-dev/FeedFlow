@@ -32,6 +32,7 @@ type
     ///   Requête SQL de base (avant filtre et tri)
     /// </summary>
     FSelectNewsList: string;
+    FCountNewsList: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -160,13 +161,22 @@ type
   /// </summary>
   TShowNews = class
   strict private
+    /// <summary>
+    ///   Instance du FDQuery
+    /// </summary>
     FQryShowNews: TFDQuery;
 
+    /// <summary>
+    ///   Event permettant de mettre en forme la date de la news
+    /// </summary>
     procedure QryShowNewsCalcFields( DataSet: TDataSet );
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne le liste des news actives
+    /// </summary>
     function GetNews( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
   end;
 
@@ -175,13 +185,23 @@ type
   /// </summary>
   TShowNewsUser = class
   strict private
+    /// <summary>
+    ///   Instance du FDQuery
+    /// </summary>
     FQryShowNewsUser: TFDQuery;
 
+    /// <summary>
+    ///   Event permettant de mettre en forem la date de la news
+    /// </summary>
     procedure QryShowNewsUserCalcFields( DataSet: TDataSet );
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne la liste ds news actives en fonction des droits de
+    ///   l'utilisateur
+    /// </summary>
     function GetNews( aConnection: TFDConnection; aFeedId, aCategoryId, aSubcategoryId: Integer; aCountryCode, aLanguageCode:
       string ): TFDQuery;
   end;
@@ -242,7 +262,16 @@ type
     ///   Query retournant la liste des sous-catégories liées à la news
     /// </summary>
     FQrySubcategories: TFDQuery;
+    /// <summary>
+    ///   id de la news
+    /// </summary>
+    /// <summary>
+    ///   id de la news
+    /// </summary>
     FNewsId: Integer;
+    /// <summary>
+    ///   Id de la sous-catégorie
+    /// </summary>
     FSubcategoryId: Integer;
 
     procedure SetNewsId( const Value: Integer );
@@ -364,12 +393,18 @@ type
   /// </summary>
   TShowGroup = class
   strict private
+    /// <summary>
+    ///   Instrance du FDQuery
+    /// </summary>
     FQryShowGroup: TFDQuery;
 
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne la première news d'un feed
+    /// </summary>
     function GetGroup( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
   end;
 
@@ -394,15 +429,18 @@ begin
   FQryNewsList.SQL.Add( FSelectNewsList );
 
   FQryCountNews := TFDQuery.Create( nil );
-  FQryCountNews.Name := 'QryCountNews';
-  FQryCountNews.SQL.Clear;
-  FQryCountNews.SQL.Add( '''
+
+  FCountNewsList := '''
     SELECT count(FEED_ID) as "NB_ENR" FROM NEWS
     where FEED_ID = :FEED_ID
     and (upper(NEWS_TITLE) like :NEWS_TITLE
     or CREATION_DATE = :CREATION_DATE
     or PUBLICATION_DATE = :PUBLICATION_DATE)
-  ''');
+  ''';
+
+  FQryCountNews.Name := 'QryCountNews';
+  FQryCountNews.SQL.Clear;
+  FQryCountNews.SQL.Add( FCountNewsList );
 end;
 
 destructor TListNews.Destroy;
@@ -416,6 +454,7 @@ end;
 function TListNews.GetNewsCount( aConnection: TFDConnection; aFeedId: Integer;
   aTitle, aFilter: string; aCreationDate, aPublicationDate: TDateTime ): Integer;
 begin
+  FQryCountNews.SQL.Text := FCountNewsList + aFilter;
   FQryCountNews.Connection := aConnection;
   FQryCountNews.ParamByName( 'FEED_ID' ).AsInteger := aFeedId;
   FQryCountNews.ParamByName( 'NEWS_TITLE' ).AsString := aTitle;

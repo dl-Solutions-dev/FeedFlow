@@ -1,3 +1,6 @@
+/// <summary>
+///   Controller pour les Feeds
+/// </summary>
 unit UListFeedsController;
 
 interface
@@ -13,6 +16,9 @@ uses
   UDMSession;
 
 type
+  /// <summary>
+  ///   Class controller
+  /// </summary>
   TListFeedsController = class( TBaseController )
   private
     function SaisieOK( aTitre: string; aCategorie, aSousCategorie: Integer ): string;
@@ -59,17 +65,46 @@ uses
   UControllersRegistry;
 
 const
+  /// <summary>
+  ///   Nom de la variable session pour la pagination
+  /// </summary>
   NAVIGATION_NAME: string = 'FeedList';
+  /// <summary>
+  ///   Nom de la variable de session conenant la recherche de l'utilisateur
+  /// </summary>
   SEARCH_VARIABLE: string = 'FeedsList.Search';
+  /// <summary>
+  ///   Nombre de lignes par page
+  /// </summary>
   LINEPERPAGE_VARIABLE: string = 'LinesPerPageFeed';
+  /// <summary>
+  ///   Nom du tempalte HTML pour ajouter un feed
+  /// </summary>
   TMP_ADD: string = 'FeedAdd.html';
+  /// <summary>
+  ///   Nom du tempalte HTML de la liste des feeds
+  /// </summary>
   TMP_LISTE: string = 'FeedsList.html';
+  /// <summary>
+  ///   Nom du tempalte HTML de la table
+  /// </summary>
   TMP_TABLE: string = 'FeedsTable.html';
+  /// <summary>
+  ///   ActionList pour une ligne de tableau <br />
+  /// </summary>
   TMP_LINE: string = 'FeedLine.html';
+  /// <summary>
+  ///   Nom du tempalte HTML du contenu du tableau
+  /// </summary>
   TMP_LINES: string = 'FeedsLines.html';
+  /// <summary>
+  ///   Nom du tempalte HTML de la ligne de modification
+  /// </summary>
   TMP_LINE_EDIT: string = 'FeedLineEdit.html';
+  /// <summary>
+  ///   Nom du tempalte HTML des listes de pages
+  /// </summary>
   TMP_NAVIGATION: string = 'ListNavigation.html';
-  TMP_LOGIN: string = 'IndexAdmin.html';
 
   { TListFeedsController }
 
@@ -551,9 +586,19 @@ begin
         LLinesPerPage := 10;
       end;
 
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
+      LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
 
-      LPage := LPagination.actualPage;
+      //      LPage := LPagination.actualPage;
+      //
+      //      if ( LPage > 0 ) then
+      //      begin
+      //        Dec( LPage );
+      //      end;
+
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ NAVIGATION_NAME ], LPage ) ) then
+      begin
+        LPage := 0;
+      end;
 
       if ( LPage > 0 ) then
       begin
@@ -584,6 +629,9 @@ begin
           begin
             LInt := 1;
           end;
+
+          LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
+
           LPagination.GeneratePagesList(
             LFeeds.GetFeedsCount(
             LDM.cnxFeedFlow,
@@ -597,7 +645,8 @@ begin
             'GetFeedNavigation'
             );
 
-          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+          //          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+          FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
         end
         else // Sinon, on rafraichit juste la liste
         begin
@@ -634,6 +683,8 @@ begin
 
         Response.StatusCode := 200;
         Response.Content := RenderTemplate( LTemplate, Request );
+
+        FreeAndNil( LPagination );
       finally
         LDM.Critical.Release;
       end;
@@ -818,16 +869,21 @@ begin
 
         FMsg := 'GetPagination';
 
-        LPagination := LDM.Pagination( NAVIGATION_NAME );
+        LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
 
-        LPagination.GeneratePagesList( LFeeds.GetFeedsCount( LDM.cnxFeedFlow, LTitle ),
-          LLinesPerPage, LInt, '', Request.ContentFields.Values[
-          'Search' ], 'FeedsList', 'GetFeedNavigation' );
+        LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
+        try
+          LPagination.GeneratePagesList( LFeeds.GetFeedsCount( LDM.cnxFeedFlow, LTitle ),
+            LLinesPerPage, LInt, '', Request.ContentFields.Values[
+            'Search' ], 'FeedsList', 'GetFeedNavigation' );
 
-        FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+          FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
-        Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+          Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+        finally
+          FreeAndNil( LPagination );
+        end;
       finally
         LDM.Critical.Release;
       end;
@@ -1022,7 +1078,7 @@ var
   LLinesPerPage: Integer;
   LToken: TToken;
   LDM: TDMSession;
-  LPagination: TPagination;
+  //  LPagination: TPagination;
   LPage: Integer;
   LFeeds: TFeeds;
   LTitle: string;
@@ -1045,9 +1101,14 @@ begin
         LLinesPerPage := 10;
       end;
 
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
+      //      LPagination := LDM.Pagination( NAVIGATION_NAME );
 
-      LPage := LPagination.actualPage;
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ NAVIGATION_NAME ], LPage ) ) then
+      begin
+        LPage := 0;
+      end;
+
+      //      LPage := LPagination.actualPage;
       if ( LPage > 0 ) then
       begin
         Dec( LPage );

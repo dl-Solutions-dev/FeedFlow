@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Project Version="1.0">
-  <Title>FeedFlowGrp</Title>
+  <Title>Feed Flow</Title>
   <Summary/>
-  <Author/>
-  <Email/>
-  <Copyright/>
+  <Author>Dany Leblanc</Author>
+  <Email>dany.leblanc@solutions-dev.fr</Email>
+  <Copyright>2026 Dany Leblanc</Copyright>
   <Comment/>
   <Language>1036</Language>
   <Charset>1</Charset>
@@ -27,11 +27,11 @@
   <Outputs>
     <Output Type="HTML">
       <Active>true</Active>
-      <OutputDirectory>build\docs\html</OutputDirectory>
+      <OutputDirectory>..docs\html</OutputDirectory>
     </Output>
     <Output Type="CHM">
       <Active>true</Active>
-      <OutputFileName>build\docs\chm\FeedFlowGrp.chm</OutputFileName>
+      <OutputFileName>docs\chm\FeedFlowGrp.chm</OutputFileName>
     </Output>
     <Output Type="MSHELP2">
       <Active>false</Active>

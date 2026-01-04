@@ -1,3 +1,6 @@
+/// <summary>
+///   UI du serveur de tests
+/// </summary>
 unit UFrmMainTest;
 
 interface
@@ -8,12 +11,33 @@ uses
   Vcl.AppEvnts, Vcl.StdCtrls, IdHTTPWebBrokerBridge, IdGlobal, Web.HTTPApp;
 
 type
+  /// <summary>
+  ///   class du formulaire VCL
+  /// </summary>
   TFrmMainTest = class(TForm)
+    /// <summary>
+    ///   Bouton permettant de démarrer le serveur web de tests
+    /// </summary>
     ButtonStart: TButton;
+    /// <summary>
+    ///   Bouton permettant de stopper le serveur web de tests
+    /// </summary>
     ButtonStop: TButton;
+    /// <summary>
+    ///   Zone édition pour modifier le port d'écoute du serveur de tests
+    /// </summary>
     EditPort: TEdit;
+    /// <summary>
+    ///   Zone label
+    /// </summary>
     Label1: TLabel;
+    /// <summary>
+    ///   Composant permettant d'intercépter le events windows
+    /// </summary>
     ApplicationEvents1: TApplicationEvents;
+    /// <summary>
+    ///   Bouton permettant d'ouvrir le browser sur la page d'accueil
+    /// </summary>
     ButtonOpenBrowser: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
@@ -21,6 +45,9 @@ type
     procedure ButtonStopClick(Sender: TObject);
     procedure ButtonOpenBrowserClick(Sender: TObject);
   private
+    /// <summary>
+    ///   Instance du serveur de tests
+    /// </summary>
     FServer: TIdHTTPWebBrokerBridge;
     procedure StartServer;
     { Private declarations }
@@ -29,6 +56,9 @@ type
   end;
 
 var
+  /// <summary>
+  ///   Instance du formulaire
+  /// </summary>
   FrmMainTest: TFrmMainTest;
 
 implementation

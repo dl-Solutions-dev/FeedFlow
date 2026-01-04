@@ -1,3 +1,6 @@
+/// <summary>
+///   Permet de gérer les liens de pagination
+/// </summary>
 unit UPagination;
 
 interface
@@ -11,6 +14,9 @@ uses
 type
   TPagination = class;
 
+  /// <summary>
+  ///   Représente un page
+  /// </summary>
   TPage = class( TSerializableClass )
   private
     FNoPage: Integer;
@@ -33,16 +39,41 @@ type
     procedure SetIsClickable( const Value: Boolean );
     procedure SetActualPage(const Value: Integer);
   public
+    /// <summary>
+    ///   N° de la page
+    /// </summary>
     property NoPage: Integer read FNoPage write SetNoPage;
+    /// <summary>
+    ///   Page actuelle
+    /// </summary>
     property ActualPage: Integer read FActualPage write SetActualPage;
+    /// <summary>
+    ///   Texte (N° ou "...")
+    /// </summary>
     property Text: string read FText write SetText;
+    /// <summary>
+    ///   Indique si il s'agit de la première page
+    /// </summary>
     property First: Boolean read FFirst write SetFirst;
+    /// <summary>
+    ///   Indique si il s'agit de la dernière page
+    /// </summary>
     property Last: Boolean read FLast write SetLast;
+    /// <summary>
+    ///   Indique si la page est la page actuellement affichée
+    /// </summary>
     property IsActualPage: Boolean read GetIsActualPage write FIsActualPge;
+    /// <summary>
+    ///   Indique si la page est clickable (utilie lorsqu'il y a plus de 10
+    ///   pages)
+    /// </summary>
     property IsClickable: Boolean read GetIsClickable write SetIsClickable;
 //    property Pagination: TPagination read FPagination write SetPagination;
   end;
 
+  /// <summary>
+  ///   Pagination
+  /// </summary>
   TPagination = class( TSerializableClass )
   private
     FPagesList: TObjectList< TPage >;
@@ -54,7 +85,17 @@ type
     FNbTabs: SmallInt;
     FUrlParameters: string;
 
+    /// <summary>
+    ///   Génère les page numérotées (si le nombre de pages total est
+    ///   inférieur à 10
+    /// </summary>
     procedure EntireList( aNbPages: SmallInt );
+    /// <summary>
+    ///   Génère la liste lorsque'il y a plus de 10 pages.
+    /// </summary>
+    /// <example>
+    ///   1 ... 5 6 7 8 9 10 11 12 ... 100
+    /// </example>
     procedure PartialList( aNbPages: SmallInt );
 
     procedure SetActualPage( const Value: Integer );
@@ -69,15 +110,39 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Génération de la liste de pagination
+    /// </summary>
     procedure GeneratePagesList( NbRecords, NbPerPage, aActualPage: SmallInt; aUrlParameters, aSearch, aActionList, aActionPagination: string );
 
-    property ActionList: string read FActionList write SetActionList;
+//    property ActionList: string read FActionList write SetActionList;
+    /// <summary>
+    ///   Indique l'action à appeler lors du clic sur un n° de page
+    /// </summary>
     property ActionPagination: string read FActionPagination write SetActionPagination;
+    /// <summary>
+    ///   N° de la page actuelle
+    /// </summary>
     property actualPage: Integer read FActualPage write SetActualPage;
+    /// <summary>
+    ///   Indique le nombre de lignes affichées par page
+    /// </summary>
     property LinesPerPage: Integer read FLinesPerPage write SetLinesPerPage;
+    /// <summary>
+    ///   Objectlist contenant la liste des pages
+    /// </summary>
     property PagesList: TObjectList< TPage > read FPagesList write SetPagesList;
+    /// <summary>
+    ///   Indique la recherche éventuelle de l'utilisateur
+    /// </summary>
     property Search: string read FSearch write SetSearch;
+    /// <summary>
+    ///   Indique le nombre de pages
+    /// </summary>
     property NbTabs: SmallInt read FNbTabs write SetNbTabs;
+    /// <summary>
+    ///   Permet d'ajouter des parramètres à l'action appelée
+    /// </summary>
     property UrlParameters: string read FUrlParameters write SetUrlParameters;
   end;
 

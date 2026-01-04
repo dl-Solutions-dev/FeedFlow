@@ -1,3 +1,6 @@
+/// <summary>
+///   Modèle sous-catégories
+/// </summary>
 unit USubcategories;
 
 interface
@@ -9,13 +12,22 @@ uses
   Data.DB;
 
 type
+  /// <summary>
+  ///   Sous-catégories
+  /// </summary>
   TSubcategories = class
   strict private
+    /// <summary>
+    ///   Intance du FDQuery
+    /// </summary>
     FQrySubcategories: TFDQuery;
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retournel al iste des sous-catégories
+    /// </summary>
     function GetListOfSubcategories( aConnection: TFDConnection ): TFDQuery;
   end;
 

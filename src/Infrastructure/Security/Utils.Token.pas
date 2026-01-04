@@ -1,3 +1,6 @@
+/// <summary>
+///   Jeton
+/// </summary>
 unit Utils.Token;
 
 interface
@@ -8,6 +11,9 @@ uses
   Web.HTTPApp;
 
 type
+  /// <summary>
+  ///   Token
+  /// </summary>
   TToken = class
   private
     FRole: string;
@@ -24,15 +30,40 @@ type
     procedure SetSubCatgegory( const Value: string );
     procedure SetUserName( const Value: string );
   public
+    /// <summary>
+    ///   Contrôle la validité d'un token reçu
+    /// </summary>
     function Valid( aToken: string; aLoadData: Boolean ): Boolean;
+    /// <summary>
+    ///   Créer le token qui sera encoyé au navigateur pour stockage dans la
+    ///   session
+    /// </summary>
     function CreateToken( aUserName, aCountry, aLang, aCategory, aSubCategory,
       aRole: string ): string;
 
+    /// <summary>
+    ///   Nom d'utilisateur
+    /// </summary>
     property UserName: string read FUserName write SetUserName;
+    /// <summary>
+    ///   Pays d'affectation de l'utilisateur
+    /// </summary>
     property Country: string read FCountry write SetCountry;
+    /// <summary>
+    ///   Langue de l'utilisateur
+    /// </summary>
     property Lang: string read FLang write SetLang;
+    /// <summary>
+    ///   Catégorie d'affectation de l'utilisateur
+    /// </summary>
     property Category: string read FCategory write SetCategory;
+    /// <summary>
+    ///   Sous-catégorie d'affectation de l'utilisateur
+    /// </summary>
     property SubCatgegory: string read FSubCatgegory write SetSubCatgegory;
+    /// <summary>
+    ///   Role de l'utilisateur
+    /// </summary>
     property Role: string read FRole write SetRole;
   end;
 
@@ -46,6 +77,9 @@ uses
   JOSE.Core.Builder;
 
 const
+  /// <summary>
+  ///   Contante contenant la clé de cryptage
+  /// </summary>
   SECRETKEY: string = 'mysecretkey256bitwide(32characters)';
 
   { TToken }

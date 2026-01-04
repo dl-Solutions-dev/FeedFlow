@@ -1,4 +1,7 @@
-﻿unit UIndexController;
+﻿/// <summary>
+///   Controller pour la page d'accueil
+/// </summary>
+unit UIndexController;
 
 interface
 
@@ -13,13 +16,26 @@ uses
   UDMSession;
 
 type
+  /// <summary>
+  ///   Class du controller
+  /// </summary>
   TIndexController = class( TBaseController )
   public
+    /// <summary>
+    ///   Endpoint initial (affiche le template d'authentification
+    /// </summary>
     procedure Main( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    /// <summary>
+    ///   Endpoint pour le controle des identifiants
+    /// </summary>
+    /// <remarks>
+    ///   C'est dans cette méthode qu'il faut implémenter l'authentification
+    ///   de l'utilisateur
+    /// </remarks>
     procedure Login( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
-    // TODO: à supprimer
-    procedure Redirect( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
-
+    /// <summary>
+    ///   Initialisation des routes
+    /// </summary>
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
 
@@ -44,39 +60,12 @@ uses
   UControllersRegistry;
 
 const
+  /// <summary>
+  ///   Nom du template HTML
+  /// </summary>
   TMP_LOGIN: string = 'IndexAdmin.html';
 
   { TIndexController }
-
-procedure TIndexController.Redirect( Sender: TObject; Request: TWebRequest;
-  Response: TWebResponse; var Handled: Boolean );
-var
-  LDM: TDMSession;
-  LToken: TToken;
-begin
-  LDM := GetDMSession( Request );
-  if Assigned( LDM ) then
-  begin
-    if ValidToken( Request, False, True, LToken ) then
-    begin
-      if ( LToken.Role = 'USER' ) then
-      begin
-        Response.SendRedirect( './Home' );
-      end
-      else if ( LToken.Role = 'ADMIN' ) then
-      begin
-        Response.SendRedirect( './FeedsList?scope=Page' );
-      end;
-
-      FreeAndNil( LToken );
-    end
-    else
-    begin
-      Response.StatusCode := 401;
-      Response.Content := 'Accès non autorisérisé.';
-    end;
-  end;
-end;
 
 procedure TIndexController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
@@ -85,8 +74,7 @@ begin
 
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/', Self.Main ),
-      TRoute.Create( mtPost, '/Login', Self.Login ),
-      TRoute.Create( mtGet, '/Redirect', Self.Redirect )
+      TRoute.Create( mtPost, '/Login', Self.Login )
       ] );
 end;
 

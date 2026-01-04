@@ -536,15 +536,25 @@ begin
         AddSessionObject( Request, 'QryListNews', LListNews );
       end;
 
-      LSelCategorie := Request.ContentFields.Values[ 'FilterCategorie' ];
-      LSelSousCategorie := Request.ContentFields.Values[ 'FilterSousCategorie' ];
-      LSelPays := Request.ContentFields.Values[ 'FilterPays' ];
-      LSelLangue := Request.ContentFields.Values[ 'FilterLangue' ];
+      if ( Request.ContentFields.Values[ 'SELECTION' ] = 'O' ) then
+      begin
+        LSelCategorie := Request.ContentFields.Values[ 'FilterCategorie' ];
+        LSelSousCategorie := Request.ContentFields.Values[ 'FilterSousCategorie' ];
+        LSelPays := Request.ContentFields.Values[ 'FilterPays' ];
+        LSelLangue := Request.ContentFields.Values[ 'FilterLangue' ];
 
-      LDM.SessionVariables.Values[ FILTER_CATEGORIES ] := LSelCategorie;
-      LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ] := LSelSousCategorie;
-      LDM.SessionVariables.Values[ FILTER_PAYS ] := LSelPays;
-      LDM.SessionVariables.Values[ FILTER_LANG ] := LSelLangue;
+        LDM.SessionVariables.Values[ FILTER_CATEGORIES ] := LSelCategorie;
+        LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ] := LSelSousCategorie;
+        LDM.SessionVariables.Values[ FILTER_PAYS ] := LSelPays;
+        LDM.SessionVariables.Values[ FILTER_LANG ] := LSelLangue;
+      end
+      else
+      begin
+        LSelCategorie := LDM.SessionVariables.Values[ FILTER_CATEGORIES ];
+        LSelSousCategorie := LDM.SessionVariables.Values[ FILTER_SOUS_CATEGORIES ];
+        LSelPays := LDM.SessionVariables.Values[ FILTER_PAYS ];
+        LSelLangue := LDM.SessionVariables.Values[ FILTER_LANG ];
+      end;
 
       if not ( TryStrToInt( Request.ContentFields.Values[ 'LinesPerPage' ], LLinesPerPage ) ) then
       begin
@@ -625,15 +635,20 @@ begin
 
         FMsg := 'GetPagination';
 
-        LPagination := LDM.Pagination( NAVIGATION_NAME );
+        LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
 
-        LPagination.GeneratePagesList( LNbEnr, LLinesPerPage, LInt, 'FeedId=' + FFeedId, Request.ContentFields.Values[
-          'Search' ], 'FeedsList', 'GetNewsNavigation' );
+        LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
+        try
+          LPagination.GeneratePagesList( LNbEnr, LLinesPerPage, LInt, 'FeedId=' + FFeedId, Request.ContentFields.Values[
+            'Search' ], 'FeedsList', 'GetNewsNavigation' );
 
-        FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
-        FWebStencilsProcessor.AddVar( 'Form', Self, False );
+          FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
+          FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
-        Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+          Response.Content := RenderTemplate( TMP_NAVIGATION, Request );
+        finally
+          FreeAndNil( LPagination );
+        end;
       finally
         LDM.Critical.Release;
       end;
@@ -831,9 +846,19 @@ begin
         LLinesPerPage := 10;
       end;
 
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
+      LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
 
-      LPage := LPagination.actualPage;
+      //      LPage := LPagination.actualPage;
+
+      //      if ( LPage > 0 ) then
+      //      begin
+      //        Dec( LPage );
+      //      end;
+
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ NAVIGATION_NAME ], LPage ) ) then
+      begin
+        LPage := 0;
+      end;
 
       if ( LPage > 0 ) then
       begin
@@ -903,10 +928,13 @@ begin
             LInt := 1;
           end;
 
+          LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
+
           LPagination.GeneratePagesList( LNbEnr, LLinesPerPage, LInt, 'FeedId=' + FFeedId, '', 'NewsList',
             'GetNewsNavigation' );
 
-          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+          //          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
+          FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
         end
         else // Sinon, on rafraichit juste la liste
         begin
@@ -977,6 +1005,8 @@ begin
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
         Response.Content := RenderTemplate( LTemplate, Request );
+
+        FreeAndNil( LPagination );
       finally
         LDM.Critical.Release;
       end;
@@ -1300,7 +1330,7 @@ var
   LLinesPerPage: Integer;
   LToken: TToken;
   LDM: TDMSession;
-  LPagination: TPagination;
+  //  LPagination: TPagination;
   LPage: Integer;
   LDateSearch: TDateTime;
   LListNews: TListNews;
@@ -1330,9 +1360,14 @@ begin
         LLinesPerPage := 10;
       end;
 
-      LPagination := LDM.Pagination( NAVIGATION_NAME );
+      //      LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
 
-      LPage := LPagination.actualPage;
+      if not ( TryStrToInt( LDM.SessionVariables.Values[ NAVIGATION_NAME ], LPage ) ) then
+      begin
+        LPage := 0;
+      end;
+
+      //      LPage := LPagination.actualPage;
       if ( LPage > 0 ) then
       begin
         Dec( LPage );

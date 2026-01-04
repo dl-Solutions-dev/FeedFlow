@@ -12,6 +12,9 @@ uses
   Data.DB;
 
 type
+  /// <summary>
+  ///   Catégories
+  /// </summary>
   TCategories = class
   strict private
     /// <summary>

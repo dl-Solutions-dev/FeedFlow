@@ -1,3 +1,6 @@
+/// <summary>
+///   Modèle pou rles langues
+/// </summary>
 unit ULanguages;
 
 interface
@@ -9,13 +12,22 @@ uses
   Data.DB;
 
 type
+  /// <summary>
+  ///   Class langues
+  /// </summary>
   TLanguages = class
   strict private
+    /// <summary>
+    ///   Instance du FDQuery
+    /// </summary>
     FQryLanguages: TFDQuery;
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne un FDQuery avec la liste des langues existantes
+    /// </summary>
     function GetListOfLanguages( aConnection: TFDConnection ): TFDQuery;
   end;
 

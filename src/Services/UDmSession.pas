@@ -1,3 +1,6 @@
+/// <summary>
+///   Data module pour la session
+/// </summary>
 unit UDmSession;
 
 interface
@@ -29,33 +32,72 @@ uses
   UPagination;
 
 type
+  /// <summary>
+  ///   class du datamodule
+  /// </summary>
   TDmSession = class( TDataModule )
+    /// <summary>
+    ///   Connexion à la database
+    /// </summary>
     cnxFeedFlow: TFDConnection;
+    /// <summary>
+    ///   Table mémpoire contenant les Urls des applications
+    /// </summary>
     MtUrls: TFDMemTable;
+    /// <summary>
+    ///   URL de l'application
+    /// </summary>
     MtUrlsURL: TStringField;
+    /// <summary>
+    ///   Url de l'icône
+    /// </summary>
     MtUrlsImageFileName: TStringField;
+    /// <summary>
+    ///   Texte alternatif
+    /// </summary>
     MtUrlsAlt: TStringField;
+    /// <summary>
+    ///   Ordre d'affichage de l'application
+    /// </summary>
     MtUrlsOrdre: TIntegerField;
 
+    /// <summary>
+    ///   Destructor du datamodule
+    /// </summary>
     procedure DataModuleDestroy( Sender: TObject );
+    /// <summary>
+    ///   Creator du datamodule
+    /// </summary>
     procedure DataModuleCreate( Sender: TObject );
-    procedure QryNews_CalcFields( DataSet: TDataSet );
+//    procedure QryNews_CalcFields( DataSet: TDataSet );
   private
+    /// <summary>
+    ///   Champ section critique
+    /// </summary>
     FCritical: TCriticalSection;
+    /// <summary>
+    ///   Champ Variables de session
+    /// </summary>
     FSessionVariables: TStrings;
-    FPaginations: TObjectDictionary<string, TPagination>;
+//    FPaginations: TObjectDictionary<string, TPagination>;
 
+    /// <summary>
+    ///   Accesseur de la propriété varaibels de session
+    /// </summary>
     procedure SetSessionVariables( const Value: TStrings );
   public
     { Déclarations publiques }
-    function Pagination( aPagination: string ): TPagination;
+//    function Pagination( aPagination: string ): TPagination;
 
+    /// <summary>
+    ///   Instance de criticalsection pour protéger les accès concurrents
+    /// </summary>
     property Critical: TCriticalSection read FCritical;
+    /// <summary>
+    ///   Contient les variables de session
+    /// </summary>
     property SessionVariables: TStrings read FSessionVariables write SetSessionVariables;
   end;
-
-var
-  DmSession: TDmSession;
 
 implementation
 
@@ -74,21 +116,21 @@ begin
   FreeAndNil( FCritical );
   FreeAndNil( FSessionVariables );
 
-  for LPagination in FPaginations do
-  begin
-    LPagination.Value.Free;
-  end;
-  FreeAndNil( FPaginations );
+//  for LPagination in FPaginations do
+//  begin
+//    LPagination.Value.Free;
+//  end;
+//  FreeAndNil( FPaginations );
 end;
 
-function TDmSession.Pagination( aPagination: string ): TPagination;
-begin
-  if not ( FPaginations.TryGetValue( aPagination, Result ) ) then
-  begin
-    Result := TPagination.Create;
-    FPaginations.Add( aPagination, Result );
-  end;
-end;
+//function TDmSession.Pagination( aPagination: string ): TPagination;
+//begin
+//  if not ( FPaginations.TryGetValue( aPagination, Result ) ) then
+//  begin
+//    Result := TPagination.Create;
+//    FPaginations.Add( aPagination, Result );
+//  end;
+//end;
 
 procedure TDmSession.SetSessionVariables( const Value: TStrings );
 begin
@@ -99,19 +141,19 @@ procedure TDmSession.DataModuleCreate( Sender: TObject );
 begin
   FCritical := TCriticalSection.Create;
   FSessionVariables := TStringList.Create;
-  FPaginations := TObjectDictionary<string, TPagination>.Create;
+//  FPaginations := TObjectDictionary<string, TPagination>.Create;
 
   cnxFeedFlow.Params.Database := TConfig.GetInstance.DatabaseName;
   cnxFeedFlow.Connected := True;
 end;
 
-procedure TDmSession.QryNews_CalcFields( DataSet: TDataSet );
-begin
-  DataSet.FieldByName( 'PUBLICATION_DATE_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'PUBLICATION_DATE'
-    ).AsDateTime );
-  DataSet.FieldByName( 'EXPIRY_DATE_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'EXPIRY_DATE'
-    ).AsDateTime );
-end;
+//procedure TDmSession.QryNews_CalcFields( DataSet: TDataSet );
+//begin
+//  DataSet.FieldByName( 'PUBLICATION_DATE_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'PUBLICATION_DATE'
+//    ).AsDateTime );
+//  DataSet.FieldByName( 'EXPIRY_DATE_FMT' ).AsString := FormatDateTime( 'YYYY-MM-DD', DataSet.FieldByName( 'EXPIRY_DATE'
+//    ).AsDateTime );
+//end;
 
 end.
 

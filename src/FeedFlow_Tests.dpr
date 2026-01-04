@@ -43,7 +43,7 @@ begin
     WebRequestHandler.WebModuleClass := WebModuleClass;
   Application.Initialize;
   Application.CreateForm(TFrmMainTest, FrmMainTest);
-  Application.CreateForm(TDmSession, DmSession);
+//  Application.CreateForm(TDmSession, DmSession);
   Application.Run;
   TRttiContext.Create.Free;
 end.

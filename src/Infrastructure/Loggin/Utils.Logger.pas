@@ -1,3 +1,6 @@
+/// <summary>
+///   Class permettant de tracer les logs
+/// </summary>
 unit Utils.Logger;
 
 interface
@@ -9,8 +12,14 @@ uses
   System.DateUtils;
 
 type
+  /// <summary>
+  ///   Niveau du log
+  /// </summary>
   TLogLevel = (llInfo, llError, llDebug, llWarning);
   
+  /// <summary>
+  ///   Class logger
+  /// </summary>
   TLogger = class
   private
     FLogFile: TextFile;
@@ -18,19 +27,52 @@ type
     FLogLevel: TLogLevel;
     FFileOpen: Boolean;
     FConsoleLogging: Boolean;
+    /// <summary>
+    ///   Ecrit le log dans le fichier
+    /// </summary>
     procedure WriteLog(Level: TLogLevel; const Message: string);
+    /// <summary>
+    ///   Indique les niveaux de log en chaine de caractères
+    /// </summary>
     function GetLogLevelString(Level: TLogLevel): string;
+    /// <summary>
+    ///   S'assure que le répertoire deu log existe
+    /// </summary>
     procedure EnsureLogDirectory;
+    /// <summary>
+    ///   S'assure que le fichier de log est ouvert
+    /// </summary>
     procedure EnsureLogFileOpen;
   public
     constructor Create;
     destructor Destroy; override;
+    /// <summary>
+    ///   Ajoute un log d'information
+    /// </summary>
     procedure Info(const Message: string);
+    /// <summary>
+    ///   Ajoute un log d'erreur
+    /// </summary>
     procedure Error(const Message: string);
+    /// <summary>
+    ///   Ajoute un log de type Debug
+    /// </summary>
     procedure Debug(const Message: string);
+    /// <summary>
+    ///   Ajoute un log d'avertissement
+    /// </summary>
     procedure Warning(const Message: string);
+    /// <summary>
+    ///   Chemin du fichier de log
+    /// </summary>
     property LogPath: string read FLogPath write FLogPath;
+    /// <summary>
+    ///   Indique le niveau de log qui doit être inscrit
+    /// </summary>
     property LogLevel: TLogLevel read FLogLevel write FLogLevel;
+    /// <summary>
+    ///   Indique si on doit logguer dans la console
+    /// </summary>
     property ConsoleLogging: Boolean read FConsoleLogging write FConsoleLogging;
   end;
 

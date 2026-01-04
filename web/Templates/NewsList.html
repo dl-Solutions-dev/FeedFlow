@@ -107,9 +107,10 @@
 			<div class="page-filters d-flex justify-content-center flex-wrap mb-3">
 				
 			  <form id="filtersForm"
-				  hx-Post="@env.resource/@pages.ActionPagination"
+				  hx-Post="@env.resource/@pages.ActionPagination?FeedId=@Form.FeedId"
 				  hx-target="#ListNavigation"
 				  hx-trigger="change"
+				  hx-vals='{"SELECTION":"O"}'
 				  class="d-flex justify-content-center flex-wrap mb-3">
 
 				  <!-- sans ce pavé la génération s'arrêt là...-->  

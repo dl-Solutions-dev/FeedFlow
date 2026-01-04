@@ -40,6 +40,6 @@ begin
   CoInitFlags := COINIT_MULTITHREADED;
   Application.Initialize;
   Application.WebModuleClass := WebModuleClass;
-  Application.CreateForm(TDmSession, DmSession);
+//  Application.CreateForm(TDmSession, DmSession);
   Application.Run;
 end.

@@ -15,6 +15,9 @@
   ***************************************************************************
 *)
 
+/// <summary>
+///   Helper ajoutant la possibilité de créer des route facilement par code
+/// </summary>
 unit utils.ClassHelpers;
 
 interface
@@ -24,21 +27,60 @@ uses
   System.SysUtils;
 
 type
+  /// <summary>
+  ///   Route
+  /// </summary>
   TRoute = record
   public
+    /// <summary>
+    ///   Type de route (Get - Post - Delete - ...)
+    /// </summary>
     MethodType: TMethodType;
+    /// <summary>
+    ///   Path de l'url
+    /// </summary>
     PathInfo: string;
+    /// <summary>
+    ///   Action associée
+    /// </summary>
     OnAction: THTTPMethodEvent;
+    /// <summary>
+    ///   Indique la route par défaut
+    /// </summary>
     Default: Boolean;
     constructor Create(const AMethodType: TMethodType; const APathInfo: String; const AOnAction: THTTPMethodEvent;
       const ADefault: Boolean = false);
   end;
 
   // Allows creating Actions/Routes in a more declarative way
+  /// <summary>
+  ///   Permet d'ajouter des actions au datamodule
+  /// </summary>
   TWebModuleHelper = class Helper for TwebModule
   public
+    /// <summary>
+    ///   Ajoute une route
+    /// </summary>
+    /// <param name="AMethodType">
+    ///   Type de méthode (Get - Post - ...)
+    /// </param>
+    /// <param name="APathInfo">
+    ///   Path de l'url
+    /// </param>
+    /// <param name="AOnAction">
+    ///   Méthode à appeler
+    /// </param>
+    /// <param name="ADefault">
+    ///   Indique l'action par défaut
+    /// </param>
     function AddAction(const AMethodType: TMethodType; const APathInfo: String; const AOnAction: THTTPMethodEvent;
       const ADefault: Boolean = false): TwebModule;
+    /// <summary>
+    ///   Ajpoute les routes
+    /// </summary>
+    /// <param name="ARoutes">
+    ///   Tableau contenant l'ensemble des routes
+    /// </param>
     procedure AddRoutes(ARoutes: array of TRoute);
   end;
 

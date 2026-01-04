@@ -12,6 +12,9 @@ uses
   Data.DB;
 
 type
+  /// <summary>
+  ///   Pays
+  /// </summary>
   TCountries = class
   strict private
     /// <summary>

@@ -1,3 +1,6 @@
+/// <summary>
+///   Controller pour la page destinée aux utilisateurs
+/// </summary>
 unit UUserFeedsController;
 
 interface
@@ -13,13 +16,31 @@ uses
   UDMSession;
 
 type
+  /// <summary>
+  ///   Class controller
+  /// </summary>
   TUserFeedsController = class( TBaseController )
   public
+    /// <summary>
+    ///   Affiche la page principale
+    /// </summary>
     procedure Home( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    /// <summary>
+    ///   Retourne la liste des applications accessibles à l'utilisateur
+    /// </summary>
     procedure GetApps( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    /// <summary>
+    ///   Retourne le détail des newws en utilisant le template associé
+    /// </summary>
     procedure GetList( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    /// <summary>
+    ///   Retourne la liste des documents autorisés à l'utilisateur
+    /// </summary>
     procedure GetDocuments( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
+    /// <summary>
+    ///   Initialise les routes exposées par le controller
+    /// </summary>
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
   end;
 
@@ -46,8 +67,17 @@ uses
   UControllersRegistry;
 
 const
+  /// <summary>
+  ///   Nom du template HTML de la page principale
+  /// </summary>
   TMP_HOME: string = 'Home.html';
+  /// <summary>
+  ///   Nom du tempalte HTML pour la liste des applications
+  /// </summary>
   TMP_APPS: string = 'Apps.html';
+  /// <summary>
+  ///   Nom du tempalte HTML de la page des documents
+  /// </summary>
   TMP_HOME_DOCUMENTS: string = 'HomeDocuments.html';
 
   { TUserFeedsController }

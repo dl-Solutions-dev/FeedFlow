@@ -1,3 +1,6 @@
+/// <summary>
+///   Modèle Feed
+/// </summary>
 unit UFeeds;
 
 interface
@@ -10,29 +13,71 @@ uses
   Data.DB;
 
 type
+  /// <summary>
+  ///   Class représentant la liste des Feeds
+  /// </summary>
   TFeeds = class
   strict private
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryListeFeeds: TFDQuery;
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryCountFeeds: TFDQuery;
 
+    /// <summary>
+    ///   Champ contenant la requete de sélection
+    /// </summary>
     FSelectListeFeeds: string;
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne un FDQuery contenant la loiste des feeds
+    /// </summary>
     function GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip: Integer; aTitle, aOrderField, aOrder: string ): TFDQuery;
+    /// <summary>
+    ///   retourne le nombre de feeds resultatnt
+    /// </summary>
     function GetFeedsCount( aConnection: TFDConnection; aTitle: string ): Integer;
   end;
 
+  /// <summary>
+  ///   Class représentant un Feed
+  /// </summary>
   TFeed = class
   strict private
     FAllContexts: string;
+    /// <summary>
+    ///   Champ nom template
+    /// </summary>
     FDisplayTemplate: string;
+    /// <summary>
+    ///   Champ Groupe d'appartenance du Feed
+    /// </summary>
     FFeedGroup: Integer;
+    /// <summary>
+    ///   Champ Id Unique
+    /// </summary>
     FFeedId: Integer;
+    /// <summary>
+    ///   Champ Nom
+    /// </summary>
     FFeedName: string;
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryFeed: TFDQuery;
+    /// <summary>
+    ///   Champs status du Feed
+    /// </summary>
     FStatus: string;
+    /// <summary>
+    ///   Champ titre
+    /// </summary>
     FTitle: string;
 
     procedure SetAllContexts( const Value: string );
@@ -46,31 +91,70 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne un FDQuery avec les information du Feed
+    /// </summary>
     function GetFeed( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
     function UpdateFeed( aConnection: TFDConnection; const aFeedId: integer; const
       aName, aTitle, aStatus: string; const aGroup: Integer ): string;
+    /// <summary>
+    ///   Création d'un nouveau Feed
+    /// </summary>
     function CreateNewFeed( aConnection: TFDConnection; out aMsg: string ): Integer;
+    /// <summary>
+    ///   Suppression d'un Feed
+    /// </summary>
     function DeleteFeed( aConnection: TFDConnection; aFeedId: Integer ): string;
     function ChangeContext( aConnection: TFDConnection; aFeedId: Integer; aContext: string ): string;
+    /// <summary>
+    ///   Retourne le nom du template
+    /// </summary>
     function GetTemplateName( aConnection: TFDConnection; aFeedId: Integer ): string;
     function SetTemplateName( aConnection: TFDConnection; aFeedId: Integer; aTemplateName: string ): string;
 
     property AllContexts: string read FAllContexts write SetAllContexts;
+    /// <summary>
+    ///   Template d'affichage
+    /// </summary>
     property DisplayTemplate: string read FDisplayTemplate write SetDisplayTemplate;
+    /// <summary>
+    ///   Groupe d'appartenance du Feed
+    /// </summary>
     property FeedGroup: Integer read FFeedGroup write SetFeedGroup;
+    /// <summary>
+    ///   Id unique
+    /// </summary>
     property FeedId: Integer read FFeedId write SetFeedId;
+    /// <summary>
+    ///   Nom
+    /// </summary>
     property FeedName: string read FFeedName write SetFeedName;
     /// <summary>
     ///   Statut du Feed (O:Actif; N: Inactif)
     /// </summary>
     property Status: string read FStatus write SetStatus;
+    /// <summary>
+    ///   Titre
+    /// </summary>
     property Title: string read FTitle write SetTitle;
   end;
 
+  /// <summary>
+  ///   Class représentant les catégories d'appartenance du Feed
+  /// </summary>
   TFeedCategory = class
   strict private
+    /// <summary>
+    ///   Champ Id catégorie
+    /// </summary>
     FCategoryId: Integer;
+    /// <summary>
+    ///   Champ Id Feed
+    /// </summary>
     FFeedId: Integer;
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryCategories: TFDQuery;
 
     procedure SetCategoryId( const Value: Integer );
@@ -79,18 +163,45 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Liste des catégories du Feed
+    /// </summary>
     function GetCategories( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
+    /// <summary>
+    ///   Supprimer les catégories du Feed
+    /// </summary>
     function DeleteCategories( aConnection: TFDConnection; aFeedId: Integer ): string;
+    /// <summary>
+    ///   Ajouter une catégoie pour le Feed
+    /// </summary>
     function AddCategory( aConnection: TFDConnection; aFeedId, aCategoryId: Integer ): string;
 
+    /// <summary>
+    ///   Id catégorie
+    /// </summary>
     property CategoryId: Integer read FCategoryId write SetCategoryId;
+    /// <summary>
+    ///   Id du Feed
+    /// </summary>
     property FeedId: Integer read FFeedId write SetFeedId;
   end;
 
+  /// <summary>
+  ///   Class représentant les Sous-catégories d'appartenance du Feed <br />
+  /// </summary>
   TFeedSubCategory = class
   strict private
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQrySubcategories: TFDQuery;
+    /// <summary>
+    ///   Champ id feed
+    /// </summary>
     FFeedId: Integer;
+    /// <summary>
+    ///   Champ id sous-catégorie
+    /// </summary>
     FSubcategoryId: Integer;
 
     procedure SetFeedId( const Value: Integer );
@@ -99,19 +210,46 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne la lister des sous-catégories
+    /// </summary>
     function GetSubcategories( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
+    /// <summary>
+    ///   Supprimer les sous-catégories
+    /// </summary>
     function DeleteSubcategories( aConnection: TFDConnection; aFeedId: Integer ): string;
+    /// <summary>
+    ///   Ajouter une sous-catégorie au feed
+    /// </summary>
     function AddSubcategory( aConnection: TFDConnection; aFeedId, aSubcategoryId:
       Integer ): string;
 
+    /// <summary>
+    ///   Id du feed
+    /// </summary>
     property FeedId: Integer read FFeedId write SetFeedId;
+    /// <summary>
+    ///   Id de la sous-catégorie
+    /// </summary>
     property SubcategoryId: Integer read FSubcategoryId write SetSubcategoryId;
   end;
 
+  /// <summary>
+  ///   Class représentant les pays d'appartenance du Feed <br />
+  /// </summary>
   TFeedCountry = class
   strict private
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryCountries: TFDQuery;
+    /// <summary>
+    ///   Champ code pays
+    /// </summary>
     FCountryCode: string;
+    /// <summary>
+    ///   Champ Id feed
+    /// </summary>
     FFeedId: Integer;
 
     procedure SetCountryCode( const Value: string );
@@ -120,19 +258,46 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Liste des pays du feed
+    /// </summary>
     function GetCountries( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
+    /// <summary>
+    ///   Supprimer les pays du feed
+    /// </summary>
     function DeleteCountries( aConnection: TFDConnection; aFeedId: Integer ): string;
+    /// <summary>
+    ///   Ajouter un pays pour le feed
+    /// </summary>
     function AddCountry( aConnection: TFDConnection; aCountryCode: string; aFeedId:
       Integer ): string;
 
+    /// <summary>
+    ///   Code Pays
+    /// </summary>
     property CountryCode: string read FCountryCode write SetCountryCode;
+    /// <summary>
+    ///   Id Feed
+    /// </summary>
     property FeedId: Integer read FFeedId write SetFeedId;
   end;
 
+  /// <summary>
+  ///   Class représentant les langues d'appartenance du Feed <br />
+  /// </summary>
   TFeedLanguage = class
   strict private
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryLanguage: TFDQuery;
+    /// <summary>
+    ///   Champ id feed
+    /// </summary>
     FFeedId: Integer;
+    /// <summary>
+    ///   Champ code langue
+    /// </summary>
     FLanguageCode: string;
 
     procedure SetFeedId( const Value: Integer );
@@ -141,22 +306,68 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Liste des langues du feed
+    /// </summary>
     function GetLanguages( aConnection: TFDConnection; aFeedId: Integer ): TFDQuery;
+    /// <summary>
+    ///   Supprimer les langues du feed
+    /// </summary>
     function DeleteLanguages( aConnection: TFDConnection; aFeedId: Integer ): string;
+    /// <summary>
+    ///   Ajouter une langue pour le feed
+    /// </summary>
     function AddLanguage( aConnection: TFDConnection; aLanguageCode: string; aFeedId:
       Integer ): string;
 
+    /// <summary>
+    ///   Id du feed
+    /// </summary>
     property FeedId: Integer read FFeedId write SetFeedId;
+    /// <summary>
+    ///   Code langue
+    /// </summary>
     property LanguageCode: string read FLanguageCode write SetLanguageCode;
   end;
 
+  /// <summary>
+  ///   Class représentant la liste des Feeds accessibels d'un utilisateur
+  /// </summary>
+  /// <remarks>
+  ///   La sé"lection se fait à partir de la catégorie / sous-cvatégorie /
+  ///   pays / langue associé aux news
+  /// </remarks>
   TFeedsUser = class
   strict private
+    /// <summary>
+    ///   Champ FDQuery
+    /// </summary>
     FQryFeedsUser: TFDQuery;
   public
     constructor Create;
     destructor Destroy; override;
 
+    /// <summary>
+    ///   Retourne la liste des feeds autorisés à l'utilisateur
+    /// </summary>
+    /// <param name="aConnection">
+    ///   Connexion base de données
+    /// </param>
+    /// <param name="aFeedGroup">
+    ///   Groupe d'appartenance des feeds recherchés
+    /// </param>
+    /// <param name="aCategoryId">
+    ///   Id catégorie recherchée
+    /// </param>
+    /// <param name="aSubcategoryId">
+    ///   Id sous-catégorie recherchée
+    /// </param>
+    /// <param name="aCountryCode">
+    ///   Code pays recherché
+    /// </param>
+    /// <param name="aLanguageCode">
+    ///   Code langue recherché
+    /// </param>
     function GetFeedsUser( aConnection: TFDConnection; aFeedGroup, aCategoryId, aSubcategoryId: Integer; aCountryCode,
       aLanguageCode: string ): TFDQuery;
   end;

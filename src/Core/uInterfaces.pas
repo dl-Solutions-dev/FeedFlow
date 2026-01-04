@@ -15,6 +15,9 @@
   ***************************************************************************
 *)
 
+/// <summary>
+///   Interfaces
+/// </summary>
 unit uInterfaces;
 
 interface
@@ -24,18 +27,14 @@ uses
   Web.Stencils;
 
 type
-  IInvokeAction = interface;
-
+  /// <summary>
+  ///   Interface à utiliser pour les controller quidoivent exposer une
+  ///   méthode Initializations dans laquelle ils doivent enregistrer les
+  ///   routes qu'ils exposent
+  /// </summary>
   IAction = interface
     ['{EDD3F333-F82D-4618-B49D-450E02D3C16C}']
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil:TWebStencilsEngine );
-  end;
-
-  IInvokeAction = interface
-    ['{D75EDAD9-1C9E-43AF-8A9A-1F164703335E}']
-    procedure AddAction( aAction : IAction);
-    procedure RemoveAction( aAction: IAction);
-    procedure InitializeActions( aWebModule:TWebModule; aWebStencil:TWebStencilsEngine);
   end;
 
 implementation
