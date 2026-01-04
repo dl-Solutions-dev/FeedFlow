@@ -1,4 +1,40 @@
-﻿/// <summary>
+﻿(* C2PP
+  ***************************************************************************
+
+  Feed Flow
+
+    Copyright 2026 - Dany Leblanc under AGPL 3.0 license.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+  OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+  ***************************************************************************
+
+  This program is a demo of the possibilities offered by the new WebStencils
+  framework, combined with the HTMX JavaScript library.
+
+  ***************************************************************************
+
+  Author(s) :
+  Dany Leblanc
+
+  Project site :
+  https://github.com/dl-Solutions-dev/FeedFlow
+
+  ***************************************************************************
+  File last update : 2026-01-04T14:37:08.615+01:00
+  Signature : 0ed60deb2b83c27cd3644558f6bcaeff9420daed
+  ***************************************************************************
+*)
+
+/// <summary>
 ///   Controller pour la page d'accueil
 /// </summary>
 unit UIndexController;

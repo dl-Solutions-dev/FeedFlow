@@ -1,18 +1,5 @@
-﻿(* C2PP
-  ***************************************************************************
-
-  Copyright D. LEBLANC 2025
-  Ce programme peut être copié et utilisé librement.
-
-  ***************************************************************************
-
-  Ce projet est une démo des possibilités combinés des webstencils et de
-  HTMX.
-
-  ***************************************************************************
-  File last update : 2025-07-02T23:53:18.494+02:00
-  Signature : d6bfc0e581c774400da55a334cf56a120cdefebc
-  ***************************************************************************
+﻿(*
+  this ocde is from https://github.com/Embarcadero/WebStencilsDemos/blob/main/WebBrokerProject/Delphi/Helpers.WebModule.pas
 *)
 
 /// <summary>
