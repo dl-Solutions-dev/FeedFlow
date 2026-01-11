@@ -48,7 +48,8 @@ uses
   Web.Stencils,
   Helpers.Messages,
   System.JSON,
-  UDmSession;
+  UDmSession,
+  Utils.Token;
 
 type
   TwmMain = class( TWebModule )
@@ -73,9 +74,12 @@ type
     FDM: TDMSession;
 
     procedure InitRequiredData;
+    function ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean; out Token: TToken ): Boolean;
   public
     { Public declarations }
-    function TokenValid( aRequest: TWebRequest; out Payload: TJSONObject ): Boolean;
+    Token: TToken;
+
+    //    function TokenValid( aRequest: TWebRequest; out Payload: TJSONObject ): Boolean;
   end;
 
 var
@@ -88,7 +92,8 @@ uses
   Utils.Logger,
   Utils.Config,
   uBaseController,
-  uInterfaces, UControllersRegistry;
+  uInterfaces,
+  UControllersRegistry;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
@@ -97,6 +102,7 @@ uses
 procedure TwmMain.WebModuleDestroy( Sender: TObject );
 begin
   FActionsList.Free;
+  FreeAndNil( Token );
 end;
 
 procedure TwmMain.WebModuleCreate( Sender: TObject );
@@ -155,10 +161,50 @@ begin
     end );
 end;
 
-function TwmMain.TokenValid( aRequest: TWebRequest;
-  out Payload: TJSONObject ): Boolean;
+//function TwmMain.TokenValid( aRequest: TWebRequest;
+//  out Payload: TJSONObject ): Boolean;
+//begin
+//  Result := True;
+//end;
+
+function TwmMain.ValidToken( Request: TWebRequest; aHeader, aLoadData: Boolean;
+  out Token: TToken ): Boolean;
+var
+  LReqToken: string;
+  LToken: TToken;
 begin
-  Result := True;
+  if aHeader then
+  begin
+    // Récupérer le LReqToken depuis l'en-tête "Authorization"
+    Request.AllHeaders.NameValueSeparator := ':';
+    LReqToken := Request.AllHeaders.Values[ 'jwt' ].Trim;
+  end
+  else
+  begin
+    LReqToken := Request.CookieFields.Values[ 'jwt' ];
+  end;
+
+  if ( LReqToken <> '' ) then
+  begin
+    if LReqToken.StartsWith( 'Bearer ' ) then
+      LReqToken := LReqToken.Substring( 7 ); // Enlever "Bearer "
+
+    LToken := TToken.Create;
+    Result := LToken.Valid( LReqToken, aLoadData );
+
+    if aLoadData then
+    begin
+      Token := LToken;
+    end
+    else
+    begin
+      FreeAndNil( LToken );
+    end;
+  end
+  else
+  begin
+    Result := False;
+  end;
 end;
 
 procedure TwmMain.WebModule1DefaultHandlerAction( Sender: TObject;
@@ -178,12 +224,27 @@ begin
     400 );
   if not ( IsRedirect ) and Assigned( Request.Session ) then
     TMessageManager.ClearMessages( Request.Session );
+
+  FreeAndNil( Token );
 end;
 
 procedure TwmMain.WebModuleBeforeDispatch( Sender: TObject; Request:
   TWebRequest; Response: TWebResponse; var Handled: Boolean );
+
 begin
   Logger.Info( Request.PathInfo );
+
+  if ( Request.PathInfo <> '/' )
+    and ( Request.PathInfo.ToLower <> '/login' )
+    and ( Request.PathInfo.ToLower <> '/favicon.ico' )
+    and not ( Request.PathInfo.Contains( '/static', True ) )
+    and not ( ValidToken( Request, False, True, Token )
+    ) then
+  begin
+    FreeAndNil( Token );
+    Response.StatusCode := 401;
+    Response.SendRedirect( './' );
+  end;
 end;
 
 procedure TwmMain.WebSessionManagerCreated( Sender:

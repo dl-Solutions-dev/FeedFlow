@@ -50,7 +50,8 @@ uses
   Web.Stencils,
   uInterfaces,
   UDMSession,
-  Utils.Token;
+  Utils.Token,
+  UWMMain;
 
 type
   /// <summary>
@@ -58,11 +59,11 @@ type
   /// </summary>
   TBaseController = class( TInterfacedObject, IAction )
   private
-//    FLocation: string;
+    //    FLocation: string;
 
     procedure SetTitre( const Value: string );
   protected
-    // FWebStencilsProcessor: TWebStencilsProcessor;
+    FWebmodule: TwmMain;
     FWebStencilsEngine: TWebStencilsEngine;
     FWebStencilsProcessor: TWebStencilsProcessor;
     FControllerName: string;
@@ -77,8 +78,6 @@ type
     function RenderTemplate( const ATemplatePath: string; ARequest: TWebRequest ): string;
     function GetDMSession( Request: TWebRequest ): TDMSession;
     function GetSessionObject( Request: TWebRequest; aObjectName: string ): TObject;
-    function ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean;
-      out Token: TToken ): Boolean;
 
     procedure AddSessionObject( Request: TWebRequest; aSessionObjectName: string;
       aSessionObject: TObject );
@@ -90,8 +89,8 @@ type
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); virtual;
     procedure CheckSession( Request: TWebRequest );
 
-//    property LayoutTemplate: string read FLayoutTemplate;
-//    property Location: string read FLocation;
+    //    property LayoutTemplate: string read FLayoutTemplate;
+    //    property Location: string read FLocation;
     property Titre: string read FTitre write SetTitre;
   end;
 
@@ -128,7 +127,7 @@ end;
 
 constructor TBaseController.Create;
 begin
-//  FLocation := TConfig.GetInstance.Location; // LOCAT;
+  //  FLocation := TConfig.GetInstance.Location; // LOCAT;
 end;
 
 destructor TBaseController.Destroy;
@@ -164,9 +163,11 @@ end;
 procedure TBaseController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
 begin
-//  FLayoutTemplate := TConfig.GetInstance.TemplateFolder + LAYOUT_TEMPLATE; // TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
+  //  FLayoutTemplate := TConfig.GetInstance.TemplateFolder + LAYOUT_TEMPLATE; // TEMPLATE_FOLDER + LAYOUT_TEMPLATE;
 
   try
+    FWebmodule := TwmMain( aWebModule );
+
     FWebStencilsEngine := aWebStencil;
     FWebStencilsProcessor := TWebStencilsProcessor.Create( nil );
     FWebStencilsProcessor.Engine := FWebStencilsEngine;
@@ -250,46 +251,6 @@ end;
 procedure TBaseController.SetTitre( const Value: string );
 begin
   FTitre := Value;
-end;
-
-function TBaseController.ValidToken( Request: TWebRequest; aHeader: Boolean; aLoadData: Boolean;
-  out Token: TToken ): Boolean;
-var
-  LReqToken: string;
-  LToken: TToken;
-begin
-  if aHeader then
-  begin
-    // Récupérer le LReqToken depuis l'en-tête "Authorization"
-    Request.AllHeaders.NameValueSeparator := ':';
-    LReqToken := Request.AllHeaders.Values[ 'jwt' ].Trim;
-  end
-  else
-  begin
-    LReqToken := Request.CookieFields.Values[ 'jwt' ];
-  end;
-
-  if ( LReqToken <> '' ) then
-  begin
-    if LReqToken.StartsWith( 'Bearer ' ) then
-      LReqToken := LReqToken.Substring( 7 ); // Enlever "Bearer "
-
-    LToken := TToken.Create;
-    Result := LToken.Valid( LReqToken, aLoadData );
-
-    if aLoadData then
-    begin
-      Token := LToken;
-    end
-    else
-    begin
-      FreeAndNil( LToken );
-    end;
-  end
-  else
-  begin
-    Result := False;
-  end;
 end;
 
 function TBaseController.WebModule( aWebActionitem: TObject ): TWebModule;

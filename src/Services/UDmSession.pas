@@ -145,8 +145,8 @@ uses
 {$R *.dfm}
 
 procedure TDmSession.DataModuleDestroy( Sender: TObject );
-var
-  LPagination: TPair<string, TPagination>;
+//var
+//  LPagination: TPair<string, TPagination>;
 begin
   cnxFeedFlow.Connected := False;
   FreeAndNil( FCritical );
