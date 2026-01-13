@@ -1,5 +1,5 @@
 ﻿# FeedFlow
-Gestion de fils d'information avec Delphi webstencilv et htmx
+Gestion de fils d'information avec Delphi webstencils et htmx
 
 ## Présentation
 
