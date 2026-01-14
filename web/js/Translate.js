@@ -2,7 +2,7 @@
 async function loadTranslationFile(lang) {
   console.log("fichier : "+`locales/${lang}.json`);
   
-  const response = await fetch(`./static/locales/${lang}.json`);
+  const response = await fetch(`./static/locales/${lang}/translation.json`);
   console.log(response);
   if (!response.ok) throw console.log("fichier non trouvé");
   return await response.json();

@@ -1,0 +1,17 @@
+<html>
+<head>
+<script>
+function logout(){
+	localStorage.removeItem("jwt");
+	window.location = "./";
+}
+</script>
+</head>
+
+<body>
+<script>
+	window.onload = logout;
+</script>
+</body>
+</html>
+

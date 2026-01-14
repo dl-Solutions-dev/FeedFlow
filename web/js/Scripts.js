@@ -39,7 +39,7 @@ document.body.addEventListener('htmx:configRequest', function(evt) {
   }
 });
 	
-	// Fonction pour traduire un élément ou un conteneur
+// Fonction pour traduire un élément ou un conteneur
 function translateElement(element) {
   // Si l'élément a un attribut data-i18n, le traduire
   if (element.hasAttribute('data-i18n')) {
