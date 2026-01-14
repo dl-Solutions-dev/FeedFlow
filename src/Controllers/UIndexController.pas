@@ -29,8 +29,8 @@
   https://github.com/dl-Solutions-dev/FeedFlow
 
   ***************************************************************************
-  File last update : 2026-01-04T14:37:08.615+01:00
-  Signature : 0ed60deb2b83c27cd3644558f6bcaeff9420daed
+  File last update : 2026-01-14T21:43:44.000+01:00
+  Signature : 37bb19f1d443ec9bf8aa50b9cf469fcf76a405d4
   ***************************************************************************
 *)
 
@@ -69,6 +69,7 @@ type
     ///   de l'utilisateur
     /// </remarks>
     procedure Login( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure Logout( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     /// <summary>
     ///   Initialisation des routes
     /// </summary>
@@ -100,6 +101,7 @@ const
   ///   Nom du template HTML
   /// </summary>
   TMP_LOGIN: string = 'IndexAdmin.html';
+  TMP_LOGOUT: string = 'Logout.html';
 
   { TIndexController }
 
@@ -110,7 +112,8 @@ begin
 
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/', Self.Main ),
-      TRoute.Create( mtPost, '/Login', Self.Login )
+      TRoute.Create( mtPost, '/Login', Self.Login ),
+      TRoute.Create( mtGet, '/Logout', Self.Logout )
       ] );
 end;
 
@@ -175,6 +178,22 @@ begin
       Response.StatusCode := 401;
       Response.Content := '{"error":"Identifiants invalides"}';
     end;
+  end;
+end;
+
+procedure TIndexController.Logout( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LCookie: TStrings;
+begin
+  LCookie := TStringList.Create;
+  LCookie.Values[ 'jwt' ] := Request.CookieFields.Values[ 'jwt' ];
+
+  try
+    Response.SetCookieField( LCookie, '', '/', Now - 1, False, True );
+    Response.Content := RenderTemplate( TMP_LOGOUT, Request );
+  finally
+    FreeAndNil( LCookie );
   end;
 end;
 

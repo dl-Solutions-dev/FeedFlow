@@ -29,8 +29,8 @@
   https://github.com/dl-Solutions-dev/FeedFlow
 
   ***************************************************************************
-  File last update : 2026-01-10T18:38:16.000+01:00
-  Signature : 2ad14dae09d9ce825ff104f1149d3668ef11950a
+  File last update : 2026-01-14T21:40:26.000+01:00
+  Signature : ad0d2007418db05fb461ba618d45ab0410a4b2aa
   ***************************************************************************
 *)
 
@@ -148,8 +148,16 @@ begin
     LDM.MtUrls.Insert;
     LDM.MtUrlsOrdre.Value := 2;
     LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2';
-    LDM.MtUrlsImageFileName.Value := 'parametre.png';
+    LDM.MtUrlsImageFileName.Value := 'documents.png';
     LDM.MtUrlsAlt.Value := 'Documents';
+    LDM.MtUrls.Post;
+
+    LDM.MtUrls.Open;
+    LDM.MtUrls.Insert;
+    LDM.MtUrlsOrdre.Value := 3;
+    LDM.MtUrlsURL.Value := './Logout';
+    LDM.MtUrlsImageFileName.Value := 'se-deconnecter.png';
+    LDM.MtUrlsAlt.Value := 'Logout';
     LDM.MtUrls.Post;
 
     //      LDM.MtUrls.Open;
