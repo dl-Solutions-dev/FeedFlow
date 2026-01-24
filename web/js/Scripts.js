@@ -30,14 +30,14 @@ function confirmDelete(aForm){
 }
 
 // Intercepter toutes les requêtes HTMX pour ajouter le JWT
-document.body.addEventListener('htmx:configRequest', function(evt) {
-  console.log("enregistrement token");
-  const token = localStorage.getItem('jwt');
-  if (token) {
-	console.log("enregistrement ok");
-	evt.detail.headers['jwt'] = 'Bearer ${'+token+'}';
-  }
-});
+//document.body.addEventListener('htmx:configRequest', function(evt) {
+//  console.log("enregistrement token");
+//  const token = localStorage.getItem('jwt');
+//  if (token) {
+//	console.log("enregistrement ok");
+//	evt.detail.headers['jwt'] = 'Bearer ${'+token+'}';
+//  }
+//});
 	
 // Fonction pour traduire un élément ou un conteneur
 function translateElement(element) {
@@ -85,93 +85,9 @@ function updateHxPost(elementId, newUrl) {
   htmx.process(el); // Re-scanne l’élément pour que HTMX prenne en compte le changement
 }
 
-let quill;
+//let quill;
 
-async function openPopup(id) {
-  const btn = document.getElementById("btnSaveContent");
-  btn.dataset.id = id;
 
-  // Affichage du popup
-  document.getElementById("overlay").style.display = "block";
-  document.getElementById("popup").style.display = "block";
-  document.body.style.overflow = "hidden";
-
-  // Initialisation Quill si nécessaire
-  if (!quill) {
-    const Font = Quill.import('formats/font');
-    Font.whitelist = ['sans-serif', 'serif', 'monospace', 'arial', 'times', 'comic'];
-    Quill.register(Font, true);
-
-    quill = new Quill('#editor-container', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{ font: Font.whitelist }],
-          ['bold', 'italic', 'underline'],
-          [{ 'align': [] }],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          [{ 'color': [] }, { 'background': [] }],
-          ['link', 'image', 'video'],
-          ['clean']
-        ]
-      }
-    });
-	
-	window.QuillService.set( quill );
-	console.log('quill affecté');
-  }
-
-  // Récupération du contenu serveur
-  try {
-	const token = localStorage.getItem('jwt');
-
-    const response = await fetch('./GetNews?id=' + id, {
-	  method: "GET",
-	  headers: {
-		"jwt": "Bearer " + token
-	  }
-	});
-    const data = await response.json();
-
-    if (data.content && data.content.trim() !== "") {
-      quill.clipboard.dangerouslyPasteHTML(data.content);
-    } else {
-      quill.setText("");
-    }
-	
-	console.log(data.Category);
-	
-	const tsBU = document.getElementById("categories").tomselect;
-	const selectedBU = data.Category.map(String);
-	tsBU.setValue(selectedBU);
-	
-	const tsSousCategorie = document.getElementById("sousCategories").tomselect;
-	const selectedTypePartner = data.Subcategory.map(String);
-	tsSousCategorie.setValue(selectedTypePartner);
-	
-	const tsPays = document.getElementById("pays").tomselect;
-	const selectedPays = data.Country.map(String);
-	tsPays.setValue(selectedPays);
-	
-	const tsLang = document.getElementById("langues").tomselect;
-	const selectedLang = data.Lang.map(String);
-	tsLang.setValue(selectedLang);
-	
-	//document.getElementById("select2").value = data.TypePartner;
-	//document.getElementById("select3").value = data.Country;
-	//document.getElementById("select4").value = data.Lang;
-  } catch (err) {
-    console.error('Erreur chargement fil d’info:', err);
-    quill.setText("");
-  }
-}
-
-function closePopup() {
-  document.getElementById("popup").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-  document.body.style.overflow = ""; // réactive le scroll
-}
 
 async function SendContent() {
   const btn = document.getElementById("btnSaveContent");

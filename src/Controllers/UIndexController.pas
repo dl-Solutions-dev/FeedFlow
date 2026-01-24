@@ -169,7 +169,8 @@ begin
 
       FreeAndNil( LCookie );
 
-      Response.Content := Format( '{"token": "%s"}', [ LToken ] );
+      Response.Content := ''; // Format( '{"token": "%s"}', [ LToken ] );
+      Response.StatusCode := 200;
 
       lJwt.Free;
     end
