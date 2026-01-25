@@ -196,6 +196,7 @@
         <DCCReference Include="Models\UFeeds.pas"/>
         <DCCReference Include="Models\UNews.pas"/>
         <DCCReference Include="Infrastructure\Routing\UControllersRegistry.pas"/>
+        <DCCReference Include="Models\UGroups.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -420,7 +420,8 @@ begin
   FQryListeFeeds := TFDQuery.Create( nil );
 
   FSelectListeFeeds := '''
-    SELECT first :FIRST skip :SKIP f.* FROM FEED_NEWS f
+    SELECT first :FIRST skip :SKIP f.*, g.GROUP_NAME FROM FEED_NEWS f
+    join GROUPS g on (g.GROUP_ID = f.FEED_GROUP)
     where upper(f.TITLE) like :TITLE
   ''';
 
@@ -503,7 +504,8 @@ begin
   FQryFeed.Name := 'qryFeed';
   FQryFeed.SQL.Clear;
   FQryFeed.SQL.Add( '''
-    SELECT f.* FROM FEED_NEWS f
+    SELECT f.*, g.GROUP_NAME FROM FEED_NEWS f
+    join GROUPS g on (g.GROUP_ID = f.FEED_GROUP)
     where FEED_ID = :FEED_ID
   ''');
 

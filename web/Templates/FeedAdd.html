@@ -31,7 +31,11 @@
 		<input id="edtTitre" name="titre" value="">
 	  </td>
 	  <td>
-		<input id="edtGroupe" name="Groupe" value="">
+		<select id="Groups" name="Groups">
+			@foreach Groups {
+			<option value="@Loop.GROUP_ID">@Loop.GROUP_NAME</option>
+			}
+		</select>
 	  </td>
 	  <td>
 		<select id="Status" name="status">	

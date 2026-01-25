@@ -63,7 +63,8 @@ uses
   UCategories in 'Models\UCategories.pas',
   UFeeds in 'Models\UFeeds.pas',
   UNews in 'Models\UNews.pas',
-  UControllersRegistry in 'Infrastructure\Routing\UControllersRegistry.pas';
+  UControllersRegistry in 'Infrastructure\Routing\UControllersRegistry.pas',
+  UGroups in 'Models\UGroups.pas';
 
 {$R *.res}
 

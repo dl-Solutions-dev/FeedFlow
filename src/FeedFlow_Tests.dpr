@@ -68,7 +68,8 @@ uses
   UCountries in 'Models\UCountries.pas',
   ULanguages in 'Models\ULanguages.pas',
   UControllersRegistry in 'Infrastructure\Routing\UControllersRegistry.pas',
-  Utils.Config in 'Infrastructure\Config\Utils.Config.pas';
+  Utils.Config in 'Infrastructure\Config\Utils.Config.pas',
+  UGroups in 'Models\UGroups.pas';
 
 {$R *.res}
 
@@ -79,7 +80,7 @@ begin
     WebRequestHandler.WebModuleClass := WebModuleClass;
   Application.Initialize;
   Application.CreateForm(TFrmMainTest, FrmMainTest);
-//  Application.CreateForm(TDmSession, DmSession);
+  //  Application.CreateForm(TDmSession, DmSession);
   Application.Run;
   TRttiContext.Create.Free;
 end.

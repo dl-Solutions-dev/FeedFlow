@@ -49,7 +49,8 @@ uses
   Web.Stencils,
   uBaseController,
   uInterfaces,
-  UDMSession;
+  UDMSession,
+  UGroups;
 
 type
   /// <summary>
@@ -145,22 +146,26 @@ const
 
 procedure TListFeedsController.AddFeed( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
-var
-  LDM: TDMSession;
-  LFeed: TFeed;
 begin
-  LDM := GetDMSession( Request );
+  var LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
-    LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+    var LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
     if not ( Assigned( LFeed ) ) then
     begin
       LFeed := TFeed.Create;
       AddSessionObject( Request, 'qryFeed', LFeed );
     end;
 
-    //    FWebStencilsProcessor.AddVar( 'Actions', FActionsParameters, False );
+    var LGroups := TGroups( GetSessionObject( Request, 'qryListGrpoups' ) );
+    if not ( Assigned( LGroups ) ) then
+    begin
+      LGroups := TGroups.Create;
+      AddSessionObject( Request, 'qryListGrpoups', LGroups );
+    end;
+
+    FWebStencilsProcessor.AddVar( 'Groups', LGroups.GetListOfGroups( LDM.cnxFeedFlow ), False );
     FWebStencilsProcessor.AddVar( 'Feed', LFeed.GetFeed( LDM.cnxFeedFlow, -1 ), False );
 
     Response.Content := RenderTemplate( TMP_ADD, Request );
@@ -197,7 +202,7 @@ begin
         AddSessionObject( Request, 'qryFeed', LFeed );
       end;
 
-      if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'groups' ], LGroupe ) ) then
       begin
         LGroupe := 0;
       end;
@@ -285,7 +290,7 @@ begin
         AddSessionObject( Request, 'qryFeed', LFeed );
       end;
 
-      if not ( TryStrToInt( Request.ContentFields.Values[ 'groupe' ], LGroupe ) ) then
+      if not ( TryStrToInt( Request.ContentFields.Values[ 'groups' ], LGroupe ) ) then
       begin
         LGroupe := 0;
       end;
@@ -424,11 +429,11 @@ procedure TListFeedsController.FeedEditLineMode( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
   LDM: TDMSession;
-  LFeed: TFeed;
-  LCategories: TCategories;
-  LSubcategories: TSubcategories;
-  LCountries: TCountries;
-  LLanguages: TLanguages;
+  //  LFeed: TFeed;
+  //  LCategories: TCategories;
+  //  LSubcategories: TSubcategories;
+  //  LCountries: TCountries;
+  //  LLanguages: TLanguages;
 begin
   LDM := GetDMSession( Request );
 
@@ -436,39 +441,46 @@ begin
   begin
     LDM.Critical.Acquire;
     try
-      LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
+      var LFeed := TFeed( GetSessionObject( Request, 'qryFeed' ) );
       if not ( Assigned( LFeed ) ) then
       begin
         LFeed := TFeed.Create;
         AddSessionObject( Request, 'qryFeed', LFeed );
       end;
 
-      LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
+      var LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
       if not ( Assigned( LCategories ) ) then
       begin
         LCategories := TCategories.Create;
         AddSessionObject( Request, 'qryListCategories', LCategories );
       end;
 
-      LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
+      var LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
       if not ( Assigned( LSubcategories ) ) then
       begin
         LSubcategories := TSubcategories.Create;
         AddSessionObject( Request, 'qryListSubcategories', LSubcategories );
       end;
 
-      LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
+      var LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
       if not ( Assigned( LCountries ) ) then
       begin
         LCountries := TCountries.Create;
         AddSessionObject( Request, 'qryListCountries', LCountries );
       end;
 
-      LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
+      var LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
       if not ( Assigned( LLanguages ) ) then
       begin
         LLanguages := TLanguages.Create;
         AddSessionObject( Request, 'qryListLanguages', LLanguages );
+      end;
+
+      var LGroups := TGroups( GetSessionObject( Request, 'qryListGrpoups' ) );
+      if not ( Assigned( LGroups ) ) then
+      begin
+        LGroups := TGroups.Create;
+        AddSessionObject( Request, 'qryListGrpoups', LGroups );
       end;
 
       FWebStencilsProcessor.AddVar( 'Feed', LFeed.GetFeed( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'Id' ] ) ),
@@ -477,30 +489,10 @@ begin
       FWebStencilsProcessor.AddVar( 'SousCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Pays', LCountries.GetListOfCountries( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Langues', LLanguages.GetListOfLanguages( LDM.cnxFeedFlow ), False );
+      FWebStencilsProcessor.AddVar( 'Groups', LGroups.GetListOfGroups( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Form', Self, False );
 
       Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
-
-      //        LDM.qryFeeds.close;
-      //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsString := Request.QueryFields.Values[ 'Id' ];
-      //        LDM.qryFeeds.Open;
-      //
-      //        if not ( LDM.qryFeeds.Eof ) then
-      //        begin
-      //          LDM.qryFeeds.Open;
-      //          LDM.qryFeeds.First;
-      //
-      //          FWebStencilsProcessor.AddVar( 'Feed', LDM.qryFeeds, False );
-      //          FWebStencilsProcessor.AddVar( 'Categories', LDM.QryListCategories, False );
-      //          FWebStencilsProcessor.AddVar( 'SousCategories', LDM.QryListSubCategories, False );
-      //          FWebStencilsProcessor.AddVar( 'Pays', LDM.QryListCountries, False );
-      //          FWebStencilsProcessor.AddVar( 'Langues', LDM.QryListLanguages, False );
-      //          FWebStencilsProcessor.AddVar( 'Form', Self, False );
-      //
-      //          Response.Content := RenderTemplate( TMP_LINE_EDIT, Request );
-      //        end;
-      //
-      //        LDM.qryFeeds.close;
     finally
       LDM.Critical.Leave;
     end;
@@ -763,7 +755,7 @@ begin
       TRoute.Create( mtPost, '/AddFeed', Self.AddFeed ),
       TRoute.Create( mtPost, '/CancelAddFeed', Self.CancelAddFeed ),
       TRoute.Create( mtPost, '/ApplyInsertFeed', Self.ApplyInsertFeed ),
-//      TRoute.Create( mtAny, '/GetFeed', Self.GetFeed ),
+      //      TRoute.Create( mtAny, '/GetFeed', Self.GetFeed ),
       TRoute.Create( mtAny, '/SaveContext', Self.SaveContextFeed ),
       TRoute.Create( mtGet, '/TriFeeds', Self.TriListeFeeds )
       ] );
