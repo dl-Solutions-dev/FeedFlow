@@ -16,6 +16,18 @@ footer {
   color: white;
 }
 
+.file-rename-input {
+  position: absolute;
+  display: none;
+  z-index: 2000;
+  padding: 4px 8px;
+  font-size: 14px;
+  border: 1px solid #4c9aff;
+  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
 .page-filters {
   display: flex;
   flex-wrap: wrap;   /* permet de passer à la ligne si trop serré */

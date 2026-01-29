@@ -33,7 +33,6 @@
 				<input id="edtTitre" name="titre" value="@Feed.TITLE">
 			  </td>
 			  <td>
-
 				<select id="Groups" name="Groups">
 					@foreach Groups {
 					<option value="@Loop.GROUP_ID" @if (Feed.FEED_GROUP = Loop.GROUP_ID){selected}>@Loop.GROUP_NAME</option>

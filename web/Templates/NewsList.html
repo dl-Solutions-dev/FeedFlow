@@ -12,6 +12,13 @@
 				<span class="close" onclick="closePopup()">&times;</span>
 				
 				<div id="editor-container" style="height: 400px;"></div>
+				
+				<input
+				  id="file-rename-input"
+				  type="text"
+				  class="file-rename-input"
+				/>
+
 				<br/>
 				<!-- Zone permettant d'uploader un document -->
 				<div class="upload-container">
@@ -187,7 +194,12 @@
 							}">
 			Ajouter une news
 			</button>
-
+			<button type="button"
+					id="btnPrec"
+					class="btn btn-primary"
+			>
+			Retour
+			</button>
 			<script>
 				document.body.addEventListener('htmx:afterRequest', function(evt) {
 					if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
@@ -223,10 +235,4 @@
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="@env.resource/static/js/ScriptUpload.js"></script>
 <script src="@env.resource/static/js/ScriptUploadDocument.js"></script>
-
-<script>
-  new TomSelect("#categories",   { plugins: ['remove_button'], maxItems: null });
-  new TomSelect("#sousCategories",   { plugins: ['remove_button'], maxItems: null });
-  new TomSelect("#pays",   { plugins: ['remove_button'], maxItems: null });
-  new TomSelect("#langues",   { plugins: ['remove_button'], maxItems: null });
-</script>
+<script src="@env.resource/static/js/ScriptNews.js"></script>

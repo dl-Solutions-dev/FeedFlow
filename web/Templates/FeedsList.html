@@ -2,6 +2,14 @@
 
 <div class="container">
 <h1 class="text-center">@TITRE</h1>
+<button
+  class="btn btn-outline-primary"
+  data-bs-toggle="modal"
+  data-bs-target="#userSimulationModal"
+>
+  👤 Simuler l’affichage utilisateur
+</button>
+<br/>
 <br/>
 	<div id="overlay" class="overlay"></div>
 	<div id="popup" class="popup">
@@ -10,7 +18,7 @@
 		<!-- Case à cocher visible tous contextes -->
 		<input type="checkbox" id="AllContext" name="AllContext"/>
 		<label for="AllContext">Visible par tout le monde</label>
-		
+
 		<!-- Zone des listes déroulantes avec labels -->
 		<div class="dropdown-grid">
 		  <div class="form-group">
@@ -58,20 +66,20 @@
 		</button>
 	  </div>
 	</div>
-	
+
 	<div id="ListNavigation">
 		@import ListNavigation
 	</div>
 	<br/>
-	<div id="TargetTable">	    
+	<div id="TargetTable">
 		@import FeedsTable
 	</div>
-	<button type="button" 
+	<button type="button"
 			id="btnAddLine"
-			class="btn btn-primary" 
+			class="btn btn-primary"
 			hx-trigger="AddLine"
-			hx-post="@env.resource/AddFeed?Session=@App.SessionNo" 
-			hx-target="#TableFeeds" 
+			hx-post="@env.resource/AddFeed?Session=@App.SessionNo"
+			hx-target="#TableFeeds"
 			hx-swap="beforeend"
 			onClick="let addingLine = document.querySelector('.addingLine')
 					if(!addingLine) {
@@ -79,7 +87,13 @@
 					}">
 	Ajouter un fil d'informations
 	</button>
-
+	<button type="button"
+					id="btnPrec"
+					class="btn btn-primary"
+			>
+			Retour
+	</button>
+	
 	<script>
 		document.body.addEventListener('htmx:afterRequest', function(evt) {
 			if (evt.detail.requestConfig.path.startsWith("@env.resource/@pages.ActionPagination")) {
@@ -88,6 +102,80 @@
 			}
 		});
 	</script>
+</div>
+
+<div
+  class="modal fade"
+  id="userSimulationModal"
+  tabindex="-1"
+  aria-labelledby="userSimulationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="userSimulationModalLabel">
+          Simulation de l’affichage utilisateur
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-muted mb-4">
+          Prévisualisez la page comme si elle était consultée par un utilisateur avec les paramètres suivants.
+        </p>
+
+        <form id="userSimulationForm">
+          <div class="mb-3">
+            <label class="form-label">Catégorie</label>
+            <select class="form-select" name="admin_category" id="admin_category" required>
+				@foreach Categories {
+				<option value="@Categories.CATEGORY_ID">@LOOP.CATEGORY_NAME</Option>
+				}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Sous-catégorie</label>
+            <select class="form-select" name="admin_subcategory" id="admin_subcategory" required>
+				@foreach SousCategories {
+				<option value="@SousCategories.SUBCATEGORY_ID">@LOOP.SUBCATEGORY_NAME</Option>
+				}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Pays</label>
+            <select class="form-select" name="admin_country" id="admin_country" required>
+				@foreach Pays {
+				<option value="@Pays.COUNTRY_CODE">@LOOP.COUNTRY_NAME</Option>
+				}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Langue</label>
+            <select class="form-select" name="admin_lang" id="admin_lang" required>
+				@foreach Langues {
+				<option value="@Langues.LANGUAGE_CODE">@LOOP.LANGUAGE_NAME</Option>
+				}
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Annuler
+        </button>
+        <button class="btn btn-primary" onclick="openSimulation()">
+          👁 Ouvrir en mode simulation
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>

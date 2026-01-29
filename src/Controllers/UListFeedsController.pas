@@ -629,14 +629,6 @@ begin
 
       FMsg := FMsg + 'FeedsList';
 
-      //        LDM.QryListeFeeds.close;
-      //        LDM.QryListeFeeds.SQL.Text := QRY_LISTE_FEEDS +
-      //          ' order by ' + LDM.SessionVariables.Values[ 'SortFeedsField' ] + ' ' + LDM.SessionVariables.Values[ 'SortFeedsOrd' ];
-      //        LDM.QryListeFeeds.ParamByName( 'FIRST' ).AsInteger := LLinesPerPage;
-      //        LDM.QryListeFeeds.ParamByName( 'SKIP' ).AsInteger := LPage * LLinesPerPage;
-      //        LDM.QryListeFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-      //        LDM.QryListeFeeds.Open;
-
       FWebStencilsProcessor.AddVar( 'Categories', LCategories.GetListOfCategories( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'SousCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Pays', LCountries.GetListOfCountries( LDM.cnxFeedFlow ), False );

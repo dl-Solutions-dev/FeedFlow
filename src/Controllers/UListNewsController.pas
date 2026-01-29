@@ -493,11 +493,22 @@ begin
         LFeedGroup := -1;
       end;
 
+      var LCategory := FWebmodule.Token.Category.ToInteger;
+      var LSubcategory := FWebmodule.Token.SubCatgegory.ToInteger;
+      var LCountry := FWebmodule.Token.Country;
+      var LLang := FWebmodule.Token.Lang;
+
+      if ( FWebmodule.Token.Role = 'ADMIN' ) and ( Request.QueryFields.Values[ 'admin_category' ] <> '' ) then
+      begin
+        LCategory := Request.QueryFields.Values[ 'admin_category' ].ToInteger;
+        LSubcategory := Request.QueryFields.Values[ 'admin_subcategory' ].ToInteger;
+        LCountry := Request.QueryFields.Values[ 'admin_country' ];
+        LLang := Request.QueryFields.Values[ 'admin_lang' ];
+      end;
+
       FWebStencilsProcessor.AddVar(
         'Group',
-        LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LFeedGroup, FWebmodule.Token.Category.ToInteger,
-          FWebmodule.Token.SubCatgegory.ToInteger,
-        FWebmodule.Token.Country, FWebmodule.Token.Lang ),
+        LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LFeedGroup, LCategory, LSubcategory, LCountry, LLang ),
         False );
 
       Response.Content := RenderTemplate( TMP_GROUP, Request );

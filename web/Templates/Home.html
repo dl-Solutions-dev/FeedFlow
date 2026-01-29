@@ -1,6 +1,11 @@
 @LayoutPage layouts/mainLayout
 
- <header class="text-white text-center p-5 mb-4">
+<input type="hidden" name="admin_category" value="hx-Context.Request.Query['admin_category']">
+<input type="hidden" name="admin_subcategory" value="@admin_subcategory">
+<input type="hidden" name="admin_country" value="@admin_country">
+<input type="hidden" name="admin_lang" value="@admin_lang">
+
+<header class="text-white text-center p-5 mb-4">
 	<h1 class="fw-bold">Bienvenue sur mon site</h1>
 	<p class="lead">Mise en page moderne et responsive</p>
 </header>
@@ -10,9 +15,14 @@
 		<!-- Colonne 1 -->
 		<div class="col-md-6 col-lg-6 order-2 order-md-2">
 			<div class="card-custom mb-4"
+				@if (Form.Category <> ""){
+				hx-post="@env.resource/GetList?idFeed=10&admin_category=@Form.Category&admin_subcategory=@Form.Subcategory&admin_country=@Form.Country&admin_lang=@Form.Language"
+				} @else {
 				hx-post="@env.resource/GetList?idFeed=10"
+				}
 				hx-trigger="load"
 				hx-sap="innerHTML"
+				hx-include="input[type='hidden']">
 			>
 				
 			</div>
@@ -23,6 +33,7 @@
 				hx-post="@env.resource/GetApps"
 				hx-trigger="load"
 				hx-sap="innerHTML"
+				hx-include="input[type='hidden']">
 			>
 			</div>
 		</div>
@@ -32,9 +43,14 @@
 			<div class="card-custom order-lg-1 order-2 order-sm-1 mb-4">
 				<section class="contact-us">
 					<div 
+					    @if (Form.Category <> ""){
+						hx-post="@env.resource/GetGroup?idGroupe=1&admin_category=@Form.Category&admin_subcategory=@Form.Subcategory&admin_country=@Form.Country&admin_lang=@Form.Language"
+						} @else {
 						hx-post="@env.resource/GetGroup?idGroupe=1"
+						}
 						hx-trigger="load"
 						hx-sap="innerHTML"
+						hx-include="input[type='hidden']">
 					>
 					</div>
 					<!-- Zone où le contenu serveur sera injecté -->
@@ -48,9 +64,14 @@
 			</div>
 			<!-- Partie basse -->
 			<div class="card-custom order-lg-2 order-1 order-sm-2 mb-4"
+				@if (Form.Category <> ""){
+				hx-post="@env.resource/GetList?idFeed=11&admin_category=@Form.Category&admin_subcategory=@Form.Subcategory&admin_country=@Form.Country&admin_lang=@Form.Language"
+				} @else {
 				hx-post="@env.resource/GetList?idFeed=11"
+				}
 				hx-trigger="load"
 				hx-sap="innerHTML"
+				hx-include="input[type='hidden']">
 			>
 			</div>
 		</div>

@@ -16,6 +16,10 @@ new TomSelect("#categories",   { plugins: ['remove_button'], maxItems: null });
 new TomSelect("#sousCategories",   { plugins: ['remove_button'], maxItems: null });
 new TomSelect("#pays",   { plugins: ['remove_button'], maxItems: null });
 new TomSelect("#langues",   { plugins: ['remove_button'], maxItems: null });
+
+document.getElementById("btnPrec").addEventListener("click", () => {
+  window.location.href = "./Home";
+});
 	
 // Ouverture du popup de contexte
 async function openContextPopup(id) {
@@ -174,4 +178,12 @@ async function SendContext() {
   } catch (err) {
     alert('Erreur en sauvegarde: ' + (err.message || 'Erreur inconnue') );
   }
+}
+
+function openSimulation() {
+  const form = document.getElementById('userSimulationForm');
+  const data = new FormData(form);
+
+  const params = new URLSearchParams(data).toString();
+  window.open(`./home?${params}`, '_blank');
 }

@@ -29,16 +29,6 @@ function confirmDelete(aForm){
 	}
 }
 
-// Intercepter toutes les requêtes HTMX pour ajouter le JWT
-//document.body.addEventListener('htmx:configRequest', function(evt) {
-//  console.log("enregistrement token");
-//  const token = localStorage.getItem('jwt');
-//  if (token) {
-//	console.log("enregistrement ok");
-//	evt.detail.headers['jwt'] = 'Bearer ${'+token+'}';
-//  }
-//});
-	
 // Fonction pour traduire un élément ou un conteneur
 function translateElement(element) {
   // Si l'élément a un attribut data-i18n, le traduire

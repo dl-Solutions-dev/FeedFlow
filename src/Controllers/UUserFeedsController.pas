@@ -56,6 +56,16 @@ type
   ///   Class controller
   /// </summary>
   TUserFeedsController = class( TBaseController )
+  private
+    FLanguage: string;
+    FCountry: string;
+    FSubcategory: string;
+    FCategory: string;
+
+    procedure SetCategory( const Value: string );
+    procedure SetLanguage( const Value: string );
+    procedure SetCountry( const Value: string );
+    procedure SetSubcategory( const Value: string );
   public
     /// <summary>
     ///   Affiche la page principale
@@ -78,6 +88,11 @@ type
     ///   Initialise les routes exposées par le controller
     /// </summary>
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
+
+    property Category: string read FCategory write SetCategory;
+    property Subcategory: string read FSubcategory write SetSubcategory;
+    property Country: string read FCountry write SetCountry;
+    property Language: string read FLanguage write SetLanguage;
   end;
 
 implementation
@@ -218,7 +233,7 @@ begin
 
       FWebStencilsProcessor.AddVar( 'DocumentsList',
         LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LIdGroup, FWebmodule.Token.Category.ToInteger,
-          FWebmodule.Token.SubCatgegory.ToInteger,
+        FWebmodule.Token.SubCatgegory.ToInteger,
         FWebmodule.Token.Country, FWebmodule.Token.Lang ),
         False );
 
@@ -275,33 +290,30 @@ begin
 
       LTemplateName := LFeed.GetTemplateName( LDM.cnxFeedFlow, LIdFeed );
 
-      //        LDM.qryFeeds.close;
-      //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-      //        LDM.qryFeeds.Open;
-
       logger.Info( 'LIdFeed -> ' + LIdFeed.ToString );
-      //        logger.Info( 'qry eof : ' + if ( LDM.qryFeeds.Eof ) then
-      //            'Oui'
-      //          else
-      //            'Non' );
+
       logger.Info( 'Template -> ' + TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) );
 
       if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) ) then
       begin
         Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
 
-        //          LDM.QryShowNewsUser.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-        //          LDM.QryShowNewsUser.ParamByName( 'COUNTRY_CODE' ).AsString := FWebmodule.Token.Country;
-        //          LDM.QryShowNewsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := FWebmodule.Token.Lang;
-        //          LDM.QryShowNewsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := FWebmodule.Token.Category.ToInteger;
-        //          LDM.QryShowNewsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := FWebmodule.Token.SubCatgegory.ToInteger;
-        //          LDM.QryShowNewsUser.Open;
+        var LCategory := FWebmodule.Token.Category.ToInteger;
+        var LSubcategory := FWebmodule.Token.SubCatgegory.ToInteger;
+        var LCountry := FWebmodule.Token.Country;
+        var LLang := FWebmodule.Token.Lang;
+
+        if ( FWebmodule.Token.Role = 'ADMIN' ) and ( Request.QueryFields.Values[ 'admin_category' ] <> '' ) then
+        begin
+          LCategory := Request.QueryFields.Values[ 'admin_category' ].ToInteger;
+          LSubcategory := Request.QueryFields.Values[ 'admin_subcategory' ].ToInteger;
+          LCountry := Request.QueryFields.Values[ 'admin_country' ];
+          LLang := Request.QueryFields.Values[ 'admin_lang' ];
+        end;
 
         FWebStencilsProcessor.AddVar(
           'News',
-          LShowNews.GetNews( LDM.cnxFeedFlow, LIdFeed, FWebmodule.Token.Category.ToInteger,
-            FWebmodule.Token.SubCatgegory.ToInteger,
-          FWebmodule.Token.Country, FWebmodule.Token.Lang ),
+          LShowNews.GetNews( LDM.cnxFeedFlow, LIdFeed, LCategory, LSubcategory, LCountry, LLang ),
           False );
 
         Response.ContentType := 'text/html; charset=UTF-8';
@@ -324,6 +336,13 @@ end;
 procedure TUserFeedsController.Home( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 begin
+  FCategory := Request.QueryFields.Values[ 'admin_category' ];
+  FSubcategory := Request.QueryFields.Values[ 'admin_subcategory' ];
+  FCountry := Request.QueryFields.Values[ 'admin_country' ];
+  FLanguage := Request.QueryFields.Values[ 'admin_lang' ];
+
+  FWebStencilsProcessor.AddVar( 'Form', Self, False );
+
   Response.Content := RenderTemplate( TMP_HOME, Request );
 end;
 
@@ -338,6 +357,26 @@ begin
       TRoute.Create( mtPost, '/GetList', Self.GetList ),
       TRoute.Create( mtGet, '/GetDocuments', Self.GetDocuments )
       ] );
+end;
+
+procedure TUserFeedsController.SetCategory( const Value: string );
+begin
+  FCategory := Value;
+end;
+
+procedure TUserFeedsController.SetLanguage( const Value: string );
+begin
+  FLanguage := Value;
+end;
+
+procedure TUserFeedsController.SetCountry( const Value: string );
+begin
+  FCountry := Value;
+end;
+
+procedure TUserFeedsController.SetSubcategory( const Value: string );
+begin
+  FSubcategory := Value;
 end;
 
 initialization
