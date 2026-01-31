@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: [self-hosted, prod]  # Cible le runner de production
+    runs-on: [self-hosted, dev]  # Cible le runner de production
 
     steps:
       - name: Checkout du code
