@@ -161,8 +161,8 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(vide)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-        <DCC_ExeOutput>\Output\Release</DCC_ExeOutput>
-        <DCC_DcpOutput>\Output\dcu</DCC_DcpOutput>
+        <DCC_ExeOutput>.\Output\Release</DCC_ExeOutput>
+        <DCC_DcpOutput>.\Output\dcu</DCC_DcpOutput>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
