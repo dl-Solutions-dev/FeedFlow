@@ -1,4 +1,4 @@
-ï»¿(* C2PP
+(* C2PP
   ***************************************************************************
 
   Feed Flow
@@ -35,7 +35,7 @@
 *)
 
 /// <summary>
-///   UnitÃ© comprenant la classe de base pour toute les class controller
+///   Unité comprenant la classe de base pour toute les class controller
 /// </summary>
 unit uBaseController;
 
@@ -55,7 +55,7 @@ uses
 
 type
   /// <summary>
-  ///   Class ancÃ¨tre de toute les classes controller
+  ///   Class ancètre de toute les classes controller
   /// </summary>
   TBaseController = class( TInterfacedObject, IAction )
   private
@@ -95,7 +95,7 @@ type
   end;
 
   /// <summary>
-  ///   RÃ©fÃ©rence de class permettant d'instancier les classes de type
+  ///   Référence de class permettant d'instancier les classes de type
   ///   TBAseController
   /// </summary>
   TBaseControllerRef = class of TBaseController;
