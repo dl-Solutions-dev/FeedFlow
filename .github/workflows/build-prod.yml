@@ -11,20 +11,12 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-
-      - name: Configuration de l'environnement Delphi
-        shell: cmd
-        run: |
-          "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
-      
-      - name: Configuration de l'environnement MSBuild
-        shell: cmd
-        run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
           
       - name: Compilation en mode Release
         shell: cmd
         run: |
+          "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
+          "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
           cd /d "%GITHUB_WORKSPACE%"
           "msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m"
 
