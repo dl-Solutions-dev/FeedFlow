@@ -13,10 +13,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configuration de l'environnement Delphi
+        shell: cmd
         run: |
           "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
 
       - name: Compilation en mode Release
+        shell: cmd
         run: |
           "C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m"
 
