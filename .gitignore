@@ -87,3 +87,7 @@ Win64/Release/checkacl.ls1
 *.ps1
 BDD/FEEDFLOW - Copie.FDB
 ToDo.md
+/Docs_Test
+/build
+/Tests
+/Tests
