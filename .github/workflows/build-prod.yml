@@ -24,9 +24,7 @@ jobs:
           cd /d "%GITHUB_WORKSPACE%"
           call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
           msbuild src\FeedFlow.dproj /t:Clean /p:Config=Release /p:Platform=Win64
-          msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /
-          p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" /
-          p:DCC_UnitOutputDir="%GITHUB_WORKSPACE%\Output\Release\DCU" /
+          msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" /p:DCC_UnitOutputDir="%GITHUB_WORKSPACE%\Output\Release\DCU" 
       - name: Lister les fichiers générés
         shell: cmd
         run: |
