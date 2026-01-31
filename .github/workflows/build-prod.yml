@@ -25,5 +25,6 @@ jobs:
       - name: Compilation en mode Release
         shell: cmd
         run: |
-          "msbuild C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m"
+          cd /d "%GITHUB_WORKSPACE%"
+          "msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m"
 
