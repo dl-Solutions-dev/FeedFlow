@@ -21,8 +21,8 @@ jobs:
       - name: Compilation en mode Release
         shell: cmd
         run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
-          "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
+          call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
           cd /d "%GITHUB_WORKSPACE%"
           msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" /p:DCC_UsePackageOutputPath=true /m /v:diag /fl /flp:LogFile="C:\temp\msbuild.log"
 
