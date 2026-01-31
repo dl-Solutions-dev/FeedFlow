@@ -16,7 +16,12 @@ jobs:
         shell: cmd
         run: |
           "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
-
+      
+      - name: Configuration de l'environnement MSBuild
+        shell: cmd
+        run: |
+          "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
+          
       - name: Compilation en mode Release
         shell: cmd
         run: |
