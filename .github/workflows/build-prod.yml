@@ -12,6 +12,12 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
           
+      - name: Créer le dossier de sortie
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          mkdir Output\Release
+            
       - name: Compilation en mode Release
         shell: cmd
         run: |
