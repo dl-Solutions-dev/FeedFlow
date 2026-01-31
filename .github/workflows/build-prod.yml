@@ -18,5 +18,5 @@ jobs:
 
       - name: Compilation en mode Release
         run: |
-          C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m
+          "C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_UsePackageOutputPath=true /m"
 
