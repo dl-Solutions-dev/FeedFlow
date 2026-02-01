@@ -11,8 +11,7 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-        with:
-        submodules: recursive  # Clone aussi les sous-modules
+        with submodules: recursive  # Clone aussi les sous-modules
     
       - name: Créer le dossier de sortie
         shell: cmd
