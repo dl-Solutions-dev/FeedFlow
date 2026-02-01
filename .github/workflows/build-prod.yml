@@ -9,6 +9,12 @@ jobs:
     runs-on: [self-hosted, dev]  # Cible le runner de production
 
     steps:
+      - name: Configurer Git pour éviter les invites
+        shell: cmd
+        run: |
+          git config --global credential.helper store
+          echo "https://${{ secrets.AUTOMATISATION_BUILD }}:x-oauth-basic@github.com" > %HOMEPATH%\.git-credentials
+          
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
