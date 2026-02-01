@@ -13,13 +13,33 @@ jobs:
         shell: cmd
         run: |
           git config --global credential.helper store
-          echo "https://${{ secrets.AUTOMATISATION_BUILD }}:x-oauth-basic@github.com" > %HOMEPATH%\.git-credentials
-          
+          echo "https://${{ secrets.AUTOMATISATION_BUILD }}:x-oauth-basic@github.com" > %USERPROFILE%\.git-credentials
+
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # Clone aussi les sous-modules
           token: ${{ secrets.AUTOMATISATION_BUILD }}
+
+      - name: Configurer l'URL du sous-module avec le token
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          git config --file=.gitmodules submodule.Common.url "https://${{ secrets.AUTOMATISATION_BUILD }}@github.com/dl-Solutions-dev/Common-libs.git"
+
+      - name: Cloner les sous-modules avec le token
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          git submodule update --init --recursive --depth 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.AUTOMATISATION_BUILD }}
+
+      - name: Vérifier les sous-modules
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          git submodule status
+          dir /s /b Common
     
       - name: Créer le dossier de sortie
         shell: cmd
