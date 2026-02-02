@@ -9,18 +9,12 @@ jobs:
     runs-on: [self-hosted, dev]  # Cible le runner de production
 
     steps:
-      - name: Configurer Git avec le token
-        shell: cmd
-        run: |
-          git config --global url."https://${{ secrets.AUTOMATISATION_BUILD }}@github.com".insteadOf "https://github.com"
-          git config --global credential.helper store
-          echo "https://${{ secrets.AUTOMATISATION_BUILD }}:x-oauth-basic@github.com" > %USERPROFILE%\.git-credentials
-
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.AUTOMATISATION_BUILD }}
           submodules: recursive
+          persist-credentials: true
 
       - name: Vérifier les sous-modules
         shell: cmd
