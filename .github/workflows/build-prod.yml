@@ -19,6 +19,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: true
 
+      - name: Debug auth Git
+        shell: cmd
+        run: |
+          git config --list
+          git remote -v
+
       # 2️⃣ Vérification (debug simple)
       - name: Vérifier le contenu du repo
         shell: cmd
