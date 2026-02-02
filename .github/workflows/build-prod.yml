@@ -66,8 +66,6 @@ jobs:
             /t:Build ^
             /p:Config=Release ^
             /p:Platform=Win64 ^
-            /p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" ^
-            /p:DCC_UnitOutputDir="%GITHUB_WORKSPACE%\Output\Release\DCU"
 
       # 7️⃣ Liste des artefacts générés
       - name: Lister les fichiers générés
