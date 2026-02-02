@@ -1,43 +1,72 @@
-name: Build and Deploy Delphi to Production
+name: Build Delphi (Release)
 
 on:
   push:
-    branches: [ main ]  # Déclenche le workflow sur les pushes vers main
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
-    runs-on: [self-hosted, dev]  # Cible le runner de production
+  build:
+    runs-on: [self-hosted, dev]
 
     steps:
+      # 1️⃣ Checkout + submodules (AUTH OK)
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.AUTOMATISATION_BUILD }}
           submodules: recursive
+          fetch-depth: 1
           persist-credentials: true
 
-      - name: Vérifier les sous-modules
+      # 2️⃣ Vérification (debug simple)
+      - name: Vérifier le contenu du repo
         shell: cmd
         run: |
+          echo Workspace: %GITHUB_WORKSPACE%
+          git status
           git submodule status
-          git submodule update --init --recursive --depth 1
-          dir /s /b src\Common  # Vérifie que le sous-module est bien cloné
-    
-      - name: Créer le dossier de sortie
+          dir /s /b src\Common
+
+      # 3️⃣ Création des dossiers de sortie
+      - name: Créer les dossiers de sortie
         shell: cmd
         run: |
           cd /d "%GITHUB_WORKSPACE%"
-          mkdir Output\Release
-            
-      - name: Compilation en mode Release
+          if not exist Output mkdir Output
+          if not exist Output\Release mkdir Output\Release
+          if not exist Output\Release\DCU mkdir Output\Release\DCU
+
+      # 4️⃣ Initialisation de l'environnement Delphi
+      - name: Initialiser Delphi
         shell: cmd
         run: |
-          cd /d "%GITHUB_WORKSPACE%"
           call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
-          msbuild src\FeedFlow.dproj /t:Clean /p:Config=Release /p:Platform=Win64
-          msbuild src\FeedFlow.dproj /t:Build /p:Config=Release /p:Platform=Win64 /p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" /p:DCC_UnitOutputDir="%GITHUB_WORKSPACE%\Output\Release\DCU" 
+
+      # 5️⃣ Clean
+      - name: Clean projet
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          msbuild src\FeedFlow.dproj ^
+            /t:Clean ^
+            /p:Config=Release ^
+            /p:Platform=Win64
+
+      # 6️⃣ Build
+      - name: Build Release Win64
+        shell: cmd
+        run: |
+          cd /d "%GITHUB_WORKSPACE%"
+          msbuild src\FeedFlow.dproj ^
+            /t:Build ^
+            /p:Config=Release ^
+            /p:Platform=Win64 ^
+            /p:DCC_OutputDir="%GITHUB_WORKSPACE%\Output\Release" ^
+            /p:DCC_UnitOutputDir="%GITHUB_WORKSPACE%\Output\Release\DCU"
+
+      # 7️⃣ Liste des artefacts générés
       - name: Lister les fichiers générés
         shell: cmd
         run: |
-          cd /d "%GITHUB_WORKSPACE%"
-          dir /s /b Output\Release\
+          dir /s /b Output\Release
