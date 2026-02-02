@@ -42,18 +42,13 @@ jobs:
           if not exist Output mkdir Output
           if not exist Output\Release mkdir Output\Release
           if not exist Output\Release\DCU mkdir Output\Release\DCU
-
-      # 4️⃣ Initialisation de l'environnement Delphi
-      - name: Initialiser Delphi
-        shell: cmd
-        run: |
-          call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
-          call "%ProgramFiles(x86)%\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
           
       # 5️⃣ Clean
       - name: Clean projet
         shell: cmd
         run: |
+          call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
+          call "%ProgramFiles(x86)%\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
           cd /d "%GITHUB_WORKSPACE%"
           msbuild src\FeedFlow.dproj ^
             /t:Clean ^
@@ -64,6 +59,8 @@ jobs:
       - name: Build Release Win64
         shell: cmd
         run: |
+          call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
+          call "%ProgramFiles(x86)%\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
           cd /d "%GITHUB_WORKSPACE%"
           msbuild src\FeedFlow.dproj ^
             /t:Build ^
