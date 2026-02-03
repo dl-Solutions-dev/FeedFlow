@@ -92,6 +92,6 @@ jobs:
         if: always()  # Même si les tests échouent
         with:
           name: Test Results
-          path: resultats_tests.xml
+          path: Tests\Win64\Debug\dunitx-results.xml
 
 
