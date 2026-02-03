@@ -68,7 +68,7 @@ jobs:
             /p:Platform=Win64
           msbuild Tests\FeedFlow.tests.dproj ^
             /t:Build ^
-            /p:Config=Release ^
+            /p:Config=Debug ^
             /p:Platform=Win64
             
       # 7️⃣ Liste des artefacts générés
