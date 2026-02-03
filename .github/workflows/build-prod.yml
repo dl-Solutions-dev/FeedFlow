@@ -83,7 +83,7 @@ jobs:
           DUnitConsoleRunner.exe Tests\Win64\Debug\FeedFlow.tests.exe --format=xml --output=resultats_tests.xml
 
       - name: Publish test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()  # Même si les tests échouent
         with:
           name: Test Results
