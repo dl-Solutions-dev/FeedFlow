@@ -9,6 +9,9 @@
         <Projects Include="FeedFlow.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\Tests\FeedFlow.tests.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -18,13 +21,13 @@
         </BorlandProject>
     </ProjectExtensions>
     <Target Name="FeedFlow_Tests">
-        <MSBuild Projects="FeedFlow_Tests.dproj"/>
+        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj"/>
     </Target>
     <Target Name="FeedFlow_Tests:Clean">
-        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj" Targets="Clean"/>
     </Target>
     <Target Name="FeedFlow_Tests:Make">
-        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Make"/>
+        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj" Targets="Make"/>
     </Target>
     <Target Name="FeedFlow">
         <MSBuild Projects="FeedFlow.dproj"/>
@@ -36,13 +39,13 @@
         <MSBuild Projects="FeedFlow.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="FeedFlow_Tests;FeedFlow"/>
+        <CallTarget Targets="FeedFlow_Tests;FeedFlow;FeedFlow_tests"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean"/>
+        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;FeedFlow_tests:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make"/>
+        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;FeedFlow_tests:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

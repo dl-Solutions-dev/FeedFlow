@@ -85,7 +85,7 @@ jobs:
       - name: Run DUnit tests
         shell: cmd
         run: |
-          Tests\Win64\Debug\FeedFlow.tests.exe --format=xml --output=resultats_tests.xml
+          Tests\Win64\Debug\FeedFlow.tests.exe
 
       - name: Publish test results
         uses: actions/upload-artifact@v4
