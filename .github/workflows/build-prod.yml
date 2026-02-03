@@ -80,7 +80,6 @@ jobs:
       - name: Run DUnit tests
         shell: cmd
         run: |
-          # Exécuter les tests et générer un rapport XML
           DUnitConsoleRunner.exe Tests\Win64\Debug\FeedFlow.tests.exe --format=xml --output=resultats_tests.xml
 
       - name: Publish test results
