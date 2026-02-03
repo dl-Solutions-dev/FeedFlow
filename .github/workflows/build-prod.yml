@@ -78,6 +78,7 @@ jobs:
           dir /s /b Output\Release
           
       - name: Run DUnit tests
+        shell: cmd
         run: |
           # Exécuter les tests et générer un rapport XML
           DUnitConsoleRunner.exe Tests\Win64\Debug\FeedFlow.tests.exe --format=xml --output=resultats_tests.xml
@@ -89,11 +90,4 @@ jobs:
           name: Test Results
           path: resultats_tests.xml
 
-      - name: Fail if tests failed
-        run: |
-          # Vérifier si des tests ont échoué (code de retour non-zéro)
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Des tests ont échoué !"
-            exit 1
-          }
-        shell: pwsh
+
