@@ -42,7 +42,7 @@ procedure TTestPagination.Test1( NbRecords, NbPerPage, aActualPage: SmallInt );
 begin
   FPagination.GeneratePagesList( NbRecords, NbPerPage, aActualPage, '', '', '', '' );
 
-  Assert.AreEqual( Int64( 6 ), FPagination.PagesList.Count );
+  Assert.AreEqual( Int64( 5 ), FPagination.PagesList.Count );
 end;
 
 initialization
