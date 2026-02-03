@@ -77,6 +77,11 @@ jobs:
         run: |
           dir /s /b Output\Release
           
+      - name: Add DUnit to PATH
+        shell: cmd
+        run: |
+          echo C:\Users\danyleblanc\Documents\DL-Projets\FastMM4-master\FullDebugMode DLL\Precompiled>> %GITHUB_PATH%
+
       - name: Run DUnit tests
         shell: cmd
         run: |
