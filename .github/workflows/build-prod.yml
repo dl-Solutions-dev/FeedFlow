@@ -103,7 +103,7 @@ jobs:
       - name: Génération documentation
         shell: cmd
         run: |
-          pasdoc --format html --output Output\Release\Docs ^
+          pasdoc --format html --output Output\Docs ^
             src\Controllers\*.pas ^
             src\Core\*.pas ^
             src\Infrastructure\Config\*.pas ^
