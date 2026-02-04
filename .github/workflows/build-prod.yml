@@ -94,4 +94,23 @@ jobs:
           name: Test Results
           path: Tests\Win64\Debug\dunitx-results.xml
 
-
+      - name: Add Pasdoc to PATH
+        shell: cmd
+        run: |
+          echo C:\Mac\Home\Documents\pasdoc\bin>> %GITHUB_PATH%
+      
+      - name: Run DUnit tests
+        shell: cmd
+        run: |
+          pasdoc --format html --output C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\Doc1 ^ 
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Controllers\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Core\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Infrastructure\Config\*.pas  ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Infrastructure\Loggin\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Infrastructure\Routing\*.pas ^ 
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Infrastructure\Security\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Infrastructure\Support\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Models\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Server\*.pas ^
+            C:\Users\danyleblanc\Documents\DL-Projets\FeedFlow\src\Services\*.pas
+      
