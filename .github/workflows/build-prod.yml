@@ -100,15 +100,15 @@ jobs:
         run: |
           echo C:\Mac\Home\Documents\pasdoc\bin>> %GITHUB_PATH%
       
-      - name: Run DUnit tests
+      - name: Génération documentation
         shell: cmd
         run: |
-          pasdoc --format html --output Output\Release\Docs ^ 
+          pasdoc --format html --output Output\Release\Docs ^
             src\Controllers\*.pas ^
             src\Core\*.pas ^
-            src\Infrastructure\Config\*.pas  ^
+            src\Infrastructure\Config\*.pas ^
             src\Infrastructure\Loggin\*.pas ^
-            src\Infrastructure\Routing\*.pas ^ 
+            src\Infrastructure\Routing\*.pas ^
             src\Infrastructure\Security\*.pas ^
             src\Infrastructure\Support\*.pas ^
             src\Models\*.pas ^
