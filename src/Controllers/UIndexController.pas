@@ -70,6 +70,7 @@ type
     /// </remarks>
     procedure Login( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure Logout( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure Health( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     /// <summary>
     ///   Initialisation des routes
     /// </summary>
@@ -83,6 +84,7 @@ uses
   System.IOUtils,
   System.Generics.Collections,
   System.StrUtils,
+  System.DateUtils,
   Web.ReqMulti,
   IdHTTP,
   Web.ReqFiles,
@@ -105,6 +107,28 @@ const
 
   { TIndexController }
 
+procedure TIndexController.Health( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  HealthData: string;
+begin
+  Response.ContentType := 'application/json';
+  HealthData := Format( '''
+    {
+      "status": "healthy",
+      "timestamp": "%s",
+      "uptime": "%s",
+    }
+  ''',
+    [
+      FormatDateTime( 'yyyy-mm-dd"T"hh:nn:ss.zzz"Z"', TTimeZone.Local.ToUniversalTime( Now ) ),
+      IntToStr(TThread.GetTickCount64 div 1000)
+      ] );
+
+  Response.Content := HealthData;
+  Handled := True;
+end;
+
 procedure TIndexController.InitializeActions( aWebModule: TWebModule;
   aWebStencil: TWebStencilsEngine );
 begin
@@ -113,7 +137,8 @@ begin
   aWebModule.AddRoutes( [
       TRoute.Create( mtGet, '/', Self.Main ),
       TRoute.Create( mtPost, '/Login', Self.Login ),
-      TRoute.Create( mtGet, '/Logout', Self.Logout )
+      TRoute.Create( mtGet, '/Logout', Self.Logout ),
+      TRoute.Create( mtGet, '/Health', Self.Health )
       ] );
 end;
 
