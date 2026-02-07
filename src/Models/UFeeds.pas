@@ -74,11 +74,13 @@ type
     /// <summary>
     ///   Retourne un FDQuery contenant la loiste des feeds
     /// </summary>
-    function GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip: Integer; aTitle, aOrderField, aOrder: string ): TFDQuery;
+    function GetListeFeeds(aConnection: TFDConnection; aFirst, aSkip, aGroupId:
+        Integer; aTitle, aOrderField, aOrder: string): TFDQuery;
     /// <summary>
     ///   retourne le nombre de feeds resultatnt
     /// </summary>
-    function GetFeedsCount( aConnection: TFDConnection; aTitle: string ): Integer;
+    function GetFeedsCount(aConnection: TFDConnection; aGroupId:Integer; aTitle:
+        string): Integer;
   end;
 
   /// <summary>
@@ -422,7 +424,8 @@ begin
   FSelectListeFeeds := '''
     SELECT first :FIRST skip :SKIP f.*, g.GROUP_NAME FROM FEED_NEWS f
     join GROUPS g on (g.GROUP_ID = f.FEED_GROUP)
-    where upper(f.TITLE) like :TITLE
+    where f.FEED_GROUP = :FEED_GROUP
+     and upper(f.TITLE) like :TITLE
   ''';
 
   FQryListeFeeds.Name := 'QryListeFeeds';
@@ -435,7 +438,8 @@ begin
   FQryCountFeeds.SQL.Clear;
   FQryCountFeeds.SQL.Add( '''
    SELECT count(FEED_ID) as "NB_ENR" FROM FEED_NEWS
-   where TITLE like :TITLE
+   where FEED_GROUP = :FEED_GROUP
+     and upper(TITLE) like :TITLE
   ''');
 end;
 
@@ -447,10 +451,11 @@ begin
   inherited;
 end;
 
-function TFeeds.GetFeedsCount( aConnection: TFDConnection;
+function TFeeds.GetFeedsCount( aConnection: TFDConnection; aGroupId:Integer;
   aTitle: string ): Integer;
 begin
   FQryCountFeeds.Connection := aConnection;
+  FQryCountFeeds.ParamByName( 'FEED_GROUP' ).AsInteger:=aGroupId;
   FQryCountFeeds.ParamByName( 'TITLE' ).AsString := aTitle;
   FQryCountFeeds.Open;
 
@@ -459,7 +464,7 @@ begin
   FQryCountFeeds.Close;
 end;
 
-function TFeeds.GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip:
+function TFeeds.GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip, aGroupId:
   Integer; aTitle, aOrderField, aOrder: string ): TFDQuery;
 begin
   FQryListeFeeds.SQL.Text := FSelectListeFeeds +
@@ -470,6 +475,7 @@ begin
   FQryListeFeeds.Connection := aConnection;
   FQryListeFeeds.ParamByName( 'FIRST' ).AsInteger := aFirst;
   FQryListeFeeds.ParamByName( 'SKIP' ).AsInteger := aSkip;
+  FQryListeFeeds.ParamByName( 'FEED_GROUP' ).AsInteger:=aGroupId;
   FQryListeFeeds.ParamByName( 'TITLE' ).AsString := aTitle;
   FQryListeFeeds.Open;
 

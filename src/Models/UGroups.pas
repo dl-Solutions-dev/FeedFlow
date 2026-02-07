@@ -77,7 +77,7 @@ begin
   FQryGroups := TFDQuery.Create( nil );
   FQryGroups.SQL.Text := '''
     select * from GROUPS
-    order by GROUP_ID
+    order by GROUP_NAME
   ''';
 end;
 
@@ -91,7 +91,9 @@ end;
 function TGroups.GetListOfGroups( aConnection: TFDConnection ): TFDQuery;
 begin
   FQryGroups.Connection := aConnection;
+  FQryGroups.Close;
   FQryGroups.Open;
+  FQryGroups.First;
 
   Result := FQryGroups;
 end;

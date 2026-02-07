@@ -114,6 +114,10 @@ const
   /// </summary>
   LINEPERPAGE_VARIABLE: string = 'LinesPerPageFeed';
   /// <summary>
+  ///   Nom de la variable de session pour le groupe
+  /// </summary>
+  GROUPID_VARIABLE: string = 'FeedsList.GroupId';
+  /// <summary>
   ///   Nom du tempalte HTML pour ajouter un feed
   /// </summary>
   TMP_ADD: string = 'FeedAdd.html';
@@ -502,57 +506,57 @@ end;
 procedure TListFeedsController.FeedsList( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
 var
-  LDM: TDMSession;
   LLinesPerPage: Integer;
-  LPagination: TPagination;
   LPage: Integer;
   LInt: Integer;
   LTemplate: string;
-  LFeeds: TFeeds;
-  LCategories: TCategories;
-  LSubcategories: TSubcategories;
-  LCountries: TCountries;
-  LLanguages: TLanguages;
 begin
-  LDM := GetDMSession( Request );
+  var LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
     LDM.cnxFeedFlow.Rollback;
 
-    LFeeds := TFeeds( GetSessionObject( Request, 'qryListeFeeds' ) );
+    var LFeeds := TFeeds( GetSessionObject( Request, 'qryListeFeeds' ) );
     if not ( Assigned( LFeeds ) ) then
     begin
       LFeeds := TFeeds.Create;
       AddSessionObject( Request, 'qryListeFeeds', LFeeds );
     end;
 
-    LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
+    var LCategories := TCategories( GetSessionObject( Request, 'qryListCategories' ) );
     if not ( Assigned( LCategories ) ) then
     begin
       LCategories := TCategories.Create;
       AddSessionObject( Request, 'qryListCategories', LCategories );
     end;
 
-    LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
+    var LSubcategories := TSubcategories( GetSessionObject( Request, 'qryListSubcategories' ) );
     if not ( Assigned( LSubcategories ) ) then
     begin
       LSubcategories := TSubcategories.Create;
       AddSessionObject( Request, 'qryListSubcategories', LSubcategories );
     end;
 
-    LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
+    var LCountries := TCountries( GetSessionObject( Request, 'qryListCountries' ) );
     if not ( Assigned( LCountries ) ) then
     begin
       LCountries := TCountries.Create;
       AddSessionObject( Request, 'qryListCountries', LCountries );
     end;
 
-    LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
+    var LLanguages := TLanguages( GetSessionObject( Request, 'qryListLanguages' ) );
     if not ( Assigned( LLanguages ) ) then
     begin
       LLanguages := TLanguages.Create;
       AddSessionObject( Request, 'qryListLanguages', LLanguages );
+    end;
+
+    var LGroups := TGroups( GetSessionObject( Request, 'qryListGroups' ) );
+    if not ( Assigned( LGroups ) ) then
+    begin
+      LGroups := TGroups.Create;
+      AddSessionObject( Request, 'qryListGroups', LGroups );
     end;
 
     if not ( TryStrToInt( LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ], LLinesPerPage ) ) then
@@ -560,14 +564,7 @@ begin
       LLinesPerPage := 10;
     end;
 
-    LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
-
-    //      LPage := LPagination.actualPage;
-    //
-    //      if ( LPage > 0 ) then
-    //      begin
-    //        Dec( LPage );
-    //      end;
+    var LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
 
     if not ( TryStrToInt( LDM.SessionVariables.Values[ NAVIGATION_NAME ], LPage ) ) then
     begin
@@ -592,23 +589,34 @@ begin
           LDM.SessionVariables.Values[ 'SortFeedsOrd' ] := 'desc';
         end;
 
-        LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
+          LTemplate := TMP_LISTE;
 
-        LTemplate := TMP_LISTE;
-        //          LDM.qryCountFeeds.close;
-        //          LDM.qryCountFeeds.ParamByName( 'TITLE' ).AsString := '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%';
-        //          LDM.qryCountFeeds.Open;
-
-        if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
+        // Si on ne garde pas le contexte on initialise les variables de session
+        if ( Request.QueryFields.Values[ 'KeepContext' ] <> 'O' ) then
         begin
-          LInt := 1;
+          LDM.SessionVariables.Values[ SEARCH_VARIABLE ] := '';
+
+          if not ( TryStrToInt( Request.QueryFields.Values[ 'Actual' ], LInt ) ) then
+          begin
+            LInt := 1;
+          end;
+
+          LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
+
+          if not ( TryStrToInt( Request.ContentFields.Values[ 'Groups' ], LInt ) ) then
+          begin
+            LInt := 0;
+          end;
+
+          LDM.SessionVariables.Values[ GROUPID_VARIABLE ] := Lint.ToString;
         end;
 
-        LDM.SessionVariables.Values[ NAVIGATION_NAME ] := LInt.ToString;
+        LPagination.GroupId := LDM.SessionVariables.Values[ GROUPID_VARIABLE ].ToInteger;
 
         LPagination.GeneratePagesList(
           LFeeds.GetFeedsCount(
           LDM.cnxFeedFlow,
+          LPagination.GroupId, //TODO: Voir pour contextualiser
           '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%'
           ),
           LLinesPerPage,
@@ -616,15 +624,16 @@ begin
           '',
           '',
           'FeedsList',
-          'GetFeedNavigation'
+          'GetFeedNavigation',
+          True
           );
-
         //          FWebStencilsProcessor.AddVar( 'pages', LDM.Pagination( NAVIGATION_NAME ), False );
         FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
       end
       else // Sinon, on rafraichit juste la liste
       begin
-        LTemplate := TMP_TABLE
+        LTemplate := TMP_TABLE;
+        LPagination.GroupId := LDM.SessionVariables.Values[ GROUPID_VARIABLE ].ToInteger;
       end;
 
       FMsg := FMsg + 'FeedsList';
@@ -633,13 +642,15 @@ begin
       FWebStencilsProcessor.AddVar( 'SousCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Pays', LCountries.GetListOfCountries( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'Langues', LLanguages.GetListOfLanguages( LDM.cnxFeedFlow ), False );
-      //        FWebStencilsProcessor.AddVar( 'feedsList', LDM.QryListeFeeds, False );
+      FWebStencilsProcessor.AddVar( 'Groups', LGroups.GetListOfGroups( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar(
         'feedsList',
         LFeeds.GetListeFeeds(
         LDM.cnxFeedFlow,
         LLinesPerPage,
-        LPage * LLinesPerPage, '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%',
+        LPage * LLinesPerPage,
+        LPagination.GroupId, //TODO: Voir pour contextualiser
+        '%' + LDM.SessionVariables.Values[ SEARCH_VARIABLE ] + '%',
         LDM.SessionVariables.Values[ 'SortFeedsField' ],
         LDM.SessionVariables.Values[ 'SortFeedsOrd' ]
         ),
@@ -662,7 +673,7 @@ procedure TListFeedsController.GetNavigation( Sender: TObject;
 var
   //  LSession: TUserSession;
   LPagination: TPagination;
-  LInt: Integer;
+  LInt, LGroupId: Integer;
   LLinesPerPage: Integer;
   LDM: TDMSession;
   LFeeds: TFeeds;
@@ -678,6 +689,13 @@ begin
     end;
 
     LDM.SessionVariables.Values[ LINEPERPAGE_VARIABLE ] := LLinesPerPage.ToString;
+
+    if not ( TryStrToInt( Request.ContentFields.Values[ 'Groups' ], LGroupId ) ) then
+    begin
+      LGroupId := 0;
+    end;
+
+    LDM.SessionVariables.Values[ GROUPID_VARIABLE ] := LGroupId.ToString;
 
     if ( Request.QueryFields.Values[ 'SearchChanged' ] <> '' ) then
     begin
@@ -713,9 +731,17 @@ begin
 
       LPagination := TPagination.Create; // LDM.Pagination( NAVIGATION_NAME );
       try
-        LPagination.GeneratePagesList( LFeeds.GetFeedsCount( LDM.cnxFeedFlow, LTitle ),
+        //        if not ( TryStrToInt( Request.ContentFields.Values[ 'Groups' ], LInt ) ) then
+        //        begin
+        //          LInt := 0;
+        //        end;
+
+        LPagination.GroupId := LGroupId;
+
+        LPagination.GeneratePagesList( LFeeds.GetFeedsCount( LDM.cnxFeedFlow, LPagination.GroupId, LTitle ),
+          //TODO: Voir pour contextualiser
           LLinesPerPage, LInt, '', Request.ContentFields.Values[
-          'Search' ], 'FeedsList', 'GetFeedNavigation' );
+          'Search' ], 'FeedsList', 'GetFeedNavigation', True );
 
         FWebStencilsProcessor.AddVar( 'pages', LPagination, False );
         FWebStencilsProcessor.AddVar( 'Form', Self, False );
@@ -986,7 +1012,9 @@ begin
     FWebStencilsProcessor.AddVar(
       'feedsList',
       LFeeds.GetListeFeeds(
-      LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage, LTitle,
+      LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage,
+      LDM.SessionVariables.Values[ GROUPID_VARIABLE ].ToInteger,
+      LTitle, //TODO: Voir pour contextualiser
       LDM.SessionVariables.Values[ 'SortFeedsField' ], LDM.SessionVariables.Values[ 'SortFeedsOrd' ]
       ),
       False );
