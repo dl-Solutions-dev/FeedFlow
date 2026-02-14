@@ -1479,18 +1479,34 @@ begin
       f.TITLE
     from NEWS n
     join FEED_NEWS f on (f.FEED_ID = n.FEED_ID)
-    join NEWS_CONTEXT_COUNTRY p on (p.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_LANG l on (l.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_CATEGORY c on (c.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_SUBCATEGORY s on (s.NEWS_ID = n.NEWS_ID)
     where n.FEED_ID = :FEED_ID
-      and p.COUNTRY_CODE = :COUNTRY_CODE
-      and l.LANGUAGE_CODE = :LANGUAGE_CODE
-      and c.CATEGORY_ID = :CATEGORY_ID
-      and s.SUBCATEGORY_ID = :SUBCATEGORY_ID
       and HOLD = 'O'
       and PUBLICATION_DATE <= localtimestamp
       and EXPIRY_DATE > localtimestamp
+      and EXISTS (
+              SELECT 1
+              FROM NEWS_CONTEXT_CATEGORY cc
+              WHERE cc.NEWS_ID = n.NEWS_ID
+                AND cc.CATEGORY_ID = :CATEGORY_ID
+        )
+      and EXISTS (
+              SELECT 1
+              FROM NEWS_CONTEXT_SUBCATEGORY sc
+              WHERE sc.NEWS_ID = n.NEWS_ID
+                AND sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
+        )
+      and EXISTS (
+              SELECT 1
+              FROM NEWS_CONTEXT_COUNTRY cp
+              WHERE cp.NEWS_ID = n.NEWS_ID
+                AND cp.COUNTRY_CODE = :COUNTRY_CODE
+        )
+      and EXISTS (
+              SELECT 1
+              FROM NEWS_CONTEXT_LANG cl
+              WHERE cl.NEWS_ID = n.NEWS_ID
+                AND cl.LANGUAGE_CODE = :LANGUAGE_CODE
+        )
     order by REVERSE_ORDER, PUBLICATION_DATE desc, NEWS_TITLE;
   ''');
 

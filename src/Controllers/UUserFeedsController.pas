@@ -170,6 +170,14 @@ begin
     LDM.MtUrls.Open;
     LDM.MtUrls.Insert;
     LDM.MtUrlsOrdre.Value := 3;
+    LDM.MtUrlsURL.Value := './FAQ';
+    LDM.MtUrlsImageFileName.Value := 'documents.png';
+    LDM.MtUrlsAlt.Value := 'FAQ';
+    LDM.MtUrls.Post;
+
+    LDM.MtUrls.Open;
+    LDM.MtUrls.Insert;
+    LDM.MtUrlsOrdre.Value := 4;
     LDM.MtUrlsURL.Value := './Logout';
     LDM.MtUrlsImageFileName.Value := 'se-deconnecter.png';
     LDM.MtUrlsAlt.Value := 'Logout';

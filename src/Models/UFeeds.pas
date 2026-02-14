@@ -1061,6 +1061,25 @@ end;
 
 constructor TFeedsUser.Create;
 begin
+  //  FQryFeedsUser := TFDQuery.Create( nil );
+  //  FQryFeedsUser.Name := 'QryFeedsUser';
+  //  FQryFeedsUser.SQL.Clear;
+  //  FQryFeedsUser.SQL.Add( '''
+  //    SELECT distinct r.FEED_ID, r.FEED_GROUP, r.FEED_NAME, r.TITLE, r.DISPLAY_TEMPLATE
+  //    FROM FEED_NEWS r
+  //    join NEWS n on (n.FEED_ID = r.FEED_ID)
+  //    join NEWS_CONTEXT_CATEGORY cc on (cc.NEWS_ID = n.NEWS_ID)
+  //    join NEWS_CONTEXT_SUBCATEGORY sc on (sc.NEWS_ID = n.NEWS_ID)
+  //    join NEWS_CONTEXT_COUNTRY cp on (cp.NEWS_ID = n.NEWS_ID)
+  //    join NEWS_CONTEXT_LANG cl on (cl.NEWS_ID = n.NEWS_ID)
+  //    where r.STATUS = 'O'
+  //    and r.FEED_GROUP = :FEED_GROUP
+  //    and cc.CATEGORY_ID = :CATEGORY_ID
+  //    and sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
+  //    and cp.COUNTRY_CODE = :COUNTRY_CODE
+  //    and cl.LANGUAGE_CODE = :LANGUAGE_CODE
+  //  ''');
+
   FQryFeedsUser := TFDQuery.Create( nil );
   FQryFeedsUser.Name := 'QryFeedsUser';
   FQryFeedsUser.SQL.Clear;
@@ -1068,16 +1087,37 @@ begin
     SELECT distinct r.FEED_ID, r.FEED_GROUP, r.FEED_NAME, r.TITLE, r.DISPLAY_TEMPLATE
     FROM FEED_NEWS r
     join NEWS n on (n.FEED_ID = r.FEED_ID)
-    join NEWS_CONTEXT_CATEGORY cc on (cc.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_SUBCATEGORY sc on (sc.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_COUNTRY cp on (cp.NEWS_ID = n.NEWS_ID)
-    join NEWS_CONTEXT_LANG cl on (cl.NEWS_ID = n.NEWS_ID)
     where r.STATUS = 'O'
     and r.FEED_GROUP = :FEED_GROUP
-    and cc.CATEGORY_ID = :CATEGORY_ID
-    and sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
-    and cp.COUNTRY_CODE = :COUNTRY_CODE
-    and cl.LANGUAGE_CODE = :LANGUAGE_CODE
+    AND EXISTS (
+            SELECT 1
+            FROM NEWS n
+            WHERE n.FEED_ID = r.FEED_ID
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_CATEGORY cc
+                    WHERE cc.NEWS_ID = n.NEWS_ID
+                      AND cc.CATEGORY_ID = :CATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_SUBCATEGORY sc
+                    WHERE sc.NEWS_ID = n.NEWS_ID
+                      AND sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_COUNTRY cp
+                    WHERE cp.NEWS_ID = n.NEWS_ID
+                      AND cp.COUNTRY_CODE = :COUNTRY_CODE
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_LANG cl
+                    WHERE cl.NEWS_ID = n.NEWS_ID
+                      AND cl.LANGUAGE_CODE = :LANGUAGE_CODE
+              )
+      )
   ''');
 
   FQryFeedsUser.UpdateOptions.RequestLive := True;
