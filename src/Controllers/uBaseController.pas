@@ -83,7 +83,6 @@ type
       aSessionObject: TObject );
     procedure SendEmptyContent( aResponse: TWebResponse );
   public
-    constructor Create;
     destructor Destroy; override;
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); virtual;
@@ -123,11 +122,6 @@ begin
   begin
 
   end;
-end;
-
-constructor TBaseController.Create;
-begin
-  //  FLocation := TConfig.GetInstance.Location; // LOCAT;
 end;
 
 destructor TBaseController.Destroy;

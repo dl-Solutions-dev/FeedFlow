@@ -142,7 +142,7 @@ type
     ///   Suppresion d'une news
     /// </summary>
     function DeleteNews( aConnection: TFDConnection; aNewsId: Integer ): string;
-    function SetContentNews( aConnection: TFDConnection; aNewsId: Integer; aContentText: string ): string;
+    function SetContentNews( aConnection: TFDConnection; aNewsId: Integer; aSummary, aContentText: string ): string;
     /// <summary>
     ///   Lecture du détail d'une news (catégorie, sous-catégorie, ...)
     /// </summary>
@@ -533,16 +533,20 @@ begin
   FQryNews.SQL.Clear;
   FQryNews.SQL.Add( '''
     SELECT NEWS_ID,
-    PUBLICATION_DATE,
-    EXPIRY_DATE,
-    DISPLAY_ORDER,
-    HOLD,
-    NEWS_TITLE,
-    TEXT,
-    FEED_ID,
-    CREATION_DATE,
-    MODIFICATION_DATE
+    n.PUBLICATION_DATE,
+    n.EXPIRY_DATE,
+    n.DISPLAY_ORDER,
+    n.HOLD,
+    n.NEWS_TITLE,
+    n.SUMMARY,
+    n.TEXT,
+    n.FEED_ID,
+    n.CREATION_DATE,
+    n.MODIFICATION_DATE,
+    g.GROUP_TYPE
     FROM NEWS n
+    join FEED_NEWS f on (f.FEED_ID = n.FEED_ID)
+    join GROUPS g on (g.GROUP_ID = f.FEED_GROUP)
     where NEWS_ID = :NEWS_ID
   ''');
 
@@ -594,6 +598,13 @@ begin
     DataSet := FQryNews;
   end;
 
+  with TWideMemoField.Create( FQryNews ) do
+  begin
+    FieldName := 'SUMMARY';
+    BlobType := ftMemo;
+    DataSet := FQryNews;
+  end;
+
   with TIntegerField.Create( FQryNews ) do
   begin
     FieldName := 'FEED_ID';
@@ -609,6 +620,13 @@ begin
   with TSQLTimeStampField.Create( FQryNews ) do
   begin
     FieldName := 'MODIFICATION_DATE';
+    DataSet := FQryNews;
+  end;
+
+  with TWideStringField.Create( FQryNews ) do
+  begin
+    FieldName := 'GROUP_TYPE';
+    Size := 1;
     DataSet := FQryNews;
   end;
 
@@ -722,7 +740,9 @@ begin
   begin
     LQryNews.First;
 
+    Result.AddPair('summary', LQryNews.FieldByName('SUMMARY').AsString);
     Result.AddPair( 'content', LQryNews.FieldByName( 'TEXT' ).AsString );
+    Result.AddPair('GroupType', LQryNews.FieldByName('GROUP_TYPE').AsString);
 
     // On envoi les catégories
     LArray := TJSONArray.Create;
@@ -800,8 +820,8 @@ begin
     ).AsDateTime );
 end;
 
-function TNews.SetContentNews( aConnection: TFDConnection; aNewsId: Integer;
-  aContentText: string ): string;
+function TNews.SetContentNews(aConnection: TFDConnection; aNewsId: Integer;
+    aSummary, aContentText: string): string;
 var
   wQry: TFDQuery;
 begin
@@ -810,6 +830,7 @@ begin
   if not ( wQry.Eof ) then
   begin
     wQry.Edit;
+    wQry.FieldByName( 'SUMMARY' ).AsString := aSummary;
     wQry.FieldByName( 'TEXT' ).AsString := aContentText;
     wQry.Post;
     wQry.Close;

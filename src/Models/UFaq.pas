@@ -8,9 +8,46 @@ uses
   FireDAC.Comp.Client,
   Firedac.Stan.Param,
   Data.DB,
-  System.JSON;
+  System.JSON,
+  System.Generics.Collections;
 
 type
+  TSlide = class( TPersistent )
+  private
+    FSlideNo: Integer;
+    FTitle2: string;
+    FTitle3: string;
+    FTitle1: string;
+    FSummary2: string;
+    FSummary3: string;
+    FSummary1: string;
+    FFAQId1: Integer;
+    FFAQId2: Integer;
+    FFAQId3: Integer;
+
+    procedure SetSlideNo( const Value: Integer );
+    procedure SetFAQId1( const Value: Integer );
+    procedure SetSummary1( const Value: string );
+    procedure SetSummary2( const Value: string );
+    procedure SetSummary3( const Value: string );
+    procedure SetTitle1( const Value: string );
+    procedure SetTitle2( const Value: string );
+    procedure SetTitle3( const Value: string );
+    procedure SetFAQId2( const Value: Integer );
+    procedure SetFAQId3( const Value: Integer );
+  published
+    property SlideNo: Integer read FSlideNo write SetSlideNo;
+    property FAQId1: Integer read FFAQId1 write SetFAQId1;
+    property Title1: string read FTitle1 write SetTitle1;
+    property Summary1: string read FSummary1 write SetSummary1;
+    property FAQId2: Integer read FFAQId2 write SetFAQId2;
+    property Title2: string read FTitle2 write SetTitle2;
+    property Summary2: string read FSummary2 write SetSummary2;
+    property FAQId3: Integer read FFAQId3 write SetFAQId3;
+    property Title3: string read FTitle3 write SetTitle3;
+    property Summary3: string read FSummary3 write SetSummary3;
+  end;
+
   TFaq = class
   private
     FQryFavorites: TFDQuery;
@@ -18,13 +55,16 @@ type
     FQryFAQ: TFDQuery;
     FQrySearch: TFDQuery;
     FQryFAQDetails: TFDQuery;
+    FQryAddVue: TFDQuery;
+    FQryAddReaction: TFDQuery;
+    FMtSlide: TFDMemTable;
   public
     constructor Create;
     destructor Destroy; override;
 
     function GetFavorites( aConnection: TFDConnection; aCategoryId, aSubcategoryId:
       Integer; aCountryCode, aLanguageCode: string; out aIsThereFavorites:
-      Boolean ): TFDQuery;
+      Boolean; out aRecordCount: Integer ): TObjectList<TSlide>;
     /// <summary>
     ///   Retourne la liste des FAQ de la catégorie en fonction des droits de
     ///   l'utilisateur
@@ -52,12 +92,41 @@ type
     function GetFAQCategories( aConnection: TFDConnection; aCategoryId,
       aSubcategoryId: Integer; aCountryCode, aLanguageCode: string; out
       aFirstFeed: Integer ): TFDQuery;
-    function GetFAQDetails( aConnection: TFDConnection; aFAQId: Integer ): TFDQuery;
+    function GetFAQDetails( aConnection: TFDConnection; aFAQId, aUserID: Integer ): TFDQuery;
+
+    procedure AddVue( aConnection: TFDConnection; aFAQId: Integer );
+    procedure AddReaction( aConnection: TFDConnection; aFAQId, aUserId: Integer;
+      aReaction: string );
   end;
 
 implementation
 
 { TFaq }
+
+procedure TFaq.AddReaction( aConnection: TFDConnection; aFAQId,
+  aUserId: Integer; aReaction: string );
+begin
+  FQryAddReaction.Connection := aConnection;
+  FQryAddReaction.ParamByName( 'NEWS_ID' ).AsInteger := aFAQId;
+  FQryAddReaction.ParamByName( 'USER_ID' ).AsInteger := aUserId;
+  if ( aReaction = 'Like' ) then
+  begin
+    FQryAddReaction.ParamByName( 'REACTION' ).AsInteger := 1;
+  end
+  else
+  begin
+    FQryAddReaction.ParamByName( 'REACTION' ).AsInteger := 0;
+  end;
+  FQryAddReaction.ParamByName( 'REACTION_DATE' ).AsDateTime := Now;
+  FQryAddReaction.ExecSQL;
+end;
+
+procedure TFaq.AddVue( aConnection: TFDConnection; aFAQId: Integer );
+begin
+  FQryAddVue.Connection := aConnection;
+  FQryAddVue.ParamByName( 'NEWS_ID' ).AsInteger := aFAQId;
+  FQryAddVue.ExecSQL;
+end;
 
 constructor TFaq.Create;
 begin
@@ -253,14 +322,34 @@ begin
   FQryFAQDetails.SQL.Clear;
   FQryFAQDetails.SQL.Add( '''
     SELECT
-        r.NEWS_ID,
-        r.NEWS_TITLE,
-        r.TEXT
-    FROM NEWS r
-    where NEWS_ID = :NEWS_ID
+        n.NEWS_ID,
+        n.NEWS_TITLE,
+        n.TEXT,
+        COALESCE(r.REACTION, -1) as "REACTION"
+    FROM NEWS n
+    left join NEWS_REACTIONS r on (r.NEWS_ID = n.NEWS_ID and r.USER_ID = :USER_ID)
+    where n.NEWS_ID = :NEWS_ID
   ''');
 
   FQryFAQDetails.UpdateOptions.RequestLive := True;
+
+  FQryAddVue := TFDQuery.Create( nil );
+  FQryAddVue.Name := 'QryAddVue';
+  FQryAddVue.SQL.Clear;
+  FQryAddVue.SQL.Text := '''
+    update NEWS set
+      NB_VIEWS = NB_VIEWS + 1
+    where NEWS_ID = :NEWS_ID
+  ''';
+
+  FQryAddReaction := TFDQuery.Create( nil );
+  FQryAddReaction.Name := 'QryAddReaction';
+  FQryAddReaction.SQL.Clear;
+  FQryAddReaction.SQL.Text := '''
+    update or insert into NEWS_REACTIONS (NEWS_ID, USER_ID, REACTION, REACTION_DATE)
+    values (:NEWS_ID, :USER_ID, :REACTION, :REACTION_DATE)
+    matching (NEWS_ID, USER_ID)
+  ''';
 end;
 
 destructor TFaq.Destroy;
@@ -270,6 +359,8 @@ begin
   FreeAndNil( FQryFAQ );
   FreeAndNil( FQrySearch );
   FreeAndNil( FQryFAQDetails );
+  FreeAndNil( FQryAddVue );
+  FreeAndNil( FQryAddReaction );
 
   inherited;
 end;
@@ -295,12 +386,13 @@ begin
   Result := FQryFAQ;
 end;
 
-function TFaq.GetFAQDetails( aConnection: TFDConnection;
-  aFAQId: Integer ): TFDQuery;
+function TFaq.GetFAQDetails(aConnection: TFDConnection; aFAQId, aUserID:
+    Integer): TFDQuery;
 begin
   FQryFAQDetails.Connection := aConnection;
   FQryFAQDetails.Close;
   FQryFAQDetails.ParamByName( 'NEWS_ID' ).AsInteger := aFAQId;
+  FQryFAQDetails.ParamByName( 'USER_ID' ).AsInteger := aUserID;
   FQryFAQDetails.Open;
 
   Result := FQryFAQDetails;
@@ -308,7 +400,9 @@ end;
 
 function TFaq.GetFavorites( aConnection: TFDConnection; aCategoryId,
   aSubcategoryId: Integer; aCountryCode, aLanguageCode: string; out
-  aIsThereFavorites: Boolean ): TFDQuery;
+  aIsThereFavorites: Boolean; out aRecordCount: Integer ): TObjectList<TSlide>;
+var
+  LSlide: TSlide;
 begin
   FQryFavorites.Connection := aConnection;
   FQryFavorites.Close;
@@ -319,8 +413,85 @@ begin
   FQryFavorites.Open;
 
   aIsThereFavorites := not ( FQryFavorites.Eof );
+  aRecordCount := FQryFavorites.RecordCount;
 
-  Result := FQryFavorites;
+  Result := TObjectList<TSlide>.Create( True );
+
+  var LSlideNo := 0;
+
+  FQryFavorites.First;
+
+  for var i := 1 to aRecordCount div 3 do
+  begin
+    Inc( LSlideNo );
+
+    LSlide := TSlide.Create;
+    LSlide.SlideNo := LSlideNo;
+    Result.Add( LSlide );
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId1 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title1 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
+      LSlide.Summary1 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId2 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title2 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
+      LSlide.Summary2 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId3 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title3 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
+      LSlide.Summary3 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+  end;
+
+  if ( aRecordCount mod 3 > 0 ) then
+  begin
+    Inc( LSlideNo );
+
+    LSlide := TSlide.Create;
+    LSlide.SlideNo := LSlideNo;
+    Result.Add( LSlide );
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId1 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title1 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Summary1 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId2 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title2 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Summary2 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+
+    if not ( FQryFavorites.Eof ) then
+    begin
+      LSlide.FAQId3 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
+      LSlide.Title3 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Summary3 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
+
+      FQryFavorites.Next;
+    end;
+  end;
 end;
 
 function TFaq.GetQuestionsList( aConnection: TFDConnection; aFeedId,
@@ -365,6 +536,58 @@ begin
 
     Result := FQrySearch;
   end;
+end;
+
+{ TSlide }
+
+procedure TSlide.SetFAQId1( const Value: Integer );
+begin
+  FFAQId1 := Value;
+end;
+
+procedure TSlide.SetFAQId2( const Value: Integer );
+begin
+  FFAQId2 := Value;
+end;
+
+procedure TSlide.SetFAQId3( const Value: Integer );
+begin
+  FFAQId3 := Value;
+end;
+
+procedure TSlide.SetSlideNo( const Value: Integer );
+begin
+  FSlideNo := Value;
+end;
+
+procedure TSlide.SetSummary1( const Value: string );
+begin
+  FSummary1 := Value;
+end;
+
+procedure TSlide.SetSummary2( const Value: string );
+begin
+  FSummary2 := Value;
+end;
+
+procedure TSlide.SetSummary3( const Value: string );
+begin
+  FSummary3 := Value;
+end;
+
+procedure TSlide.SetTitle1( const Value: string );
+begin
+  FTitle1 := Value;
+end;
+
+procedure TSlide.SetTitle2( const Value: string );
+begin
+  FTitle2 := Value;
+end;
+
+procedure TSlide.SetTitle3( const Value: string );
+begin
+  FTitle3 := Value;
 end;
 
 end.

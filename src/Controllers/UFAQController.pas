@@ -10,7 +10,9 @@ uses
   Web.Stencils,
   uBaseController,
   uInterfaces,
-  UDMSession;
+  UDMSession,
+  System.Contnrs,
+  System.Generics.Collections;
 
 type
   TFAQController = class( TBaseController )
@@ -33,10 +35,14 @@ type
     procedure SetSearchActive( const Value: Boolean );
     procedure SetSearchValue( const Value: string );
   public
+    constructor Create;
+    destructor Destroy; override;
+
     procedure FAQHome( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure FAQCategory( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure FAQDetails( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure AddVue( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure Reaction( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     /// <summary>
     ///   Initialise les routes exposées par le controller
     /// </summary>
@@ -57,7 +63,6 @@ implementation
 uses
   System.SyncObjs,
   System.IOUtils,
-  System.Generics.Collections,
   System.StrUtils,
   Web.ReqMulti,
   IdHTTP,
@@ -91,16 +96,41 @@ const
 
   { TFAQController }
 
-procedure TFAQController.AddVue(Sender: TObject; Request: TWebRequest;
-  Response: TWebResponse; var Handled: Boolean);
+procedure TFAQController.AddVue( Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean );
+var
+  LFaqId: Integer;
 begin
   logger.Info( 'AddVue' );
   var LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
   begin
+    if not ( TryStrToInt( Request.ContentFields.Values[ 'Faq' ], LFaqId ) ) then
+    begin
+      LFaqId := -1;
+    end;
 
+    var LFAQ := TFaq( GetSessionObject( Request, 'QryFAQ' ) );
+    if not ( Assigned( LFAQ ) ) then
+    begin
+      LFAQ := TFaq.Create;
+      AddSessionObject( Request, 'QryFAQ', LFAQ );
+    end;
+
+    LFAQ.AddVue( LDM.cnxFeedFlow, LFaqId );
   end;
+end;
+
+constructor TFAQController.Create;
+begin
+  //
+end;
+
+destructor TFAQController.Destroy;
+begin
+
+  inherited;
 end;
 
 procedure TFAQController.FAQCategory( Sender: TObject; Request: TWebRequest;
@@ -177,7 +207,7 @@ begin
 
     FWebStencilsProcessor.AddVar(
       'Question',
-      LFAQ.GetFAQDetails( LDM.cnxFeedFlow, LFaqId ),
+      LFAQ.GetFAQDetails( LDM.cnxFeedFlow, LFaqId, 1 ),
       False );
 
     Response.ContentType := 'text/html; charset=UTF-8';
@@ -189,6 +219,8 @@ end;
 
 procedure TFAQController.FAQHome( Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean );
+var
+  LFavoritesCount: Integer;
 begin
   logger.Info( 'FAQHome' );
   var LDM := GetDMSession( Request );
@@ -221,16 +253,19 @@ begin
       AddSessionObject( Request, 'QryFAQ', LFAQ );
     end;
 
-    FWebStencilsProcessor.AddVar(
-      'Favorites',
-      LFAQ.GetFavorites(
+    var LFavorites := LFAQ.GetFavorites(
       LDM.cnxFeedFlow,
       LCategory,
       LSubcategory,
       LCountry,
       LLang,
-      FIsThereFavorites ),
-      False );
+      FIsThereFavorites,
+      LFavoritesCount );
+
+    FWebStencilsProcessor.AddVar(
+      'Favorites',
+      LFavorites,
+      True );
 
     FWebStencilsProcessor.AddVar(
       'Group',
@@ -263,8 +298,35 @@ begin
       TRoute.Create( mtGet, '/FAQ', Self.FAQHome ),
       TRoute.Create( mtGet, '/FAQCategory', Self.FAQCategory ),
       TRoute.Create( mtGet, '/FAQDetails', Self.FAQDetails ),
-      TRoute.Create( mtGet, '/AddVue', Self.AddVue )
+      TRoute.Create( mtPost, '/AddVue', Self.AddVue ),
+      TRoute.Create( mtPost, '/Reaction', Self.Reaction )
       ] );
+end;
+
+procedure TFAQController.Reaction(Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean);
+var
+  LFaqId: Integer;
+begin
+  logger.Info( 'Reaction' );
+  var LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    if not ( TryStrToInt( Request.ContentFields.Values[ 'Faq' ], LFaqId ) ) then
+    begin
+      LFaqId := -1;
+    end;
+
+    var LFAQ := TFaq( GetSessionObject( Request, 'QryFAQ' ) );
+    if not ( Assigned( LFAQ ) ) then
+    begin
+      LFAQ := TFaq.Create;
+      AddSessionObject( Request, 'QryFAQ', LFAQ );
+    end;
+
+    LFAQ.AddReaction( LDM.cnxFeedFlow, LFaqId, 1, Request.ContentFields.Values[ 'Reaction' ] );
+  end;
 end;
 
 procedure TFAQController.SetActualFeed( const Value: Integer );

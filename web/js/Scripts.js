@@ -84,6 +84,7 @@ async function SendContent() {
   idNews = btn.dataset.id;
 
   html= quill.root.innerHTML;
+  htmlSummary = quillSummary.root.innerHTML;
   
   try {
 	const token = localStorage.getItem('jwt');
@@ -109,6 +110,7 @@ async function SendContent() {
 	
 	// Construction du payload
 	const payload = {
+	  summary: htmlSummary,
 	  content: html,       // texte Quill
 	  Category: Category,  // valeur du select1
 	  Subcategory: Subcategory,          // valeur du select2
