@@ -1,0 +1,20 @@
+                    @foreach Question {
+                    <div class="col-md-6 d-flex">
+                        <div class="card-custom mb-4">
+                            <div class="faq-card h-100">
+                                <div class="faq-title">@\Question.News_Title</div>
+                                <div class="faq-summary">
+                                    @\Question.Summary
+                                </div>
+                                <a href="@env.resource/FAQDetails?Faq=@Question.NEWS_ID" 
+									hx-post="/AddVue"
+									hx-vals='{"Faq": "@Question.NEWS_ID"}'
+									hx-trigger="click"
+									hx-swap="none"
+									hx-on::after-request="window.location = this.href"
+									class="faq-link"
+								>Voir le détail →</a>
+                            </div>
+                        </div>
+                    </div>
+					}

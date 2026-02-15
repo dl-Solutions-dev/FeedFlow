@@ -16,6 +16,102 @@ footer {
   color: white;
 }
 
+.search-box-faq {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.search-icon-faq {
+    position: absolute;
+    right: 18px; /* position à droite */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.reaction-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s ease;
+}
+
+.reaction-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* État actif */
+.reaction-btn.active-like {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.reaction-btn.active-dislike {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+/* Empêche les cartes de se casser à la ligne */
+/* Le conteneur du slide doit étirer les enfants */
+.slide-row {
+    align-items: stretch;
+}
+
+/* La card doit pouvoir s’étirer */
+.mini-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 540px;
+    flex-shrink: 0;
+}
+
+/* Le contenu interne doit remplir la hauteur */
+.faq-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ralentir la transition du carrousel */
+.carousel-item {
+    transition: transform 1.5s ease-in-out !important;
+}
+
+#popularFaqCarousel {
+    height: 100%; /* Laisse le contenu définir la hauteur */
+}
+
+
+/* Optionnel : ajuster les flèches */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(1) brightness(0.3);
+}
+
+/* --- VERSION MOBILE --- */
+@media (max-width: 768px) {
+    .mini-card {
+        max-width: 90%;
+        width: 90%;
+    }
+}
+
+
+
 .file-rename-input {
   position: absolute;
   display: none;
@@ -394,8 +490,8 @@ tr.htmx-swapping td {
 
 .popup-content {
   background-color: white;
-  margin: 5% auto;
-  padding: 20px;
+  margin: auto;
+  padding: 10px;
   width: 800px;
   border-radius: 8px;
 }

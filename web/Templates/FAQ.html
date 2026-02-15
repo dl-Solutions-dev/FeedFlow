@@ -1,0 +1,184 @@
+@LayoutPage layouts/mainLayout
+
+		<input type="hidden" name="admin_category" value="hx-Context.Request.Query['admin_category']">
+		<input type="hidden" name="admin_subcategory" value="@admin_subcategory">
+		<input type="hidden" name="admin_country" value="@admin_country">
+		<input type="hidden" name="admin_lang" value="@admin_lang">
+
+		<header class="text-white text-center p-5 mb-4">
+			<h1 class="fw-bold">Bienvenue sur mon site</h1>
+			<p class="lead">Mise en page moderne et responsive</p>
+		</header>
+
+        <div class="container-fluid pb-5">
+            <!-- Zone de recherche -->
+			<form method="GET" action="/FAQ">
+				<div class="row mb-5">
+					<div class="col-lg-8 col-md-10 mx-auto">
+						<div class="search-box-faq d-flex align-items-center position-relative">
+							<input
+								type="text"
+								name="search"
+								class="form-control border-0 bg-transparent pe-5"
+								placeholder="Rechercher une question..." 
+								value="@Form.SearchValue"/>
+
+							<!-- Loupe à droite -->
+							<i class="bi bi-search search-icon"></i>
+						</div>
+					</div>
+				</div>
+			</form>
+			
+			@if (Form.SearchActive <> True) {
+			
+			@if (Form.IsThereFavorites = true) {
+            <!-- Zone questions populaires -->
+            <div id="popularFaqCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+                <h3 class="text-center mb-4 fw-bold">Les questions les plus consultées</h3>
+
+                <div class="carousel-inner">
+
+                    @foreach Favorites {
+                    <div class="carousel-item @if(Loop.SlideNo = 1){ active}">
+                        <div class="slide-row d-flex flex-nowrap justify-content-center gap-4">
+						    @if (Loop.Title1 <> ""){
+                            <div class="card-custom mini-card">
+                                <div class="faq-card">
+                                    <div class="faq-title">@\Loop.Title1</div>
+                                    <div class="faq-summary">
+                                        @\Loop.Summary1
+                                    </div>
+                                    <a href="@env.resource/FAQDetails?Faq=@Loop.FAQId1" 
+										hx-post="/AddVue"
+										hx-vals='{"Faq": "@Loop.FAQId1"}'
+										hx-trigger="click"
+										hx-swap="none"
+										hx-on::after-request="window.location = this.href"
+										class="faq-link"
+									>Voir le détail →</a>
+                                </div>
+                            </div>
+							}
+							@if (Loop.Title2 <> ""){
+                            <div class="card-custom mini-card">
+                                <div class="faq-card">
+                                    <div class="faq-title">@\Loop.Title2</div>
+                                    <div class="faq-summary">@\Loop.Summary2</div>
+                                    <a href="@env.resource/FAQDetails?Faq=@Loop.FAQId2" 
+										hx-post="/AddVue"
+										hx-vals='{"Faq": "@Loop.FAQId2"}'
+										hx-trigger="click"
+										hx-swap="none"
+										hx-on::after-request="window.location = this.href"
+										class="faq-link"
+									>Voir le détail →</a>
+                                </div>
+                            </div>
+							}
+							@if (Loop.Title3 <> ""){
+                            <div class="card-custom mini-card">
+                                <div class="faq-card">
+                                    <div class="faq-title">@\Loop.Title3</div>
+                                    <div class="faq-summary">@\Loop.Summary3</div>
+                                    <a href="@env.resource/FAQDetails?Faq=@Loop.FAQId3" 
+										hx-post="/AddVue"
+										hx-vals='{"Faq": "@Loop.FAQId3"}'
+										hx-trigger="click"
+										hx-swap="none"
+										hx-on::after-request="window.location = this.href"
+										class="faq-link"
+									>Voir le détail →</a>
+                                </div>
+                            </div>
+							}
+                        </div>
+                    </div>
+					}
+                </div>
+
+                <!-- Flèches -->
+                <button
+                    class="carousel-control-prev"
+                    type="button"
+                    data-bs-target="#popularFaqCarousel"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button
+                    class="carousel-control-next"
+                    type="button"
+                    data-bs-target="#popularFaqCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+			}
+			
+            <!-- Onglets -->
+            <ul class="nav nav-tabs justify-content-center mb-4">
+				@foreach group {
+                <li class="nav-item">
+					<button 
+						class="nav-link @if (group.Recno = 1) {active}"
+						data-bs-toggle="tab"
+						data-bs-target="#@group.feed_id"
+						hx-get="/FAQCategory"
+						hx-trigger="click"
+						hx-target="#tab-cat-content"
+						hx-swap="innerHTML"
+						hx-vals='{"category": "@group.feed_id"}'>
+						@group.title
+					</button>
+                </li>
+				}
+            </ul>
+			}
+			@else {
+			<div class="d-flex align-items-center my-4">
+				<hr class="flex-grow-1">
+				<span class="px-3 fw-semibold text-muted">
+					Résultats de votre recherche
+				</span>
+				<hr class="flex-grow-1">
+			</div>
+			}
+			
+            <!-- Contenu -->
+            <div class="col-lg-8 mx-auto detail-container">
+                <div class="row g-4" id="tab-cat-content">
+                    <!-- La grille -->
+						
+                    @foreach Question {
+                    <div class="col-md-6 d-flex">
+                        <div class="card-custom mb-4">
+                            <div class="faq-card h-100">
+                                <div class="faq-title">@\Question.News_Title</div>
+                                <div class="faq-summary">
+                                    @\Question.Summary
+                                </div>
+                                <a href="@env.resource/FAQDetails?Faq=@Question.NEWS_ID" 
+									hx-post="/AddVue"
+									hx-vals='{"Faq": "@Question.NEWS_ID"}'
+									hx-trigger="click"
+									hx-swap="none"
+									hx-on::after-request="window.location = this.href"
+									class="faq-link"
+								>Voir le détail →</a>
+                            </div>
+                        </div>
+                    </div>
+					}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <h4 class="fw-bold mb-3">Vous n’avez pas trouvé votre réponse ?</h4>
+            <p class="text-muted mb-4">Notre équipe est là pour vous aider rapidement.</p>
+
+            <a href="#" class="btn btn-primary btn-lg px-4 py-3 shadow-sm premium-cta"> Contacter le support </a>
+        </div>
+
+        <script src="@env.resource/static/js/ScriptsFAQ.js"></script>

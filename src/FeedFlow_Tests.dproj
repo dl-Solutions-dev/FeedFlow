@@ -158,6 +158,8 @@
         <DCCReference Include="Infrastructure\Routing\UControllersRegistry.pas"/>
         <DCCReference Include="Infrastructure\Config\Utils.Config.pas"/>
         <DCCReference Include="Models\UGroups.pas"/>
+        <DCCReference Include="Controllers\UFAQController.pas"/>
+        <DCCReference Include="Models\UFaq.pas"/>
         <None Include="Win64\Debug\Templates\FeelsTable.html"/>
         <None Include="..\README.md"/>
         <BuildConfiguration Include="Base">

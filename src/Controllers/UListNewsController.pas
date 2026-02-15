@@ -1024,7 +1024,7 @@ procedure TListENewsController.SaveContentNews( Sender: TObject;
 var
   LDM: TDMSession;
   LJsonObj: TJSONObject;
-  LContent: string;
+  LContent, LSummary: string;
   LArrayCategorie,
     LArraySousCategorie,
     LArrayPays,
@@ -1046,6 +1046,7 @@ begin
         LJsonObj := TJSONObject.ParseJSONValue( Request.Content ) as TJSONObject;
         try
           LContent := LJsonObj.GetValue<string>( 'content' );
+          LSummary := LJsonObj.GetValue<string>( 'summary' );
 
           LArrayCategorie := LJsonObj.GetValue<TJSONArray>( 'Category' );
           LArraySousCategorie := LJsonObj.GetValue<TJSONArray>( 'Subcategory' );
@@ -1087,7 +1088,7 @@ begin
             AddSessionObject( Request, 'QryNewsLanguage', LLanguages );
           end;
 
-          LNews.SetContentNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'IdNews' ].ToInteger, LContent );
+          LNews.SetContentNews( LDM.cnxFeedFlow, Request.QueryFields.Values[ 'IdNews' ].ToInteger, LSummary, LContent );
 
           // on Sauvegarde le lien avec les catégories
           LCategories.DeleteCategories( LDM.cnxFeedFlow, StrToInt( Request.QueryFields.Values[ 'IdNews' ] ) );

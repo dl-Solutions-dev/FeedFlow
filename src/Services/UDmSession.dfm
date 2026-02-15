@@ -1,9 +1,8 @@
 object DmSession: TDmSession
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
-  Height = 754
-  Width = 875
-  PixelsPerInch = 192
+  Height = 377
+  Width = 438
   object cnxFeedFlow: TFDConnection
     Params.Strings = (
       'Database=FeedFlow'
@@ -15,8 +14,8 @@ object DmSession: TDmSession
       'CharacterSet=UNICODE_FSS')
     Connected = True
     LoginPrompt = False
-    Left = 291
-    Top = 100
+    Left = 146
+    Top = 50
   end
   object MtUrls: TFDMemTable
     FetchOptions.AssignedValues = [evMode]
@@ -26,8 +25,8 @@ object DmSession: TDmSession
     UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
-    Left = 296
-    Top = 224
+    Left = 148
+    Top = 112
     object MtUrlsURL: TStringField
       FieldName = 'URL'
       Size = 500

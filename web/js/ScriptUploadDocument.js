@@ -5,12 +5,29 @@ const progressDocumentBar = document.getElementById('progressDocumentBar');
 
 // Initialisation de Quill
 let quill;
+let quillSummary;
 
 const Font = Quill.import('formats/font');
 Font.whitelist = ['sans-serif', 'serif', 'monospace', 'arial', 'times', 'comic'];
 Quill.register(Font, true);
 
 quill = new Quill('#editor-container', {
+  theme: 'snow',
+  modules: {
+	toolbar: [
+	  [{ font: Font.whitelist }],
+	  ['bold', 'italic', 'underline'],
+	  [{ 'align': [] }],
+	  [{ list: 'ordered' }, { list: 'bullet' }],
+	  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+	  [{ 'color': [] }, { 'background': [] }],
+	  ['link', 'image', 'video'],
+	  ['clean']
+	]
+  }
+});
+
+quillSummary = new Quill('#editor-Summary-container', {
   theme: 'snow',
   modules: {
 	toolbar: [
@@ -55,7 +72,7 @@ async function openPopup(id) {
   btn.dataset.id = id;
 
   // Affichage du popup
-  document.getElementById("overlay").style.display = "block";
+ // document.getElementById("overlay").style.display = "block";
   document.getElementById("popup").style.display = "block";
   document.body.style.overflow = "hidden";
 
@@ -97,6 +114,12 @@ async function openPopup(id) {
 	});
     const data = await response.json();
 
+	if (data.summary && data.summary.trim() !== "") {
+      quillSummary.clipboard.dangerouslyPasteHTML(data.summary);
+    } else {
+      quillSummary.setText("");
+    }
+	
     if (data.content && data.content.trim() !== "") {
       quill.clipboard.dangerouslyPasteHTML(data.content);
     } else {
@@ -121,6 +144,18 @@ async function openPopup(id) {
 	const selectedLang = data.Lang.map(String);
 	tsLang.setValue(selectedLang);
 	
+	console.log(data.GroupType);
+	
+	if (data.GroupType != "F"){
+		console.log(document.getElementById('titre-summary'));
+
+		document.getElementById('editor-Summary-container').style.display = "none";
+		document.querySelector('#editor-Summary-container').previousElementSibling.style.display = "none";
+		document.getElementById('titre-summary').classList.add('d-none');
+		document.getElementById('titre-content').classList.add('d-none');
+		document.getElementById('editor-container').style.height="400px";
+	} 
+	
 	//document.getElementById("select2").value = data.TypePartner;
 	//document.getElementById("select3").value = data.Country;
 	//document.getElementById("select4").value = data.Lang;
@@ -132,7 +167,7 @@ async function openPopup(id) {
 
 function closePopup() {
   document.getElementById("popup").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
+//  document.getElementById("overlay").style.display = "none";
   document.body.style.overflow = ""; // réactive le scroll
 }
 
