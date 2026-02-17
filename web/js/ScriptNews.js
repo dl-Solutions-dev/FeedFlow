@@ -4,5 +4,5 @@ new TomSelect("#pays",   { plugins: ['remove_button'], maxItems: null });
 new TomSelect("#langues",   { plugins: ['remove_button'], maxItems: null });
 
 document.getElementById("btnPrec").addEventListener("click", () => {
-  window.location.href = "./FeedsList?scope=Page";
+  window.location.href = "./FeedsList?scope=Page&KeepContext=O";
 });

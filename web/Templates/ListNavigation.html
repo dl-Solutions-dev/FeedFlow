@@ -9,7 +9,7 @@
 				<a class="page-link" href="#"
 					hx-trigger="click"
 					hx-post="@env.resource/@pages.ActionPagination?Page=@page.NoPage@if (pages.UrlParameters <> '') {&@pages.UrlParameters} "
-					hx-include=[name="LinesPerPage"]
+					hx-include="[name='LinesPerPage'], [name='Groups'], [name='search']"
 					hx-target="closest #Navigation"
 					hx-swap="innerHTML"
 				>
@@ -33,7 +33,7 @@
 			name="LinesPerPage"
 			hx-trigger="change"
 			hx-post="@env.resource/@pages.ActionPagination?Session=@App.SessionNo@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
-			hx-include="[name='LinesPerPage'], [name='search']"
+			hx-include="[name='LinesPerPage'], [name='Groups'], [name='search']"
 			hx-target="closest #Navigation"
 			hx-swap="outerHTML"
 		>
@@ -44,7 +44,29 @@
 		</select>
       <span class="input-group-text">Lignes/pages</span>
     </div>
-
+ 
+	@if (pages.ShowGroupSelect) {
+    <!-- Sélecteur de groupe -->
+    <div class="input-group" style="max-width: 250px;">
+        <span class="input-group-text">Groupe</span>
+		<select 
+			class="form-select" 
+			aria-label="Groupe de news" 
+			id="Groups"
+			name="Groups"
+			hx-trigger="change"
+			hx-post="@env.resource/@pages.ActionPagination?Session=@App.SessionNo@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
+			hx-include="[name='LinesPerPage'], [name='Groups'], [name='search']"
+			hx-target="closest #Navigation"
+			hx-swap="outerHTML"
+		>
+			@foreach ( var Group in Groups) {
+			<option value="@Group.GROUP_ID" @if (Group.GROUP_ID = pages.GROUPID) { selected }>@Group.GROUP_NAME</option>
+			}
+		</select>
+    </div>
+	}
+	
     <!-- Champ de recherche -->
     <div class="input-group" style="max-width: 250px;">
 		<span class="input-group-text">
@@ -57,7 +79,7 @@
 			value="@pages.Search"
 			hx-trigger="input changed delay:1s"
 			hx-post="@env.resource/@pages.ActionPagination?LinesPerPage=@pages.LinesPerPage&SearchChanged=Y@if (pages.UrlParameters <> '') {&@pages.UrlParameters}"
-			hx-include="[name='search']"
+			hx-include="[name='LinesPerPage'], [name='Groups'], [name='search']"
 			hx-target="closest #Navigation"
 			hx-swap="outerHTML"
 		>

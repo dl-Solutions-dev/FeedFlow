@@ -6,12 +6,27 @@
 	<div class="row h-100 flex-nowrap">
 		<div class="col flex-grow-1 bg-light p-3">
 			<!-- Popup éditeur -->
-			<div id="overlay" class="overlay"></div>
 			<div id="popup" class="popup">
 			  <div class="popup-content">
 				<span class="close" onclick="closePopup()">&times;</span>
 				
-				<div id="editor-container" style="height: 400px;"></div>
+				<div class="d-flex align-items-center my-4" id="titre-summary">
+					<hr class="flex-grow-1">
+					<span class="px-3 fw-semibold text-muted">
+						Résumé
+					</span>	
+					<hr class="flex-grow-1">
+				</div>
+				<div id="editor-Summary-container" style="height: 100px;"></div>
+				
+				<div class="d-flex align-items-center my-4" id="titre-content">
+					<hr class="flex-grow-1">
+					<span class="px-3 fw-semibold text-muted">
+						Détails de la réponse
+					</span>
+					<hr class="flex-grow-1">
+				</div>
+				<div id="editor-container" style="height: 300px;"></div>
 				
 				<input
 				  id="file-rename-input"

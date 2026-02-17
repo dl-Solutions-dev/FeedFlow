@@ -3,13 +3,13 @@
         <ProjectGuid>{972CBFE9-EFD0-4624-8759-AF70A5CCEE02}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="FeedFlow_Tests.dproj">
+        <Projects Include="..\Tests\FeedFlow.tests.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="FeedFlow.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\Tests\FeedFlow.tests.dproj">
+        <Projects Include="FeedFlow_Tests.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -20,14 +20,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="FeedFlow_Tests">
-        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj"/>
+    <Target Name="FeedFlow_tests">
+        <MSBuild Projects="FeedFlow_Tests.dproj"/>
     </Target>
-    <Target Name="FeedFlow_Tests:Clean">
-        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj" Targets="Clean"/>
+    <Target Name="FeedFlow_tests:Clean">
+        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="FeedFlow_Tests:Make">
-        <MSBuild Projects="..\Tests\FeedFlow.tests.dproj" Targets="Make"/>
+    <Target Name="FeedFlow_tests:Make">
+        <MSBuild Projects="FeedFlow_Tests.dproj" Targets="Make"/>
     </Target>
     <Target Name="FeedFlow">
         <MSBuild Projects="FeedFlow.dproj"/>
@@ -39,13 +39,13 @@
         <MSBuild Projects="FeedFlow.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="FeedFlow_Tests;FeedFlow;FeedFlow_tests"/>
+        <CallTarget Targets="FeedFlow_tests;FeedFlow;FeedFlow_Tests"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FeedFlow_Tests:Clean;FeedFlow:Clean;FeedFlow_tests:Clean"/>
+        <CallTarget Targets="FeedFlow_tests:Clean;FeedFlow:Clean;FeedFlow_Tests:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FeedFlow_Tests:Make;FeedFlow:Make;FeedFlow_tests:Make"/>
+        <CallTarget Targets="FeedFlow_tests:Make;FeedFlow:Make;FeedFlow_Tests:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

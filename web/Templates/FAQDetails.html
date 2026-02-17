@@ -1,0 +1,71 @@
+@LayoutPage layouts/mainLayout
+
+		<header class="text-white text-center p-5 mb-4">
+			<h1 class="fw-bold">Bienvenue sur mon site</h1>
+			<p class="lead">Mise en page moderne et responsive</p>
+		</header>
+		
+		<div class="container-fluid pb-5">
+            <div class="col-lg-8 mx-auto detail-container">
+                <div class="card-custom mb-4">
+                    <!-- Titre -->
+                    <h1 class="detail-title">@\Question.news_title</h1>
+					<p></p>
+                    <!-- Contenu détaillé -->
+                    <div class="detail-content">
+                       @\Question.Text 
+                    </div>
+
+                    <!-- Réactions -->
+
+                    <div class="reaction-box d-flex justify-content-center gap-4 mt-4">
+                        <button 
+						    hx-post="/Reaction"
+							hx-vals='{"Faq": "@Question.NEWS_ID", "Reaction": "Like"}'
+							hx-trigger="click"
+							hx-swap="none"
+							class="reaction-btn btn btn-outline-secondary @if (Question.reaction = 1){active-like}" 
+							id="likeBtn"
+						>
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </button>
+
+                        <button 
+						    hx-post="/Reaction"
+							hx-vals='{"Faq": "@Question.NEWS_ID", "Reaction": "Unlike"}'
+							hx-trigger="click"
+							hx-swap="none"
+							class="reaction-btn btn btn-outline-secondary @if (Question.reaction = 0){active-dislike}" 
+							id="dislikeBtn"
+						>
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </button>
+                    </div>
+
+                    <p id="reactionMessage" class="text-center mt-3 text-muted"></p>
+                </div>
+
+                <!-- CTA -->
+                <div class="text-center mt-5">
+                    <a href="#" class="btn btn-primary btn-lg px-4 py-3 premium-cta" onclick="window.history.back();"> Retour à la FAQ </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const likeBtn = document.getElementById("likeBtn");
+            const dislikeBtn = document.getElementById("dislikeBtn");
+            const msg = document.getElementById("reactionMessage");
+
+            likeBtn.addEventListener("click", () => {
+                likeBtn.classList.add("active-like");
+                dislikeBtn.classList.remove("active-dislike");
+                msg.textContent = "Merci pour votre retour !";
+            });
+
+            dislikeBtn.addEventListener("click", () => {
+                dislikeBtn.classList.add("active-dislike");
+                likeBtn.classList.remove("active-like");
+                msg.textContent = "Merci, nous allons améliorer cette réponse.";
+            });
+        </script>

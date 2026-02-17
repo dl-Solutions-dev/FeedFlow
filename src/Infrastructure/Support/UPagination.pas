@@ -60,7 +60,7 @@ type
     FLast: Boolean;
     FFirst: Boolean;
     FIsActualPge: Boolean;
-//    FPagination: TPagination;
+    //    FPagination: TPagination;
     FIsClickable: Boolean;
     FActualPage: Integer;
 
@@ -71,9 +71,9 @@ type
     procedure SetText( const Value: string );
     procedure SetFirst( const Value: Boolean );
     procedure SetLast( const Value: Boolean );
-//    procedure SetPagination( const Value: TPagination );
+    //    procedure SetPagination( const Value: TPagination );
     procedure SetIsClickable( const Value: Boolean );
-    procedure SetActualPage(const Value: Integer);
+    procedure SetActualPage( const Value: Integer );
   public
     /// <summary>
     ///   N° de la page
@@ -104,7 +104,7 @@ type
     ///   pages)
     /// </summary>
     property IsClickable: Boolean read GetIsClickable write SetIsClickable;
-//    property Pagination: TPagination read FPagination write SetPagination;
+    //    property Pagination: TPagination read FPagination write SetPagination;
   end;
 
   /// <summary>
@@ -112,7 +112,7 @@ type
   /// </summary>
   TPagination = class( TSerializableClass )
   private
-    FPagesList: TObjectList< TPage >;
+    FPagesList: TObjectList<TPage>;
     FActualPage: Integer;
     FLinesPerPage: Integer;
     FActionList: string;
@@ -120,6 +120,11 @@ type
     FSearch: string;
     FNbTabs: SmallInt;
     FUrlParameters: string;
+    /// <summary>
+    ///   Id du groupe affiché
+    /// </summary>
+    FGroupId: Integer;
+    FShowGroupSelect: Boolean;
 
     /// <summary>
     ///   Génère les page numérotées (si le nombre de pages total est
@@ -135,13 +140,15 @@ type
     procedure PartialList( aNbPages: SmallInt );
 
     procedure SetActualPage( const Value: Integer );
-    procedure SetPagesList( const Value: TObjectList< TPage > );
+    procedure SetPagesList( const Value: TObjectList<TPage> );
     procedure SetLinesPerPage( const Value: Integer );
     procedure SetActionList( const Value: string );
     procedure SetActionPagination( const Value: string );
     procedure SetSearch( const Value: string );
     procedure SetNbTabs( const Value: SmallInt );
     procedure SetUrlParameters( const Value: string );
+    procedure SetGroupId( const Value: Integer );
+    procedure SetShowGroupSelect( const Value: Boolean );
   public
     constructor Create;
     destructor Destroy; override;
@@ -149,7 +156,8 @@ type
     /// <summary>
     ///   Génération de la liste de pagination
     /// </summary>
-    procedure GeneratePagesList( NbRecords, NbPerPage, aActualPage: SmallInt; aUrlParameters, aSearch, aActionList, aActionPagination: string );
+    procedure GeneratePagesList( NbRecords, NbPerPage, aActualPage: SmallInt; aUrlParameters, aSearch, aActionList,
+      aActionPagination: string; aShowGrpoupSelect: Boolean = False );
 
     property ActionList: string read FActionList write SetActionList;
     /// <summary>
@@ -167,7 +175,7 @@ type
     /// <summary>
     ///   Objectlist contenant la liste des pages
     /// </summary>
-    property PagesList: TObjectList< TPage > read FPagesList write SetPagesList;
+    property PagesList: TObjectList<TPage> read FPagesList write SetPagesList;
     /// <summary>
     ///   Indique la recherche éventuelle de l'utilisateur
     /// </summary>
@@ -180,6 +188,11 @@ type
     ///   Permet d'ajouter des parramètres à l'action appelée
     /// </summary>
     property UrlParameters: string read FUrlParameters write SetUrlParameters;
+    /// <summary>
+    ///   Id du groupe affiché
+    /// </summary>
+    property GroupId: Integer read FGroupId write SetGroupId;
+    property ShowGroupSelect: Boolean read FShowGroupSelect write SetShowGroupSelect;
   end;
 
 implementation
@@ -196,7 +209,7 @@ begin
   Result := FText <> '...';
 end;
 
-procedure TPage.SetActualPage(const Value: Integer);
+procedure TPage.SetActualPage( const Value: Integer );
 begin
   FActualPage := Value;
 end;
@@ -235,8 +248,9 @@ end;
 
 constructor TPagination.Create;
 begin
-  FPagesList := TObjectList< TPage >.Create;
+  FPagesList := TObjectList<TPage>.Create;
   FNbTabs := 10;
+  FShowGroupSelect := True;
 end;
 
 destructor TPagination.Destroy;
@@ -261,8 +275,9 @@ begin
   end;
 end;
 
-procedure TPagination.GeneratePagesList( NbRecords, NbPerPage,
-  aActualPage: SmallInt; aUrlParameters, aSearch, aActionList, aActionPagination: string );
+procedure TPagination.GeneratePagesList( NbRecords, NbPerPage, aActualPage:
+  SmallInt; aUrlParameters, aSearch, aActionList, aActionPagination: string;
+  aShowGrpoupSelect: Boolean = False );
 var
   LNbPages: SmallInt;
 begin
@@ -272,6 +287,7 @@ begin
   FActualPage := aActualPage;
   FSearch := aSearch;
   FUrlParameters := aUrlParameters;
+  FShowGroupSelect := aShowGrpoupSelect;
 
   LNbPages := ( NbRecords div NbPerPage );
   if ( NbRecords mod NbPerPage > 0 ) then
@@ -404,6 +420,11 @@ begin
   FActualPage := Value;
 end;
 
+procedure TPagination.SetGroupId( const Value: Integer );
+begin
+  FGroupId := Value;
+end;
+
 procedure TPagination.SetLinesPerPage( const Value: Integer );
 begin
   FLinesPerPage := Value;
@@ -414,7 +435,7 @@ begin
   FNbTabs := Value;
 end;
 
-procedure TPagination.SetPagesList( const Value: TObjectList< TPage > );
+procedure TPagination.SetPagesList( const Value: TObjectList<TPage> );
 begin
   FPagesList := Value;
 end;
@@ -424,9 +445,15 @@ begin
   FSearch := Value;
 end;
 
+procedure TPagination.SetShowGroupSelect( const Value: Boolean );
+begin
+  FShowGroupSelect := Value;
+end;
+
 procedure TPagination.SetUrlParameters( const Value: string );
 begin
   FUrlParameters := Value;
 end;
 
 end.
+

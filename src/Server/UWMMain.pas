@@ -236,6 +236,7 @@ begin
 
   if ( Request.PathInfo <> '/' )
     and ( Request.PathInfo.ToLower <> '/login' )
+    and ( Request.PathInfo.ToLower <> '/health' )
     and ( Request.PathInfo.ToLower <> '/favicon.ico' )
     and not ( Request.PathInfo.Contains( '/static', True ) )
     and not ( ValidToken( Request, False, True, Token )

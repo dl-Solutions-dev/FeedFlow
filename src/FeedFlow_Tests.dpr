@@ -69,7 +69,9 @@ uses
   ULanguages in 'Models\ULanguages.pas',
   UControllersRegistry in 'Infrastructure\Routing\UControllersRegistry.pas',
   Utils.Config in 'Infrastructure\Config\Utils.Config.pas',
-  UGroups in 'Models\UGroups.pas';
+  UGroups in 'Models\UGroups.pas',
+  UFAQController in 'Controllers\UFAQController.pas',
+  UFaq in 'Models\UFaq.pas';
 
 {$R *.res}
 
