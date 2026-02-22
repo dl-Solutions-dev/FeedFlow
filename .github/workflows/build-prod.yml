@@ -115,3 +115,12 @@ jobs:
             src\Server\*.pas ^
             src\Services\*.pas
       
+      - name: Add AssetForge to PATH
+        shell: cmd
+        run: |
+          echo C:\Users\danyleblanc\Documents\DL-Projets\AssetForge\src\Win64\Release>> %GITHUB_PATH%
+          
+      - name: Assets hashing
+        shell: cmd
+        run: |
+          AssetForge --Prod --ci -r web\ -d Output\web
