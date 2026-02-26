@@ -1,3 +1,39 @@
+(* C2PP
+  ***************************************************************************
+
+  Feed Flow
+
+    Copyright 2026 - Dany Leblanc under AGPL 3.0 license.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+  OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+  ***************************************************************************
+
+  This program is a demo of the possibilities offered by the new WebStencils
+  framework, combined with the HTMX JavaScript library.
+
+  ***************************************************************************
+
+  Author(s) :
+  Dany Leblanc
+
+  Project site :
+  https://github.com/dl-Solutions-dev/FeedFlow
+
+  ***************************************************************************
+  File last update : 2026-02-22T00:09:47.316+01:00
+  Signature : ca8b4634e54b7501c61c597e074bf721a1214b2f
+  ***************************************************************************
+*)
+
 unit UFAQController;
 
 interface
