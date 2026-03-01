@@ -115,7 +115,8 @@ uses
   Utils.Token,
   UFeeds,
   UNews,
-  UControllersRegistry;
+  UControllersRegistry,
+  UFaq;
 
 const
   /// <summary>
@@ -141,63 +142,99 @@ begin
   LDM := GetDMSession( Request );
   if Assigned( LDM ) then
   begin
-    if ( FWebmodule.Token.Role = 'ADMIN' ) then
-    begin
+    LDM.Critical.Acquire;
+    try
+      if ( FWebmodule.Token.Role = 'ADMIN' ) then
+      begin
+        LDM.MtUrls.Open;
+        LDM.MtUrls.Insert;
+        LDM.MtUrlsOrdre.Value := 1;
+        LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
+        LDM.MtUrlsImageFileName.Value := 'parametre.png';
+        if FWebmodule.Token.Lang = 'fr' then
+        begin
+          LDM.MtUrlsAlt.Value := 'Paramètres';
+        end
+        else
+        begin
+          LDM.MtUrlsAlt.Value := 'Setup';
+        end;
+        LDM.MtUrls.Post;
+      end;
+
+      var LCategory := 0;
+      var LSubcategory := 0;
+      var LCountry := '';
+      var LLang := '';
+
+      if ( FWebmodule.Token.Role = 'ADMIN' ) and ( Request.QueryFields.Values[ 'admin_category' ] <> '' ) then
+      begin
+        LCategory := Request.QueryFields.Values[ 'admin_category' ].ToInteger;
+        LSubcategory := Request.QueryFields.Values[ 'admin_subcategory' ].ToInteger;
+        LCountry := Request.QueryFields.Values[ 'admin_country' ];
+        LLang := Request.QueryFields.Values[ 'admin_lang' ];
+      end;
+
+      var LDocuments := TFeedsUser( GetSessionObject( Request, 'qryCountDocuments' ) );
+      if not ( Assigned( LDocuments ) ) then
+      begin
+        LDocuments := TFeedsUser.Create;
+        AddSessionObject( Request, 'qryCountDocuments', LDocuments );
+      end;
+
+      if LDocuments.ExistFeedsUser( LDM.cnxFeedFlow, 2, LCategory, LSubcategory, LCountry, LLang ) then
+      begin
+        LDM.MtUrls.Open;
+        LDM.MtUrls.Insert;
+        LDM.MtUrlsOrdre.Value := 2;
+        LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2' + if ( LCategory <> 0 ) then
+          '&admin_category=' + LCategory.ToString + '&admin_subcategory=' + LSubcategory.ToString + '&admin_country=' + LCountry
+           +
+        '&admin_lang=' + LLang else '';
+        LDM.MtUrlsImageFileName.Value := 'documents.png';
+        LDM.MtUrlsAlt.Value := 'Documents';
+        LDM.MtUrls.Post;
+      end;
+
+      var LFAQ := TFaq( GetSessionObject( Request, 'qryCountFAQ' ) );
+      if not ( Assigned( LFAQ ) ) then
+      begin
+        LFAQ := TFaq.Create;
+        AddSessionObject( Request, 'qryCountFAQ', LFAQ );
+      end;
+
+      if LFAQ.ExistsFAQ( LDM.cnxFeedFlow, LCategory, LSubcategory, LCountry, LLang ) then
+      begin
+        LDM.MtUrls.Open;
+        LDM.MtUrls.Insert;
+        LDM.MtUrlsOrdre.Value := 3;
+        LDM.MtUrlsURL.Value := './FAQ' + if ( LCategory <> 0 ) then
+          '?admin_category=' + LCategory.ToString + '&admin_subcategory=' + LSubcategory.ToString + '&admin_country=' + LCountry
+        +
+          '&admin_lang=' + LLang else '';
+        LDM.MtUrlsImageFileName.Value := 'documents.png';
+        LDM.MtUrlsAlt.Value := 'FAQ';
+        LDM.MtUrls.Post;
+      end;
+
       LDM.MtUrls.Open;
       LDM.MtUrls.Insert;
-      LDM.MtUrlsOrdre.Value := 1;
-      LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
-      LDM.MtUrlsImageFileName.Value := 'parametre.png';
-      if FWebmodule.Token.Lang = 'fr' then
-      begin
-        LDM.MtUrlsAlt.Value := 'Paramètres';
-      end
-      else
-      begin
-        LDM.MtUrlsAlt.Value := 'Setup';
-      end;
+      LDM.MtUrlsOrdre.Value := 4;
+      LDM.MtUrlsURL.Value := './Logout';
+      LDM.MtUrlsImageFileName.Value := 'se-deconnecter.png';
+      LDM.MtUrlsAlt.Value := 'Logout';
       LDM.MtUrls.Post;
+
+      LDM.MtUrls.IndexFieldNames := 'Order';
+
+      FWebStencilsProcessor.AddVar( 'Urls', LDM.MtUrls, False );
+
+      Response.Content := RenderTemplate( TMP_APPS, Request );
+
+      LDM.MtUrls.Close;
+    finally
+      LDM.Critical.Release;
     end;
-
-    LDM.MtUrls.Open;
-    LDM.MtUrls.Insert;
-    LDM.MtUrlsOrdre.Value := 2;
-    LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2';
-    LDM.MtUrlsImageFileName.Value := 'documents.png';
-    LDM.MtUrlsAlt.Value := 'Documents';
-    LDM.MtUrls.Post;
-
-    LDM.MtUrls.Open;
-    LDM.MtUrls.Insert;
-    LDM.MtUrlsOrdre.Value := 3;
-    LDM.MtUrlsURL.Value := './FAQ';
-    LDM.MtUrlsImageFileName.Value := 'documents.png';
-    LDM.MtUrlsAlt.Value := 'FAQ';
-    LDM.MtUrls.Post;
-
-    LDM.MtUrls.Open;
-    LDM.MtUrls.Insert;
-    LDM.MtUrlsOrdre.Value := 4;
-    LDM.MtUrlsURL.Value := './Logout';
-    LDM.MtUrlsImageFileName.Value := 'se-deconnecter.png';
-    LDM.MtUrlsAlt.Value := 'Logout';
-    LDM.MtUrls.Post;
-
-    //      LDM.MtUrls.Open;
-    //      LDM.MtUrls.Insert;
-    //      LDM.MtUrlsOrdre.Value := 3;
-    //      LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
-    //      LDM.MtUrlsImageFileName.Value := 'parametre.png';
-    //      LDM.MtUrlsAlt.Value := 'Paramètres';
-    //      LDM.MtUrls.Post;
-
-    LDM.MtUrls.IndexFieldNames := 'Order';
-
-    FWebStencilsProcessor.AddVar( 'Urls', LDM.MtUrls, False );
-
-    Response.Content := RenderTemplate( TMP_APPS, Request );
-
-    LDM.MtUrls.Close;
   end;
 end;
 
@@ -232,23 +269,24 @@ begin
 
       Logger.Info( 'ShowNews, LIdGroup : ' + LIdGroup.ToString );
 
-      //        LDM.QryFeedsUser.ParamByName( 'FEED_GROUP' ).AsInteger := LIdGroup;
-      //        LDM.QryFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := FWebmodule.Token.Country;
-      //        LDM.QryFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := FWebmodule.Token.Lang;
-      //        LDM.QryFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := FWebmodule.Token.Category.ToInteger;
-      //        LDM.QryFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := FWebmodule.Token.SubCatgegory.ToInteger;
-      //        LDM.QryFeedsUser.Open;
+      var LCategory := FWebmodule.Token.Category.ToInteger;
+      var LSubcategory := FWebmodule.Token.SubCatgegory.ToInteger;
+      var LCountry := FWebmodule.Token.Country;
+      var LLang := FWebmodule.Token.Lang;
 
-      FWebStencilsProcessor.AddVar( 'DocumentsList',
-        LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LIdGroup, FWebmodule.Token.Category.ToInteger,
-        FWebmodule.Token.SubCatgegory.ToInteger,
-        FWebmodule.Token.Country, FWebmodule.Token.Lang ),
-        False );
+      if ( FWebmodule.Token.Role = 'ADMIN' ) and ( Request.QueryFields.Values[ 'admin_category' ] <> '' ) then
+      begin
+        LCategory := Request.QueryFields.Values[ 'admin_category' ].ToInteger;
+        LSubcategory := Request.QueryFields.Values[ 'admin_subcategory' ].ToInteger;
+        LCountry := Request.QueryFields.Values[ 'admin_country' ];
+        LLang := Request.QueryFields.Values[ 'admin_lang' ];
+      end;
+
+      FWebStencilsProcessor.AddVar( 'DocumentsList', LFeedsUser.GetFeedsUser( LDM.cnxFeedFlow, LIdGroup, LCategory, LSubCategory,
+          LCountry, LLang ), False );
 
       Response.ContentType := 'text/html; charset=UTF-8';
       Response.Content := RenderTemplate( TMP_HOME_DOCUMENTS, Request );
-
-      //        LDM.QryFeedsUser.Close;
     finally
       LDM.Critical.Release;
     end;

@@ -57,11 +57,14 @@ type
     FQryFAQDetails: TFDQuery;
     FQryAddVue: TFDQuery;
     FQryAddReaction: TFDQuery;
+    FQryCountFAQ: TFDQuery;
     FMtSlide: TFDMemTable;
   public
     constructor Create;
     destructor Destroy; override;
 
+    function ExistsFAQ( aConnection: TFDConnection; aCategoryId, aSubcategoryId: Integer; aCountryCode,
+      aLanguageCode: string ): Boolean;
     function GetFavorites( aConnection: TFDConnection; aCategoryId, aSubcategoryId:
       Integer; aCountryCode, aLanguageCode: string; out aIsThereFavorites:
       Boolean; out aRecordCount: Integer ): TObjectList<TSlide>;
@@ -315,6 +318,49 @@ begin
     ORDER BY r.FEED_ID;
   ''');
 
+  FQryCountFAQ := TFDQuery.Create( nil );
+  FQryCountFAQ.Name := 'QryCountFAQ';
+  FQryCountFAQ.SQL.Clear;
+  FQryCountFAQ.SQL.Add( '''
+    SELECT
+       count( r.FEED_ID) as "NB_FAQ"
+    FROM FEED_NEWS r
+    JOIN GROUPS g
+        ON g.GROUP_ID = r.FEED_GROUP
+    WHERE r.STATUS = 'O'
+      AND g.GROUP_TYPE = 'F'
+
+      AND EXISTS (
+            SELECT 1
+            FROM NEWS n
+            WHERE n.FEED_ID = r.FEED_ID
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_CATEGORY cc
+                    WHERE cc.NEWS_ID = n.NEWS_ID
+                      AND cc.CATEGORY_ID = :CATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_SUBCATEGORY sc
+                    WHERE sc.NEWS_ID = n.NEWS_ID
+                      AND sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_COUNTRY cp
+                    WHERE cp.NEWS_ID = n.NEWS_ID
+                      AND cp.COUNTRY_CODE = :COUNTRY_CODE
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_LANG cl
+                    WHERE cl.NEWS_ID = n.NEWS_ID
+                      AND cl.LANGUAGE_CODE = :LANGUAGE_CODE
+              )
+      )
+  ''');
+
   FQryFAQ.UpdateOptions.RequestLive := True;
 
   FQryFAQDetails := TFDQuery.Create( nil );
@@ -361,8 +407,25 @@ begin
   FreeAndNil( FQryFAQDetails );
   FreeAndNil( FQryAddVue );
   FreeAndNil( FQryAddReaction );
+  FreeAndNil( FQryCountFAQ );
 
   inherited;
+end;
+
+function TFaq.ExistsFAQ( aConnection: TFDConnection; aCategoryId,
+  aSubcategoryId: Integer; aCountryCode, aLanguageCode: string ): Boolean;
+begin
+  FQryCountFAQ.Connection := aConnection;
+  FQryCountFAQ.Close;
+  FQryCountFAQ.ParamByName( 'CATEGORY_ID' ).AsInteger := aCategoryId;
+  FQryCountFAQ.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := aSubcategoryId;
+  FQryCountFAQ.ParamByName( 'COUNTRY_CODE' ).AsString := aCountryCode;
+  FQryCountFAQ.ParamByName( 'LANGUAGE_CODE' ).AsString := aLanguageCode;
+  FQryCountFAQ.Open;
+
+  Result := ( FQryCountFAQ.FieldByName( 'NB_FAQ' ).AsInteger > 0 );
+
+  FQryCountFAQ.Close;
 end;
 
 function TFaq.GetFAQCategories( aConnection: TFDConnection; aCategoryId,
@@ -386,8 +449,8 @@ begin
   Result := FQryFAQ;
 end;
 
-function TFaq.GetFAQDetails(aConnection: TFDConnection; aFAQId, aUserID:
-    Integer): TFDQuery;
+function TFaq.GetFAQDetails( aConnection: TFDConnection; aFAQId, aUserID:
+  Integer ): TFDQuery;
 begin
   FQryFAQDetails.Connection := aConnection;
   FQryFAQDetails.Close;
@@ -468,7 +531,7 @@ begin
     if not ( FQryFavorites.Eof ) then
     begin
       LSlide.FAQId1 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
-      LSlide.Title1 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Title1 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
       LSlide.Summary1 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
 
       FQryFavorites.Next;
@@ -477,7 +540,7 @@ begin
     if not ( FQryFavorites.Eof ) then
     begin
       LSlide.FAQId2 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
-      LSlide.Title2 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Title2 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
       LSlide.Summary2 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
 
       FQryFavorites.Next;
@@ -486,7 +549,7 @@ begin
     if not ( FQryFavorites.Eof ) then
     begin
       LSlide.FAQId3 := FQryFavorites.FieldByName( 'NEWS_ID' ).AsInteger;
-      LSlide.Title3 := FQryFavorites.FieldByName( 'TITLE' ).AsString;
+      LSlide.Title3 := FQryFavorites.FieldByName( 'NEWS_TITLE' ).AsString;
       LSlide.Summary3 := FQryFavorites.FieldByName( 'SUMMARY' ).AsString;
 
       FQryFavorites.Next;

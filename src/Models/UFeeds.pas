@@ -74,13 +74,13 @@ type
     /// <summary>
     ///   Retourne un FDQuery contenant la loiste des feeds
     /// </summary>
-    function GetListeFeeds(aConnection: TFDConnection; aFirst, aSkip, aGroupId:
-        Integer; aTitle, aOrderField, aOrder: string): TFDQuery;
+    function GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip, aGroupId:
+      Integer; aTitle, aOrderField, aOrder: string ): TFDQuery;
     /// <summary>
     ///   retourne le nombre de feeds resultatnt
     /// </summary>
-    function GetFeedsCount(aConnection: TFDConnection; aGroupId:Integer; aTitle:
-        string): Integer;
+    function GetFeedsCount( aConnection: TFDConnection; aGroupId: Integer; aTitle:
+      string ): Integer;
   end;
 
   /// <summary>
@@ -381,6 +381,7 @@ type
     ///   Champ FDQuery
     /// </summary>
     FQryFeedsUser: TFDQuery;
+    FQryCountFeedsUser: TFDQuery;
   public
     constructor Create;
     destructor Destroy; override;
@@ -408,6 +409,8 @@ type
     /// </param>
     function GetFeedsUser( aConnection: TFDConnection; aFeedGroup, aCategoryId, aSubcategoryId: Integer; aCountryCode,
       aLanguageCode: string ): TFDQuery;
+    function ExistFeedsUser( aConnection: TFDConnection; aFeedGroup, aCategoryId, aSubcategoryId: Integer; aCountryCode,
+      aLanguageCode: string ): Boolean;
   end;
 
 implementation
@@ -451,11 +454,11 @@ begin
   inherited;
 end;
 
-function TFeeds.GetFeedsCount( aConnection: TFDConnection; aGroupId:Integer;
+function TFeeds.GetFeedsCount( aConnection: TFDConnection; aGroupId: Integer;
   aTitle: string ): Integer;
 begin
   FQryCountFeeds.Connection := aConnection;
-  FQryCountFeeds.ParamByName( 'FEED_GROUP' ).AsInteger:=aGroupId;
+  FQryCountFeeds.ParamByName( 'FEED_GROUP' ).AsInteger := aGroupId;
   FQryCountFeeds.ParamByName( 'TITLE' ).AsString := aTitle;
   FQryCountFeeds.Open;
 
@@ -469,13 +472,13 @@ function TFeeds.GetListeFeeds( aConnection: TFDConnection; aFirst, aSkip, aGroup
 begin
   FQryListeFeeds.SQL.Text := FSelectListeFeeds +
     if ( aOrder <> '' ) then
-    ' order by ' + aOrderField + ' ' + aOrder
-  else
-    '';
+      ' order by ' + aOrderField + ' ' + aOrder
+      else
+        '';
   FQryListeFeeds.Connection := aConnection;
   FQryListeFeeds.ParamByName( 'FIRST' ).AsInteger := aFirst;
   FQryListeFeeds.ParamByName( 'SKIP' ).AsInteger := aSkip;
-  FQryListeFeeds.ParamByName( 'FEED_GROUP' ).AsInteger:=aGroupId;
+  FQryListeFeeds.ParamByName( 'FEED_GROUP' ).AsInteger := aGroupId;
   FQryListeFeeds.ParamByName( 'TITLE' ).AsString := aTitle;
   FQryListeFeeds.Open;
 
@@ -1067,25 +1070,6 @@ end;
 
 constructor TFeedsUser.Create;
 begin
-  //  FQryFeedsUser := TFDQuery.Create( nil );
-  //  FQryFeedsUser.Name := 'QryFeedsUser';
-  //  FQryFeedsUser.SQL.Clear;
-  //  FQryFeedsUser.SQL.Add( '''
-  //    SELECT distinct r.FEED_ID, r.FEED_GROUP, r.FEED_NAME, r.TITLE, r.DISPLAY_TEMPLATE
-  //    FROM FEED_NEWS r
-  //    join NEWS n on (n.FEED_ID = r.FEED_ID)
-  //    join NEWS_CONTEXT_CATEGORY cc on (cc.NEWS_ID = n.NEWS_ID)
-  //    join NEWS_CONTEXT_SUBCATEGORY sc on (sc.NEWS_ID = n.NEWS_ID)
-  //    join NEWS_CONTEXT_COUNTRY cp on (cp.NEWS_ID = n.NEWS_ID)
-  //    join NEWS_CONTEXT_LANG cl on (cl.NEWS_ID = n.NEWS_ID)
-  //    where r.STATUS = 'O'
-  //    and r.FEED_GROUP = :FEED_GROUP
-  //    and cc.CATEGORY_ID = :CATEGORY_ID
-  //    and sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
-  //    and cp.COUNTRY_CODE = :COUNTRY_CODE
-  //    and cl.LANGUAGE_CODE = :LANGUAGE_CODE
-  //  ''');
-
   FQryFeedsUser := TFDQuery.Create( nil );
   FQryFeedsUser.Name := 'QryFeedsUser';
   FQryFeedsUser.SQL.Clear;
@@ -1127,13 +1111,72 @@ begin
   ''');
 
   FQryFeedsUser.UpdateOptions.RequestLive := True;
+
+  FQryCountFeedsUser := TFDQuery.Create( nil );
+  FQryCountFeedsUser.Name := 'QryFeedsUser';
+  FQryCountFeedsUser.SQL.Clear;
+  FQryCountFeedsUser.SQL.Add( '''
+    SELECT count( distinct r.FEED_ID) as "NB_ENR"
+    FROM FEED_NEWS r
+    join NEWS n on (n.FEED_ID = r.FEED_ID)
+    where r.STATUS = 'O'
+    and r.FEED_GROUP = :FEED_GROUP
+    AND EXISTS (
+            SELECT 1
+            FROM NEWS n
+            WHERE n.FEED_ID = r.FEED_ID
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_CATEGORY cc
+                    WHERE cc.NEWS_ID = n.NEWS_ID
+                      AND cc.CATEGORY_ID = :CATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_SUBCATEGORY sc
+                    WHERE sc.NEWS_ID = n.NEWS_ID
+                      AND sc.SUBCATEGORY_ID = :SUBCATEGORY_ID
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_COUNTRY cp
+                    WHERE cp.NEWS_ID = n.NEWS_ID
+                      AND cp.COUNTRY_CODE = :COUNTRY_CODE
+              )
+              AND EXISTS (
+                    SELECT 1
+                    FROM NEWS_CONTEXT_LANG cl
+                    WHERE cl.NEWS_ID = n.NEWS_ID
+                      AND cl.LANGUAGE_CODE = :LANGUAGE_CODE
+              )
+      )
+  ''');
+
+  FQryCountFeedsUser.UpdateOptions.RequestLive := True;
 end;
 
 destructor TFeedsUser.Destroy;
 begin
   FreeAndNil( FQryFeedsUser );
+  FreeAndNil( FQryCountFeedsUser );
 
   inherited;
+end;
+
+function TFeedsUser.ExistFeedsUser( aConnection: TFDConnection; aFeedGroup,
+  aCategoryId, aSubcategoryId: Integer; aCountryCode,
+  aLanguageCode: string ): Boolean;
+begin
+  FQryCountFeedsUser.Connection := aConnection;
+  FQryCountFeedsUser.Close;
+  FQryCountFeedsUser.ParamByName( 'FEED_GROUP' ).AsSmallInt := aFeedGroup;
+  FQryCountFeedsUser.ParamByName( 'CATEGORY_ID' ).AsInteger := aCategoryId;
+  FQryCountFeedsUser.ParamByName( 'SUBCATEGORY_ID' ).AsInteger := aSubcategoryId;
+  FQryCountFeedsUser.ParamByName( 'COUNTRY_CODE' ).AsString := aCountryCode;
+  FQryCountFeedsUser.ParamByName( 'LANGUAGE_CODE' ).AsString := aLanguageCode;
+  FQryCountFeedsUser.Open;
+
+  Result := ( FQryCountFeedsUser.FieldByName( 'NB_ENR' ).AsInteger > 0 );
 end;
 
 function TFeedsUser.GetFeedsUser( aConnection: TFDConnection; aFeedGroup,

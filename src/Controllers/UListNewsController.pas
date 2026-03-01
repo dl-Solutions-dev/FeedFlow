@@ -1251,23 +1251,14 @@ begin
 
       LTemplateName := LFeed.GetTemplateName( LDM.cnxFeedFlow, LIdFeed );
 
-      //        LDM.qryFeeds.close;
-      //        LDM.qryFeeds.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-      //        LDM.qryFeeds.Open;
-
       if FileExists( TPath.Combine( FWebStencilsEngine.RootDirectory, LTemplateName ) ) then
       begin
         Logger.Info( 'ShowNews, LIdFeed : ' + LIdFeed.ToString );
-
-        //          LDM.QryShowNews.ParamByName( 'FEED_ID' ).AsInteger := LIdFeed;
-        //          LDM.QryShowNews.Open;
 
         FWebStencilsProcessor.AddVar( 'News', LShowNews.GetNews( LDM.cnxFeedFlow, LIdFeed ), False );
 
         Response.ContentType := 'text/html; charset=UTF-8';
         Response.Content := RenderTemplate( LTemplateName, Request );
-
-        //          LDM.QryShowNews.Close;
       end
       else
       begin
