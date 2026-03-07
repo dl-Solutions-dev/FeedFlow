@@ -83,7 +83,7 @@ type
     ///   Retourne la liste des documents autorisés à l'utilisateur
     /// </summary>
     procedure GetDocuments( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
-
+    procedure GetDocument( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     /// <summary>
     ///   Initialise les routes exposées par le controller
     /// </summary>
@@ -101,7 +101,7 @@ uses
   System.SyncObjs,
   System.IOUtils,
   System.Generics.Collections,
-  System.StrUtils,
+  System.StrUtils,  System.NetEncoding,
   Web.ReqMulti,
   IdHTTP,
   Web.ReqFiles,
@@ -116,7 +116,9 @@ uses
   UFeeds,
   UNews,
   UControllersRegistry,
-  UFaq;
+  UFaq,
+  Utils.Config,
+  Utils;
 
 const
   /// <summary>
@@ -189,8 +191,8 @@ begin
         LDM.MtUrlsOrdre.Value := 2;
         LDM.MtUrlsURL.Value := './GetDocuments?idGroup=2' + if ( LCategory <> 0 ) then
           '&admin_category=' + LCategory.ToString + '&admin_subcategory=' + LSubcategory.ToString + '&admin_country=' + LCountry
-           +
-        '&admin_lang=' + LLang else '';
+        +
+          '&admin_lang=' + LLang else '';
         LDM.MtUrlsImageFileName.Value := 'documents.png';
         LDM.MtUrlsAlt.Value := 'Documents';
         LDM.MtUrls.Post;
@@ -238,6 +240,40 @@ begin
   end;
 end;
 
+procedure TUserFeedsController.GetDocument( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+begin
+  logger.Info( 'GetDocuments' );
+  var LDM := GetDMSession( Request );
+
+  if Assigned( LDM ) then
+  begin
+    if FileExists( TPath.Combine( TConfig.GetInstance.FilesFolder, Request.QueryFields.Values[ 'DocumentName' ] ) ) then
+    begin
+      var LFileName := TPath.Combine( TConfig.GetInstance.FilesFolder, Request.QueryFields.Values[ 'DocumentName' ] );
+      var LFileStream := TFileStream.Create( LFileName, fmOpenRead );
+      try
+        Response.ContentType := GetContentType( ExtractFileName( LFileName ) );
+        Response.CustomHeaders.Add( 'Content-Disposition=attachment; filename="' + TNetEncoding.URL.Encode(ExtractFileName( LFileName )) + '"' );
+        Response.CustomHeaders.Add( 'Content-Transfer-Encoding=binary' );
+        Response.CustomHeaders.Add( 'Content-Length=' + LFileStream.Size.ToString );
+        Response.CustomHeaders.Add( 'Pragma=no-cache' );
+        Response.CustomHeaders.Add( 'Cache-Control=no-store, no-cache, must-revalidate, post-check=0, pre-check=0' );
+        Response.CustomHeaders.Add( 'Expires=0' );
+        Response.ContentStream := LFileStream;
+        Response.SendResponse;
+      except
+        on E: Exception do
+          Response.Content := 'Erreur : ' + E.Message;
+      end;
+    end
+    else
+    begin
+      Response.Content := 'Fichier non trouvé.'
+    end;
+  end;
+end;
+
 procedure TUserFeedsController.GetDocuments( Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 var
@@ -245,7 +281,7 @@ var
   LIdGroup: Integer;
   LFeedsUser: TFeedsUser;
 begin
-  logger.Info( 'ShowNews' );
+  logger.Info( 'GetDocuments' );
   LDM := GetDMSession( Request );
 
   if Assigned( LDM ) then
@@ -401,7 +437,8 @@ begin
       TRoute.Create( mtGet, '/Home', Self.Home ),
       TRoute.Create( mtPost, '/GetApps', Self.GetApps ),
       TRoute.Create( mtPost, '/GetList', Self.GetList ),
-      TRoute.Create( mtGet, '/GetDocuments', Self.GetDocuments )
+      TRoute.Create( mtGet, '/GetDocuments', Self.GetDocuments ),
+      TRoute.Create( mtGet, '/GetDocument', Self.GetDocument )
       ] );
 end;
 

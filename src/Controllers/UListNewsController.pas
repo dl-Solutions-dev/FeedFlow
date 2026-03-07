@@ -1426,7 +1426,7 @@ begin
 
       Response.ContentType := 'application/json';
       //TODO: paramétrer l'url de base
-      Response.Content := '{"status":"success","url":"http://localhost:8080/' + Request.Files[ 0 ].FileName + '"}';
+      Response.Content := '{"status":"success","url":"http://localhost:8080/GetDocument?DocumentName=' + Request.Files[ 0 ].FileName + '"}';
     end
     else
     begin
