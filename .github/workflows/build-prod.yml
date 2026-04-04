@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, dev]
+    runs-on: [self-hosted, Windows, X64, dev]
 
     steps:
       # 1️⃣ Checkout + submodules (AUTH OK)
