@@ -183,14 +183,6 @@ begin
     LDM.MtUrlsAlt.Value := 'Logout';
     LDM.MtUrls.Post;
 
-    //      LDM.MtUrls.Open;
-    //      LDM.MtUrls.Insert;
-    //      LDM.MtUrlsOrdre.Value := 3;
-    //      LDM.MtUrlsURL.Value := './FeedsList?scope=Page';
-    //      LDM.MtUrlsImageFileName.Value := 'parametre.png';
-    //      LDM.MtUrlsAlt.Value := 'Paramètres';
-    //      LDM.MtUrls.Post;
-
     LDM.MtUrls.IndexFieldNames := 'Order';
 
     FWebStencilsProcessor.AddVar( 'Urls', LDM.MtUrls, False );
