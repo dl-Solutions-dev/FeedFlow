@@ -137,3 +137,5 @@ jobs:
         shell: cmd
         run : |
           mkdir deploy
+          mkdir deploy\web
+          move web\* deploy\web\
