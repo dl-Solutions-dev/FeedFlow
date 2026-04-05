@@ -133,8 +133,10 @@ jobs:
           AssetForge --Prod --ci -r web\ -d .\Output\web -m Manifest.json
           
       # Constitution du dossier de déploiement
-      - name: create destination folder
-        shell: pwsh
+      - name: Debug shells disponibles
         run: |
-          New-Item -ItemType Directory -Force -Path "deploy\web"
-          Move-Item -Path "web\*" -Destination "deploy\web\" -Force
+          where powershell
+          where pwsh
+          where bash
+          where cmd
+          where git
