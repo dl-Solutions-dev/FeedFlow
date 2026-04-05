@@ -134,7 +134,7 @@ jobs:
           
       # Constitution du dossier de déploiement
       - name: create destination folder
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p deploy/web
-          mv web/* deploy/web/
+          New-Item -ItemType Directory -Force -Path "deploy\web"
+          Move-Item -Path "web\*" -Destination "deploy\web\" -Force
