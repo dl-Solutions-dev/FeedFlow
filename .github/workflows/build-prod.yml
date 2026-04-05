@@ -126,7 +126,7 @@ jobs:
         run: |
           echo C:\Users\danyleblanc\Documents\DL-Projets\AssetForge\src\Win64\Release>> %GITHUB_PATH%
          
-      # renomage des assets
+      # renommage des assets
       - name: Assets hashing
         shell: cmd
         run: |
