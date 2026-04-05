@@ -134,8 +134,7 @@ jobs:
           
       # Constitution du dossier de déploiement
       - name: create destination folder
-        shell: cmd
-        run : |
-          mkdir deploy
-          mkdir deploy\web
-          move web\* deploy\web\
+        shell: bash
+        run: |
+          mkdir -p deploy/web
+          mv web/* deploy/web/
