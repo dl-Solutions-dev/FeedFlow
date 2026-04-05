@@ -10,7 +10,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64, dev]
 
     steps:
-      # 1️⃣ Checkout + submodules (AUTH OK)
+      # Checkout + submodules (AUTH OK)
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
@@ -25,7 +25,7 @@ jobs:
           git config --list
           git remote -v
 
-      # 2️⃣ Vérification (debug simple)
+      # Vérification (debug simple)
       - name: Vérifier le contenu du repo
         shell: cmd
         run: |
@@ -34,7 +34,7 @@ jobs:
           git submodule status
           dir /s /b src\Common
 
-      # 3️⃣ Création des dossiers de sortie
+      # Création des dossiers de sortie
       - name: Créer les dossiers de sortie
         shell: cmd
         run: |
@@ -44,7 +44,7 @@ jobs:
           if not exist Output\Docs mkdir Output\Docs
           if not exist Output\Release\DCU mkdir Output\Release\DCU
           
-      # 5️⃣ Clean
+      # Clean
       - name: Clean projet
         shell: cmd
         run: |
@@ -56,7 +56,7 @@ jobs:
             /p:Config=Release ^
             /p:Platform=Win64
 
-      # 6️⃣ Build
+      # Build
       - name: Build Release Win64
         shell: cmd
         run: |
@@ -72,22 +72,25 @@ jobs:
             /p:Config=Debug ^
             /p:Platform=Win64
             
-      # 7️⃣ Liste des artefacts générés
+      # Liste des artefacts générés
       - name: Lister les fichiers générés
         shell: cmd
         run: |
           dir /s /b Output\Release
-          
+      
+      # Ajout gestionnare de mémoire
       - name: Add DUnit to PATH
         shell: cmd
         run: |
           echo C:\Users\danyleblanc\Documents\DL-Projets\FastMM4-master\FullDebugMode DLL\Precompiled>> %GITHUB_PATH%
 
+      # Exécution des tests unitaire
       - name: Run DUnit tests
         shell: cmd
         run: |
           Tests\Win64\Debug\FeedFlow.tests.exe
 
+      # Envoi des résultats
       - name: Publish test results
         uses: actions/upload-artifact@v4
         if: always()  # Même si les tests échouent
@@ -95,11 +98,13 @@ jobs:
           name: Test Results
           path: Tests\Win64\Debug\dunitx-results.xml
 
+      # Ajout de la bibliothèque
       - name: Add Pasdoc to PATH
         shell: cmd
         run: |
           echo C:\Mac\Home\Documents\pasdoc\bin>> %GITHUB_PATH%
       
+      # Génération de la documentation
       - name: Génération documentation
         shell: cmd
         run: |
@@ -115,12 +120,20 @@ jobs:
             src\Server\*.pas ^
             src\Services\*.pas
       
+      # Ajout path AssetForge
       - name: Add AssetForge to PATH
         shell: cmd
         run: |
           echo C:\Users\danyleblanc\Documents\DL-Projets\AssetForge\src\Win64\Release>> %GITHUB_PATH%
-          
+         
+      # renomage des assets
       - name: Assets hashing
         shell: cmd
         run: |
           AssetForge --Prod --ci -r web\ -d .\Output\web -m Manifest.json
+          
+      # Constitution du dossier de déploiement
+      - name: create destination folder
+        shell: cmd
+        run : |
+          mkdir deploy
