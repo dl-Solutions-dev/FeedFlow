@@ -165,5 +165,4 @@ jobs:
           Move-Item -Path "deploy\img" -Destination "deploy\Templates\static" -Force
           Move-Item -Path "deploy\js" -Destination "deploy\Templates\static" -Force
           Move-Item -Path "deploy\Templates\locales" -Destination "deploy\Templates\static" -Force
-          Remove-Item -Path "deploy\locales" -Recurse -Force
           Move-Item -Path "src\Output\Release\FeedFlow.dll" -Destination "deploy\FeedFlow.dll" -Force
