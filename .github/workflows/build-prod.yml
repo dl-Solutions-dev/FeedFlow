@@ -161,4 +161,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path "deploy"
           Move-Item -Path "web\*" -Destination "deploy\" -Force
+          Move-Item -Path "deploy\css" -Destination "deploy\Templates" -Force
+          Move-Item -Path "deploy\img" -Destination "deploy\Templates" -Force
+          Move-Item -Path "deploy\js" -Destination "deploy\Templates" -Force
+          Move-Item -Path "Output\web\Templates\locales" -Destination "deploy\Templates" -Force
+          Remove-Item -Path "deploy\locales" -Recurse -Force
           Move-Item -Path "src\Output\Release\FeedFlow.dll" -Destination "deploy\FeedFlow.dll" -Force
