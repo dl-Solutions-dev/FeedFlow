@@ -139,12 +139,21 @@ jobs:
           echo C:\Users\danyleblanc\Documents\DL-Projets\I18nForgeX\src\cli\Win64\Release>> %GITHUB_PATH%
           
       - name: Generate translation
-        shell: cmd
+        shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
+        
           i18nForgeX --ci -p .\18n\Translate.i18x --scan
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
           i18nForgeX --ci -p .\18n\Translate.i18x --Export-Excel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
           i18nForgeX --ci -p .\18n\Translate.i18x --Tranlate
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
           i18nForgeX --ci -p .\18n\Translate.i18x --Build-JSon
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           
       # Constitution du dossier de déploiement
       - name: create destination folder
