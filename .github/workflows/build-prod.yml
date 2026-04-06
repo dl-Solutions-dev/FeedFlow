@@ -143,16 +143,16 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
         
-          i18nForgeX --ci -p .\18n\Translate.i18x --scan
+          i18nForgeX --ci -p .\i18n\Translate.i18x --scan
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
-          i18nForgeX --ci -p .\18n\Translate.i18x --Export-Excel
+          i18nForgeX --ci -p .\i18n\Translate.i18x --Export-Excel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
-          i18nForgeX --ci -p .\18n\Translate.i18x --Tranlate
+          i18nForgeX --ci -p .\i18n\Translate.i18x --Tranlate
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
-          i18nForgeX --ci -p .\18n\Translate.i18x --Build-JSon
+          i18nForgeX --ci -p .\i18n\Translate.i18x --Build-JSon
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           
       # Constitution du dossier de déploiement
