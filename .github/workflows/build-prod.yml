@@ -131,6 +131,20 @@ jobs:
         shell: cmd
         run: |
           AssetForge --Prod --ci -r web\ -d .\Output\web -m C:\actions-runner\Manifest.json
+        
+      # Génération de la traduction
+      - name: Add I18nForgeX to PATH
+        shell: cmd
+        run: |
+          echo C:\Users\danyleblanc\Documents\DL-Projets\I18nForgeX\src\cli\Win64\Release>> %GITHUB_PATH%
+          
+      - name: Generate translation
+        shell: cmd
+        run: |
+          i18nForgeX --ci -p .\18n\Translate.i18x --scan
+          i18nForgeX --ci -p .\18n\Translate.i18x --Export-Excel
+          i18nForgeX --ci -p .\18n\Translate.i18x --Tranlate
+          i18nForgeX --ci -p .\18n\Translate.i18x --Build-JSon
           
       # Constitution du dossier de déploiement
       - name: create destination folder
