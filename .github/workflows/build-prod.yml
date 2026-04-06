@@ -161,6 +161,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path "deploy"
           Move-Item -Path "Output\web\*" -Destination "deploy\" -Force
+          New-Item -ItemType Directory -Force -Path "deploy\Templates\static"
           Move-Item -Path "deploy\css" -Destination "deploy\Templates\static\css" -Force
           Move-Item -Path "deploy\img" -Destination "deploy\Templates\static\img" -Force
           Move-Item -Path "deploy\js" -Destination "deploy\Templates\static\js" -Force
