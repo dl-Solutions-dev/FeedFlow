@@ -199,6 +199,7 @@
         <DCCReference Include="Models\UNews.pas"/>
         <DCCReference Include="Infrastructure\Routing\UControllersRegistry.pas"/>
         <DCCReference Include="Models\UGroups.pas"/>
+        <DCCReference Include="Infrastructure\Support\Utils.Images.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -240,6 +241,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="Output\Release\FeedFlow.dll" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>FeedFlow.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\FeedFlow.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>FeedFlow.dll</RemoteName>
@@ -248,12 +255,6 @@
                 </DeployFile>
                 <DeployFile LocalName="Win32\Release\FeedFlow.dll" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>FeedFlow.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Release\FeedFlow.dll" Configuration="Release" Class="ProjectOutput">
-                    <Platform Name="Win64">
                         <RemoteName>FeedFlow.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>

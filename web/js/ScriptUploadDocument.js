@@ -43,6 +43,88 @@ quillSummary = new Quill('#editor-Summary-container', {
   }
 });
 
+// Remplacer le handler image par défaut
+const toolbar = quill.getModule('toolbar');
+
+toolbar.addHandler('image', () => {
+  const input = document.createElement('input');
+  input.setAttribute('type', 'file');
+  input.setAttribute('accept', 'image/*');
+  input.click();
+
+  input.onchange = async () => {
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('image', file);
+
+	let data;
+
+	// 1. Erreur réseau (pas de connexion, timeout...)
+	try {
+		const response = await fetch('./upload-image', {
+		  method: 'POST',
+		  body: formData,
+		});
+
+		// 2. Erreur HTTP (400, 413, 415, 500...)
+		if (!response.ok) {
+		  const { error } = await response.json();
+		  throw new Error(error || 'Erreur serveur ' + response.status);
+		}
+
+		// 3. Réponse OK
+		data = await response.json();
+
+	} catch (e) {
+		alert('Upload échoué : ' + e.message);
+		return;
+	}
+
+    // Insérer l'URL dans Quill au lieu du base64
+    const range = quill.getSelection();
+    quill.insertEmbed(range.index, 'image', data.url);
+  };
+});
+
+quill.root.addEventListener('paste', async (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+		e.preventDefault(); // bloquer l'insertion base64 par défaut
+
+		const file = item.getAsFile();
+		const formData = new FormData();
+		formData.append('image', file);
+
+		// 1. Erreur réseau (pas de connexion, timeout...)
+		try {
+			const response = await fetch('./upload-image', {
+			  method: 'POST',
+			  body: formData,
+			});
+
+			// 2. Erreur HTTP (400, 413, 415, 500...)
+			if (!response.ok) {
+			  const { error } = await response.json();
+			  throw new Error(error || 'Erreur serveur ' + response.status);
+			}
+
+			// 3. Réponse OK
+			data = await response.json();
+
+		} catch (e) {
+			alert('Upload échoué : ' + e.message);
+			return;
+		}
+
+      const range = quill.getSelection();
+      quill.insertEmbed(range?.index ?? 0, 'image', data.url);
+    }
+  }
+});
+
 ///window.QuillService.set( quill );
 
 // Clique sur la zone => ouvre le sélecteur

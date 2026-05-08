@@ -76,6 +76,7 @@ type
     procedure ShowGroup( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure UploadDocument( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
     procedure SortNews( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+    procedure UploadImage( Sender: TObject; Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
 
     procedure InitializeActions( aWebModule: TWebModule; aWebStencil: TWebStencilsEngine ); override;
 
@@ -107,7 +108,8 @@ uses
   USubcategories,
   UCountries,
   ULanguages,
-  UControllersRegistry;
+  UControllersRegistry,
+  Utils.Images;
 
 const
   NAVIGATION_NAME: string = 'NewsList';
@@ -720,7 +722,8 @@ begin
       TRoute.Create( mtPost, '/GetGroup', Self.GetGroup ),
       TRoute.Create( mtGet, '/ShowGroup', Self.ShowGroup ),
       TRoute.Create( mtPost, '/UploadDocument', Self.UploadDocument ),
-      TRoute.Create( mtGet, '/SortNews', Self.SortNews )
+      TRoute.Create( mtGet, '/SortNews', Self.SortNews ),
+      TRoute.Create( mtPost, '/upload-image', Self.UploadImage )
       ] );
 end;
 
@@ -970,8 +973,8 @@ begin
 
       FWebStencilsProcessor.AddVar( 'newsList',
         LListNews.GetNewslist( LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage, FFeedId.ToInteger, LTitle, LWhereClause,
-        LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
-        ),
+          LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
+          ),
         False );
       FWebStencilsProcessor.AddVar( 'Categories', LCategories.GetListOfCategories( LDM.cnxFeedFlow ), False );
       FWebStencilsProcessor.AddVar( 'SubCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
@@ -1380,8 +1383,8 @@ begin
 
     FWebStencilsProcessor.AddVar( 'newsList',
       LListNews.GetNewslist( LDM.cnxFeedFlow, LLinesPerPage, LPage * LLinesPerPage, LFeedId, LTitle, '',
-      LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
-      ),
+        LDM.SessionVariables.Values[ 'SortNewsField' ], LDM.SessionVariables.Values[ 'SortNewsOrd' ], LDateSearch, LDateSearch
+        ),
       False );
     FWebStencilsProcessor.AddVar( 'Categories', LCategories.GetListOfCategories( LDM.cnxFeedFlow ), False );
     FWebStencilsProcessor.AddVar( 'SousCategories', LSubcategories.GetListOfSubcategories( LDM.cnxFeedFlow ), False );
@@ -1444,6 +1447,72 @@ begin
     end;
   end;
 
+  Handled := True;
+end;
+
+procedure TListENewsController.UploadImage( Sender: TObject;
+  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean );
+var
+  FileField: TAbstractWebRequestFile;
+  GUID: TGUID;
+begin
+  FileField := nil;
+
+  // Récupérer le fichier uploadé (champ "image")
+  for var i := 0 to Request.Files.Count - 1 do
+  begin
+    if ( CompareText( Request.Files[ i ].FieldName, 'image' ) = 0 ) then
+    begin
+      FileField := Request.Files[ i ];
+    end;
+  end;
+
+  if FileField = nil then
+  begin
+    SendJsonError( Response, Handled, 400, 'No file received' );
+
+    Exit;
+  end;
+
+  // LValidation complète (taille + magic bytes + décodage + dimensions)
+  var LValidation := ValidateImage( FileField.Stream );
+  if not LValidation.IsValid then
+  begin
+    SendJsonError( Response, Handled, 415, LValidation.ErrorMsg );
+    Exit;
+  end;
+
+  // Générer un nom unique
+  CreateGUID( GUID );
+  var LUniqueName := GUIDToString( GUID ).Replace( '{', '' ).Replace( '}', '' ).Replace( '-', '' );
+  var LExt := ImageTypeToExt( LValidation.ImageType );
+  var LFileName := LUniqueName + LExt;
+
+  // Déterminer l'extension
+  LExt := ExtractFileExt( FileField.FileName );
+  if LExt = '' then
+    LExt := '.png'; // fallback
+
+  LFileName := LUniqueName + LExt;
+  var LSavePath := TPath.Combine( TConfig.GetInstance.UploadsFolder, LFileName );
+  var LUrlPath := '/uploads/' + LFileName;
+
+  // Sauvegarder le fichier
+  var LFileStream := TFileStream.Create( LSavePath, fmCreate );
+  try
+    FileField.Stream.Position := 0;
+    LFileStream.CopyFrom( FileField.Stream, FileField.Stream.Size );
+  finally
+    LFileStream.Free;
+  end;
+
+  // Retourner l'URL en JSON
+  Response.StatusCode := 200;
+  Response.ContentType := 'application/json';
+  Response.Content := Format(
+    '{"url":"%s","width":%d,"height":%d}',
+    [ LUrlPath, LValidation.Width, LValidation.Height ]
+    );
   Handled := True;
 end;
 

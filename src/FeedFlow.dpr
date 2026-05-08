@@ -64,7 +64,8 @@ uses
   UFeeds in 'Models\UFeeds.pas',
   UNews in 'Models\UNews.pas',
   UControllersRegistry in 'Infrastructure\Routing\UControllersRegistry.pas',
-  UGroups in 'Models\UGroups.pas';
+  UGroups in 'Models\UGroups.pas',
+  Utils.Images in 'Infrastructure\Support\Utils.Images.pas';
 
 {$R *.res}
 

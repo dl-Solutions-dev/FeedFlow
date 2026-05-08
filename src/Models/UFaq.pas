@@ -93,7 +93,7 @@ type
     FQryFAQDetails: TFDQuery;
     FQryAddVue: TFDQuery;
     FQryAddReaction: TFDQuery;
-    FMtSlide: TFDMemTable;
+//    FMtSlide: TFDMemTable;
   public
     constructor Create;
     destructor Destroy; override;

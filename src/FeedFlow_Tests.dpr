@@ -71,7 +71,8 @@ uses
   Utils.Config in 'Infrastructure\Config\Utils.Config.pas',
   UGroups in 'Models\UGroups.pas',
   UFAQController in 'Controllers\UFAQController.pas',
-  UFaq in 'Models\UFaq.pas';
+  UFaq in 'Models\UFaq.pas',
+  Utils.Images in 'Infrastructure\Support\Utils.Images.pas';
 
 {$R *.res}
 

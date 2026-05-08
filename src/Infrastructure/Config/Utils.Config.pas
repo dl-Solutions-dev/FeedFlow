@@ -65,12 +65,14 @@ type
     FDatabaseName: string;
     FResourcePath: string;
     FFilesFolder: string;
+    FUploadsFolder: string;
 
     class var FInstance: TConfig;
     class var FSynchro: TMultiReadExclusiveWriteSynchronizer;
 
     procedure Initialisation;
     procedure SetFilesFolder(const Value: string);
+    procedure SetUploadsFolder(const Value: string);
   public
     destructor Destroy; override;
 
@@ -107,6 +109,7 @@ type
     ///   Chemin du dossier contenant les fichiers uploadés
     /// </summary>
     property FilesFolder:string read FFilesFolder write SetFilesFolder;
+    property UploadsFolder:string read FUploadsFolder write SetUploadsFolder;
   end;
 
 implementation
@@ -179,11 +182,17 @@ begin
   FApp_Name := ReadString( 'Parametres', 'AppName', '' );
   FResourcePath := ReadString( 'Parametres', 'ResourcePath', '' );
   FFilesFolder  := ReadString( 'Parametres', 'FilesFolder', '' );
+  FUploadsFolder  := ReadString( 'Parametres', 'UploadsFolder', '' );
 end;
 
 procedure TConfig.SetFilesFolder(const Value: string);
 begin
   FFilesFolder := Value;
+end;
+
+procedure TConfig.SetUploadsFolder(const Value: string);
+begin
+  FUploadsFolder := Value;
 end;
 
 end.

@@ -82,6 +82,9 @@ type
     procedure AddSessionObject( Request: TWebRequest; aSessionObjectName: string;
       aSessionObject: TObject );
     procedure SendEmptyContent( aResponse: TWebResponse );
+    procedure SendJson( Response: TWebResponse; var Handled: Boolean; StatusCode: Integer; Json: string );
+    procedure SendJsonOk( Response: TWebResponse; var Handled: Boolean; Json: string );
+    procedure SendJsonError( Response: TWebResponse; var Handled: Boolean; StatusCode: Integer; Msg: string );
   public
     destructor Destroy; override;
 
@@ -229,7 +232,7 @@ begin
     on E: Exception do
     begin
       Logger.Error( Format( 'Error rendering template %s: %s', [ ATemplatePath,
-          E.Message ] ) );
+            E.Message ] ) );
       Result := '';
     end;
   end;
@@ -240,6 +243,27 @@ begin
   aResponse.Content := ' ';
   aResponse.ContentLength := 1;
   aResponse.StatusCode := 200;
+end;
+
+procedure TBaseController.SendJson( Response: TWebResponse; var Handled: Boolean;
+  StatusCode: Integer; Json: string );
+begin
+  Response.StatusCode := StatusCode;
+  Response.ContentType := 'application/json';
+  Response.Content := Json;
+  Handled := True;
+end;
+
+procedure TBaseController.SendJsonError( Response: TWebResponse;
+  var Handled: Boolean; StatusCode: Integer; Msg: string );
+begin
+  SendJson( Response, Handled, StatusCode, Format( '{"error":"%s"}', [ Msg ] ) );
+end;
+
+procedure TBaseController.SendJsonOk( Response: TWebResponse;
+  var Handled: Boolean; Json: string );
+begin
+  SendJson( Response, Handled, 200, Json );
 end;
 
 procedure TBaseController.SetTitre( const Value: string );
