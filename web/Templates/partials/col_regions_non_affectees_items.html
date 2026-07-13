@@ -1,0 +1,29 @@
+<div class="list-group list-group-flush">
+  @ForEach (var country in NonAffectees) {
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              hx-post="/affecterRegion"
+              hx-vals='{"country": "@country.Country"}'
+              hx-target="#col-affectees"
+              hx-swap="innerHTML"
+              aria-label="Affecter à la région sélectionnée">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <!--<span class="font-monospace small">@codeLangue.LangueUtilisateur</span>-->
+	  <div>
+        <div>@country.country</div>
+        <small class="text-muted">@country.Libelle</small>
+      </div>
+	  <button type="button"
+			class="btn btn-sm btn-outline-danger border-0"
+			hx-delete="/deleteCountry?code=@country.Country"
+			hx-target="#col-non-affectees-list"
+			hx-swap="innerHTML swap:0.3s"
+			hx-confirm="Supprimer définitivement le pays « @Country.libelle » ?"
+			onclick="event.stopPropagation()">
+		<i class="bi bi-trash"></i>
+	  </button>
+    </div>
+  }
+</div>

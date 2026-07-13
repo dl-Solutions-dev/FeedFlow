@@ -85,6 +85,7 @@ type
     procedure SendJson( Response: TWebResponse; var Handled: Boolean; StatusCode: Integer; Json: string );
     procedure SendJsonOk( Response: TWebResponse; var Handled: Boolean; Json: string );
     procedure SendJsonError( Response: TWebResponse; var Handled: Boolean; StatusCode: Integer; Msg: string );
+    procedure ShowToastError( Response: TWebResponse; aMsg: string );
   public
     destructor Destroy; override;
 
@@ -110,6 +111,27 @@ uses
   UConsts,
   Utils.Logger,
   Utils.Config;
+
+function EscapeJsonUnicode(const AText: string): string;
+var
+  I: Integer;
+  C: Char;
+begin
+  Result := '';
+  for I := 1 to Length(AText) do
+  begin
+    C := AText[I];
+    case C of
+      '"': Result := Result + '\"';
+      '\': Result := Result + '\\';
+    else
+      if Ord(C) > 127 then
+        Result := Result + Format('\u%.4x', [Ord(C)])
+      else
+        Result := Result + C;
+    end;
+  end;
+end;
 
 { TBaseController }
 
@@ -269,6 +291,15 @@ end;
 procedure TBaseController.SetTitre( const Value: string );
 begin
   FTitre := Value;
+end;
+
+procedure TBaseController.ShowToastError( Response: TWebResponse; aMsg: string );
+begin
+  var LPayload := Format( '{"showErrorToast":{"message":"%s"}}',
+    [ EscapeJsonUnicode( aMsg.Replace('"', '\"', [rfReplaceAll])) ] );
+  Response.CustomHeaders.Values[ 'HX-Trigger' ] := LPayload;
+  Response.StatusCode := 400; // ou le code approprié
+  Response.Content := ''; // ou un fragment HTML si besoin
 end;
 
 function TBaseController.WebModule( aWebActionitem: TObject ): TWebModule;

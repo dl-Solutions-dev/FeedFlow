@@ -30,6 +30,11 @@
 		<!-- Colonne 2 -->
 		<div class="col-md-2 col-lg-2 order-1 order-md-2">
 			<div class="card-custom mb-4"
+				@if (Form.Category <> ""){
+				hx-post="@env.resource/GetApps?admin_category=@Form.Category&admin_subcategory=@Form.Subcategory&admin_country=@Form.Country&admin_lang=@Form.Language"
+				} @else {
+				hx-post="@env.resource/GetApps"
+				}
 				hx-post="@env.resource/GetApps"
 				hx-trigger="load"
 				hx-sap="innerHTML"

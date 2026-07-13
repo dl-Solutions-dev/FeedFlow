@@ -72,7 +72,10 @@ uses
   UGroups in 'Models\UGroups.pas',
   UFAQController in 'Controllers\UFAQController.pas',
   UFaq in 'Models\UFaq.pas',
-  Utils.Images in 'Infrastructure\Support\Utils.Images.pas';
+  Utils.Images in 'Infrastructure\Support\Utils.Images.pas',
+  ULanguesController in 'Controllers\ULanguesController.pas',
+  URegions in 'Models\URegions.pas',
+  URegionsController in 'Controllers\URegionsController.pas';
 
 {$R *.res}
 

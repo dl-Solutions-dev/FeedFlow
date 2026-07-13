@@ -93,7 +93,7 @@ uses
   Utils.Config,
   uBaseController,
   uInterfaces,
-  UControllersRegistry;
+  UControllersRegistry,System.NetEncoding;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 

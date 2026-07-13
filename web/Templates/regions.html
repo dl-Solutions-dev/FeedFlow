@@ -1,0 +1,65 @@
+@LayoutPage layouts/mainLayout
+
+<div class="container">
+	<h1 class="text-center">@LangForm.TITRE</h1>
+	<div class="container-fluid py-4 px-4">
+	  <h1 class="h4 mb-4">Régions du portail</h1>
+
+	  <div class="row g-3">
+
+		<!-- Colonne gauche : Régions du portail -->
+		<div class="col-md-4">
+		  <div class="card">
+			<div class="card-header bg-white fw-semibold">Régions du portail</div>
+			<div id="col-portail-list">
+			  @Import partials/col_regions_portail_items { @Regions, @SelectedRegion }
+			</div>
+			<div class="card-footer bg-white">
+			  <form hx-post="/addRegion" hx-target="#col-portail-list" hx-swap="innerHTML" class="d-flex flex-column gap-2">
+				<input type="text" name="code" class="form-control form-control-sm" placeholder="ex : EU:FR" maxlength="100" required>
+				<button type="submit" class="btn btn-dark btn-sm">
+				  <i class="bi bi-plus-lg"></i> Ajouter
+				</button>
+			  </form>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Colonne centrale : Pays affectés à la région sélectionnée -->
+		<div class="col-md-4">
+		  <div id="col-affectees" class="card">
+			@Import partials/col_regions_affectees_items { @Affectees, @Selectedregion }
+		  </div>
+		</div>
+
+		<!-- Colonne droite : pays non affectées -->
+		<div class="col-md-4">
+		  <div class="card">
+			<div class="card-header bg-white">
+			  <div class="fw-semibold">Non affectés</div>
+			  <small class="text-muted">Pays sans région portail.</small>
+			</div>
+			<div id="col-non-affectees-list">
+			  @Import partials/col_regions_non_affectees_items { @NonAffectees }
+			</div>
+			<div class="card-footer bg-white">
+			  <form hx-post="/AddCountry" hx-target="#col-non-affectees-list" hx-swap="innerHTML" class="d-flex flex-column gap-2">
+				<input type="text" name="code" class="form-control form-control-sm" placeholder="ex : FR" required>
+				<input type="text" name="libelle" class="form-control form-control-sm" placeholder="Nom du pays" required>
+				<button type="submit" class="btn btn-dark btn-sm">
+				  <i class="bi bi-plus-lg"></i> Ajouter
+				</button>
+			  </form>
+			</div>
+		  </div>
+		</div>
+
+	  </div>
+	</div>
+</div>
+
+<script>
+document.body.addEventListener('showErrorToast', function(evt) {
+    showToast('error', evt.detail.message);
+});
+</script>

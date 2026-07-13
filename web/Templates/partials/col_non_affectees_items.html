@@ -1,0 +1,29 @@
+<div class="list-group list-group-flush">
+  @ForEach (var codeLangue in NonAffectees) {
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              hx-post="/affecter"
+              hx-vals='{"langueUtilisateur": "@codeLangue.LangueUtilisateur"}'
+              hx-target="#col-affectees"
+              hx-swap="innerHTML"
+              aria-label="Affecter à la langue sélectionnée">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <!--<span class="font-monospace small">@codeLangue.LangueUtilisateur</span>-->
+	  <div>
+        <div>@codeLangue.libelle</div>
+        <small class="text-muted">@codeLangue.LangueUtilisateur</small>
+      </div>
+	  <button type="button"
+			class="btn btn-sm btn-outline-danger border-0"
+			hx-delete="/deleteUserLanguage?code=@codeLangue.LangueUtilisateur"
+			hx-target="#col-non-affectees-list"
+			hx-swap="innerHTML swap:0.3s"
+			hx-confirm="Supprimer définitivement la langue utilisateur « @codeLangue.libelle » ?"
+			onclick="event.stopPropagation()">
+		<i class="bi bi-trash"></i>
+	  </button>
+    </div>
+  }
+</div>

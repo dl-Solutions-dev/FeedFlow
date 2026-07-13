@@ -1,0 +1,66 @@
+@LayoutPage layouts/mainLayout
+
+<div class="container">
+	<h1 class="text-center">@LangForm.TITRE</h1>
+	<div class="container-fluid py-4 px-4">
+	  <h1 class="h4 mb-4">Langues du portail</h1>
+
+	  <div class="row g-3">
+
+		<!-- Colonne gauche : langues du portail -->
+		<div class="col-md-4">
+		  <div class="card">
+			<div class="card-header bg-white fw-semibold">Langues du portail</div>
+			<div id="col-portail-list">
+			  @Import partials/col_portail_items { @Langues, @SelectedLangue }
+			</div>
+			<div class="card-footer bg-white">
+			  <form hx-post="/addLangues" hx-target="#col-portail-list" hx-swap="innerHTML" class="d-flex flex-column gap-2">
+				<input type="text" name="code" class="form-control form-control-sm" placeholder="ex : fr" maxlength="5" required>
+				<input type="text" name="libelle" class="form-control form-control-sm" placeholder="Nom de la langue" required>
+				<button type="submit" class="btn btn-dark btn-sm">
+				  <i class="bi bi-plus-lg"></i> Ajouter
+				</button>
+			  </form>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Colonne centrale : langues utilisateur affectées à la langue sélectionnée -->
+		<div class="col-md-4">
+		  <div id="col-affectees" class="card">
+			@Import partials/col_affectees_items { @Affectees, @SelectedLangue }
+		  </div>
+		</div>
+
+		<!-- Colonne droite : langues utilisateur non affectées -->
+		<div class="col-md-4">
+		  <div class="card">
+			<div class="card-header bg-white">
+			  <div class="fw-semibold">Non affectées</div>
+			  <small class="text-muted">Langues utilisateur sans langue portail.</small>
+			</div>
+			<div id="col-non-affectees-list">
+			  @Import partials/col_non_affectees_items { @NonAffectees }
+			</div>
+			<div class="card-footer bg-white">
+			  <form hx-post="/Addlangues-utilisateur" hx-target="#col-non-affectees-list" hx-swap="innerHTML" class="d-flex flex-column gap-2">
+				<input type="text" name="code" class="form-control form-control-sm" placeholder="ex : fr" required>
+				<input type="text" name="libelle" class="form-control form-control-sm" placeholder="Nom de la langue" required>
+				<button type="submit" class="btn btn-dark btn-sm">
+				  <i class="bi bi-plus-lg"></i> Ajouter
+				</button>
+			  </form>
+			</div>
+		  </div>
+		</div>
+
+	  </div>
+	</div>
+</div>
+
+<script>
+document.body.addEventListener('showErrorToast', function(evt) {
+    showToast('error', evt.detail.message);
+});
+</script>

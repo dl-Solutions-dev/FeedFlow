@@ -1,0 +1,21 @@
+<div class="card-header bg-white">
+  <div class="fw-semibold">Affectées à @SelectedRegion.code</div>
+  <small class="text-muted">Pays qui pointent vers cette région portail.</small>
+</div>
+<div class="list-group list-group-flush">
+  @ForEach (var assoc in Affectees) {
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <span class="font-monospace small">@assoc.country</span>
+	  <small class="text-muted">@assoc.Libelle</small>
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              hx-post="/desaffecterRegion"
+              hx-vals='{"country": "@assoc.country"}'
+              hx-target="#col-non-affectees-list"
+              hx-swap="innerHTML"
+              aria-label="Retirer l'affectation">
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  }
+</div>

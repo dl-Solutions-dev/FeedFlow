@@ -11,9 +11,8 @@ object wmMain: TwmMain
     end>
   BeforeDispatch = WebModuleBeforeDispatch
   AfterDispatch = WebModuleAfterDispatch
-  Height = 460
-  Width = 830
-  PixelsPerInch = 192
+  Height = 230
+  Width = 415
   object wsEngineApplication: TWebStencilsEngine
     Dispatcher = WebFileDispatcher
     PathTemplates = <
@@ -24,8 +23,8 @@ object wmMain: TwmMain
       item
         Template = '/{filename}'
       end>
-    Left = 128
-    Top = 64
+    Left = 64
+    Top = 32
   end
   object WebFileDispatcher: TWebFileDispatcher
     WebFileExtensions = <
@@ -72,16 +71,16 @@ object wmMain: TwmMain
       end>
     RootDirectory = '/var/www/html/templates'
     VirtualPath = '/'
-    Left = 304
-    Top = 64
+    Left = 152
+    Top = 32
   end
   object WebSessionManager: TWebSessionManager
     OnCreated = WebSessionManagerCreated
-    Left = 112
-    Top = 224
+    Left = 56
+    Top = 112
   end
   object WebStencilsProcessor1: TWebStencilsProcessor
-    Left = 376
-    Top = 224
+    Left = 188
+    Top = 112
   end
 end
